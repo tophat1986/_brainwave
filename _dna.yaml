@@ -1,0 +1,539 @@
+{
+  "schema_version": "1.0.0",
+  "framework": "_brainwave",
+  "description": "Master genetic map for adaptive enterprise architecture generation.",
+  "rules": {
+    "indexing": "5-digit open spacing with 100-step jumps for directories",
+    "index_space": {
+      "start": 100,
+      "step": 100,
+      "max": 99900
+    },
+    "file_naming": "When expressed, files must start with the node id and follow snake_case",
+    "physical_generation": "Only expressed=true nodes may be scaffolded physically",
+    "default_expressed_state": false
+  },
+  "nodes": {
+    "00100": {
+      "id": "00100",
+      "type": "directory",
+      "path": "00100_concept",
+      "title": "Concept",
+      "parent_id": null,
+      "required": true,
+      "expressed": false,
+      "activation_keywords": ["idea", "problem", "market", "customer", "vision", "concept"]
+    },
+    "00101": {
+      "id": "00101",
+      "type": "file",
+      "path": "00100_concept/00101_problem_statement.md",
+      "title": "Problem Statement",
+      "intent": "Define the exact problem and business pressure.",
+      "parent_id": "00100",
+      "required": true,
+      "expressed": false
+    },
+    "00102": {
+      "id": "00102",
+      "type": "file",
+      "path": "00100_concept/00102_target_audience.md",
+      "title": "Target Audience",
+      "intent": "Capture user segments and stakeholders.",
+      "parent_id": "00100",
+      "required": true,
+      "expressed": false
+    },
+    "00103": {
+      "id": "00103",
+      "type": "file",
+      "path": "00100_concept/00103_success_metrics.md",
+      "title": "Success Metrics",
+      "intent": "Define measurable outcomes and KPIs.",
+      "parent_id": "00100",
+      "required": true,
+      "expressed": false
+    },
+    "00104": {
+      "id": "00104",
+      "type": "file",
+      "path": "00100_concept/00104_non_goals.md",
+      "title": "Non Goals",
+      "intent": "Record deliberate exclusions to reduce scope drift.",
+      "parent_id": "00100",
+      "required": false,
+      "expressed": false
+    },
+
+    "00200": {
+      "id": "00200",
+      "type": "directory",
+      "path": "00200_architecture",
+      "title": "Architecture",
+      "parent_id": null,
+      "required": true,
+      "expressed": false,
+      "activation_keywords": ["architecture", "service", "domain", "system", "modular", "design"]
+    },
+    "00201": {
+      "id": "00201",
+      "type": "file",
+      "path": "00200_architecture/00201_system_context.md",
+      "title": "System Context",
+      "intent": "Capture system boundaries and external dependencies.",
+      "parent_id": "00200",
+      "required": true,
+      "expressed": false
+    },
+    "00202": {
+      "id": "00202",
+      "type": "file",
+      "path": "00200_architecture/00202_component_model.md",
+      "title": "Component Model",
+      "intent": "Define modules and interaction contracts.",
+      "parent_id": "00200",
+      "required": true,
+      "expressed": false
+    },
+    "00203": {
+      "id": "00203",
+      "type": "file",
+      "path": "00200_architecture/00203_domain_boundaries.md",
+      "title": "Domain Boundaries",
+      "intent": "Separate responsibilities and ownership edges.",
+      "parent_id": "00200",
+      "required": true,
+      "expressed": false
+    },
+    "00204": {
+      "id": "00204",
+      "type": "file",
+      "path": "00200_architecture/00204_tradeoffs.md",
+      "title": "Tradeoffs",
+      "intent": "Document core tradeoffs and rationale.",
+      "parent_id": "00200",
+      "required": false,
+      "expressed": false
+    },
+
+    "00300": {
+      "id": "00300",
+      "type": "directory",
+      "path": "00300_data_models",
+      "title": "Data Models",
+      "parent_id": null,
+      "required": false,
+      "expressed": false,
+      "activation_keywords": ["data", "database", "schema", "entity", "model", "etl"]
+    },
+    "00301": {
+      "id": "00301",
+      "type": "file",
+      "path": "00300_data_models/00301_domain_entities.md",
+      "title": "Domain Entities",
+      "intent": "Define core entities, ownership, and lifecycles.",
+      "parent_id": "00300",
+      "required": false,
+      "expressed": false
+    },
+    "00302": {
+      "id": "00302",
+      "type": "file",
+      "path": "00300_data_models/00302_schema_strategy.md",
+      "title": "Schema Strategy",
+      "intent": "Capture relational/document patterns and migration approach.",
+      "parent_id": "00300",
+      "required": false,
+      "expressed": false
+    },
+    "00303": {
+      "id": "00303",
+      "type": "file",
+      "path": "00300_data_models/00303_data_retention.md",
+      "title": "Data Retention",
+      "intent": "Define retention windows and archival policy.",
+      "parent_id": "00300",
+      "required": false,
+      "expressed": false
+    },
+
+    "00400": {
+      "id": "00400",
+      "type": "directory",
+      "path": "00400_security",
+      "title": "Security",
+      "parent_id": null,
+      "required": false,
+      "expressed": false,
+      "activation_keywords": ["security", "auth", "compliance", "threat", "privacy", "risk"]
+    },
+    "00401": {
+      "id": "00401",
+      "type": "file",
+      "path": "00400_security/00401_threat_model.md",
+      "title": "Threat Model",
+      "intent": "Identify attack surfaces and risk mitigations.",
+      "parent_id": "00400",
+      "required": false,
+      "expressed": false
+    },
+    "00402": {
+      "id": "00402",
+      "type": "file",
+      "path": "00400_security/00402_authn_authz.md",
+      "title": "Authentication and Authorization",
+      "intent": "Define identity model and permission boundaries.",
+      "parent_id": "00400",
+      "required": false,
+      "expressed": false
+    },
+    "00403": {
+      "id": "00403",
+      "type": "file",
+      "path": "00400_security/00403_secret_management.md",
+      "title": "Secret Management",
+      "intent": "Specify secret storage and rotation controls.",
+      "parent_id": "00400",
+      "required": false,
+      "expressed": false
+    },
+    "00404": {
+      "id": "00404",
+      "type": "file",
+      "path": "00400_security/00404_compliance_controls.md",
+      "title": "Compliance Controls",
+      "intent": "Map controls to policy obligations.",
+      "parent_id": "00400",
+      "required": false,
+      "expressed": false
+    },
+
+    "00500": {
+      "id": "00500",
+      "type": "directory",
+      "path": "00500_api_contracts",
+      "title": "API Contracts",
+      "parent_id": null,
+      "required": false,
+      "expressed": false,
+      "activation_keywords": ["api", "endpoint", "contract", "event", "integration", "webhook"]
+    },
+    "00501": {
+      "id": "00501",
+      "type": "file",
+      "path": "00500_api_contracts/00501_service_map.md",
+      "title": "Service Map",
+      "intent": "Catalog APIs, owners, and trust boundaries.",
+      "parent_id": "00500",
+      "required": false,
+      "expressed": false
+    },
+    "00502": {
+      "id": "00502",
+      "type": "file",
+      "path": "00500_api_contracts/00502_endpoint_contracts.md",
+      "title": "Endpoint Contracts",
+      "intent": "Define request/response schemas and behavior.",
+      "parent_id": "00500",
+      "required": false,
+      "expressed": false
+    },
+    "00503": {
+      "id": "00503",
+      "type": "file",
+      "path": "00500_api_contracts/00503_event_contracts.md",
+      "title": "Event Contracts",
+      "intent": "Define event payloads, guarantees, and replay strategy.",
+      "parent_id": "00500",
+      "required": false,
+      "expressed": false
+    },
+
+    "00600": {
+      "id": "00600",
+      "type": "directory",
+      "path": "00600_ui_ux",
+      "title": "UI UX",
+      "parent_id": null,
+      "required": false,
+      "expressed": false,
+      "activation_keywords": ["ui", "ux", "frontend", "design", "wireframe", "journey"]
+    },
+    "00601": {
+      "id": "00601",
+      "type": "file",
+      "path": "00600_ui_ux/00601_user_journeys.md",
+      "title": "User Journeys",
+      "intent": "Map critical user flows and edge paths.",
+      "parent_id": "00600",
+      "required": false,
+      "expressed": false
+    },
+    "00602": {
+      "id": "00602",
+      "type": "file",
+      "path": "00600_ui_ux/00602_information_architecture.md",
+      "title": "Information Architecture",
+      "intent": "Define screen hierarchy and navigation model.",
+      "parent_id": "00600",
+      "required": false,
+      "expressed": false
+    },
+    "00603": {
+      "id": "00603",
+      "type": "file",
+      "path": "00600_ui_ux/00603_design_system_tokens.md",
+      "title": "Design System Tokens",
+      "intent": "Capture visual primitives and consistency rules.",
+      "parent_id": "00600",
+      "required": false,
+      "expressed": false
+    },
+
+    "00700": {
+      "id": "00700",
+      "type": "directory",
+      "path": "00700_platform_ops",
+      "title": "Platform Ops",
+      "parent_id": null,
+      "required": false,
+      "expressed": false,
+      "activation_keywords": ["infra", "devops", "ops", "deployment", "kubernetes", "cloud"]
+    },
+    "00701": {
+      "id": "00701",
+      "type": "file",
+      "path": "00700_platform_ops/00701_environments.md",
+      "title": "Environments",
+      "intent": "Define dev, stage, and production landscape.",
+      "parent_id": "00700",
+      "required": false,
+      "expressed": false
+    },
+    "00702": {
+      "id": "00702",
+      "type": "file",
+      "path": "00700_platform_ops/00702_release_orchestration.md",
+      "title": "Release Orchestration",
+      "intent": "Define deployment sequencing and rollback strategy.",
+      "parent_id": "00700",
+      "required": false,
+      "expressed": false
+    },
+    "00703": {
+      "id": "00703",
+      "type": "file",
+      "path": "00700_platform_ops/00703_resilience_patterns.md",
+      "title": "Resilience Patterns",
+      "intent": "Specify failover and recovery patterns.",
+      "parent_id": "00700",
+      "required": false,
+      "expressed": false
+    },
+
+    "00800": {
+      "id": "00800",
+      "type": "directory",
+      "path": "00800_quality_testing",
+      "title": "Quality and Testing",
+      "parent_id": null,
+      "required": false,
+      "expressed": false,
+      "activation_keywords": ["test", "qa", "quality", "validation", "regression"]
+    },
+    "00801": {
+      "id": "00801",
+      "type": "file",
+      "path": "00800_quality_testing/00801_quality_strategy.md",
+      "title": "Quality Strategy",
+      "intent": "Define quality gates and acceptance criteria.",
+      "parent_id": "00800",
+      "required": false,
+      "expressed": false
+    },
+    "00802": {
+      "id": "00802",
+      "type": "file",
+      "path": "00800_quality_testing/00802_test_matrix.md",
+      "title": "Test Matrix",
+      "intent": "Map tests across risk and lifecycle.",
+      "parent_id": "00800",
+      "required": false,
+      "expressed": false
+    },
+    "00803": {
+      "id": "00803",
+      "type": "file",
+      "path": "00800_quality_testing/00803_incident_learning.md",
+      "title": "Incident Learning",
+      "intent": "Track defects and corrective actions.",
+      "parent_id": "00800",
+      "required": false,
+      "expressed": false
+    },
+
+    "00900": {
+      "id": "00900",
+      "type": "directory",
+      "path": "00900_delivery_governance",
+      "title": "Delivery Governance",
+      "parent_id": null,
+      "required": false,
+      "expressed": false,
+      "activation_keywords": ["roadmap", "governance", "delivery", "milestone", "program", "planning"]
+    },
+    "00901": {
+      "id": "00901",
+      "type": "file",
+      "path": "00900_delivery_governance/00901_delivery_phases.md",
+      "title": "Delivery Phases",
+      "intent": "Break implementation into milestone phases.",
+      "parent_id": "00900",
+      "required": false,
+      "expressed": false
+    },
+    "00902": {
+      "id": "00902",
+      "type": "file",
+      "path": "00900_delivery_governance/00902_dependency_map.md",
+      "title": "Dependency Map",
+      "intent": "Map cross-team and system dependencies.",
+      "parent_id": "00900",
+      "required": false,
+      "expressed": false
+    },
+    "00903": {
+      "id": "00903",
+      "type": "file",
+      "path": "00900_delivery_governance/00903_risk_register.md",
+      "title": "Risk Register",
+      "intent": "Track delivery risk with mitigations and owners.",
+      "parent_id": "00900",
+      "required": false,
+      "expressed": false
+    },
+
+    "01000": {
+      "id": "01000",
+      "type": "directory",
+      "path": "01000_observability",
+      "title": "Observability",
+      "parent_id": null,
+      "required": false,
+      "expressed": false,
+      "activation_keywords": ["observability", "logging", "monitoring", "tracing", "slo"]
+    },
+    "01001": {
+      "id": "01001",
+      "type": "file",
+      "path": "01000_observability/01001_telemetry_strategy.md",
+      "title": "Telemetry Strategy",
+      "intent": "Define logs, metrics, and traces strategy.",
+      "parent_id": "01000",
+      "required": false,
+      "expressed": false
+    },
+    "01002": {
+      "id": "01002",
+      "type": "file",
+      "path": "01000_observability/01002_service_level_objectives.md",
+      "title": "Service Level Objectives",
+      "intent": "Define reliability targets and alert strategy.",
+      "parent_id": "01000",
+      "required": false,
+      "expressed": false
+    },
+    "01003": {
+      "id": "01003",
+      "type": "file",
+      "path": "01000_observability/01003_operational_dashboards.md",
+      "title": "Operational Dashboards",
+      "intent": "Define key operations dashboard requirements.",
+      "parent_id": "01000",
+      "required": false,
+      "expressed": false
+    },
+
+    "01100": {
+      "id": "01100",
+      "type": "directory",
+      "path": "01100_scalability_finops",
+      "title": "Scalability and FinOps",
+      "parent_id": null,
+      "required": false,
+      "expressed": false,
+      "activation_keywords": ["scale", "cost", "performance", "capacity", "finops", "optimization"]
+    },
+    "01101": {
+      "id": "01101",
+      "type": "file",
+      "path": "01100_scalability_finops/01101_scalability_model.md",
+      "title": "Scalability Model",
+      "intent": "Define growth assumptions and scaling paths.",
+      "parent_id": "01100",
+      "required": false,
+      "expressed": false
+    },
+    "01102": {
+      "id": "01102",
+      "type": "file",
+      "path": "01100_scalability_finops/01102_cost_controls.md",
+      "title": "Cost Controls",
+      "intent": "Define unit economics and cost guardrails.",
+      "parent_id": "01100",
+      "required": false,
+      "expressed": false
+    },
+    "01103": {
+      "id": "01103",
+      "type": "file",
+      "path": "01100_scalability_finops/01103_capacity_plan.md",
+      "title": "Capacity Plan",
+      "intent": "Define thresholds and expansion triggers.",
+      "parent_id": "01100",
+      "required": false,
+      "expressed": false
+    },
+
+    "01200": {
+      "id": "01200",
+      "type": "directory",
+      "path": "01200_risk_continuity",
+      "title": "Risk and Continuity",
+      "parent_id": null,
+      "required": false,
+      "expressed": false,
+      "activation_keywords": ["continuity", "disaster", "backup", "recovery", "legal", "audit"]
+    },
+    "01201": {
+      "id": "01201",
+      "type": "file",
+      "path": "01200_risk_continuity/01201_business_continuity.md",
+      "title": "Business Continuity",
+      "intent": "Define continuity expectations and fallback operations.",
+      "parent_id": "01200",
+      "required": false,
+      "expressed": false
+    },
+    "01202": {
+      "id": "01202",
+      "type": "file",
+      "path": "01200_risk_continuity/01202_disaster_recovery.md",
+      "title": "Disaster Recovery",
+      "intent": "Define data recovery targets and runbooks.",
+      "parent_id": "01200",
+      "required": false,
+      "expressed": false
+    },
+    "01203": {
+      "id": "01203",
+      "type": "file",
+      "path": "01200_risk_continuity/01203_audit_readiness.md",
+      "title": "Audit Readiness",
+      "intent": "Define evidence trails and readiness cadence.",
+      "parent_id": "01200",
+      "required": false,
+      "expressed": false
+    }
+  }
+}

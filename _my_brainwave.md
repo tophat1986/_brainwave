@@ -1,0 +1,1 @@
+i have a new idea for a wish list app where a user creates wish lists and they can then also share that same list in groups, e.g. family or friends.  The wish list remains a single source of truth and shared many to many relationship.

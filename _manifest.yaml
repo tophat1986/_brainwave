@@ -1,0 +1,979 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-02-25T12:22:38.665Z",
+  "workspace_root": ".",
+  "seed": {
+    "path": "_my_brainwave.md",
+    "word_count": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "last_ingested_at": "2026-02-25T12:22:38.665Z"
+  },
+  "settings": {
+    "path": "_settings.yaml",
+    "loaded": true,
+    "technical_proficiency": null,
+    "ideation_mode": "thought_partner",
+    "verbosity_budget": "standard"
+  },
+  "engine": {
+    "status": "ok",
+    "last_command": "run",
+    "last_cycle_at": "2026-02-25T12:22:38.665Z",
+    "warnings": [],
+    "task_router": {
+      "pending_tasks": 0,
+      "model_tiers": {}
+    },
+    "context_degraded": false
+  },
+  "dna": {
+    "path": "_dna.yaml",
+    "totals": {
+      "nodes": 51,
+      "directories": 12,
+      "files": 39,
+      "expressed_nodes": 0,
+      "expressed_files": 0
+    },
+    "nodes": {
+      "00100": {
+        "id": "00100",
+        "type": "directory",
+        "path": "00100_concept",
+        "parent_id": null,
+        "required": true,
+        "expressed": false,
+        "processing_status": "container"
+      },
+      "00101": {
+        "id": "00101",
+        "type": "file",
+        "path": "00100_concept/00101_problem_statement.md",
+        "parent_id": "00100",
+        "required": true,
+        "expressed": false,
+        "processing_status": "not_started"
+      },
+      "00102": {
+        "id": "00102",
+        "type": "file",
+        "path": "00100_concept/00102_target_audience.md",
+        "parent_id": "00100",
+        "required": true,
+        "expressed": false,
+        "processing_status": "not_started"
+      },
+      "00103": {
+        "id": "00103",
+        "type": "file",
+        "path": "00100_concept/00103_success_metrics.md",
+        "parent_id": "00100",
+        "required": true,
+        "expressed": false,
+        "processing_status": "not_started"
+      },
+      "00104": {
+        "id": "00104",
+        "type": "file",
+        "path": "00100_concept/00104_non_goals.md",
+        "parent_id": "00100",
+        "required": false,
+        "expressed": false,
+        "processing_status": "not_started"
+      },
+      "00200": {
+        "id": "00200",
+        "type": "directory",
+        "path": "00200_architecture",
+        "parent_id": null,
+        "required": true,
+        "expressed": false,
+        "processing_status": "container"
+      },
+      "00201": {
+        "id": "00201",
+        "type": "file",
+        "path": "00200_architecture/00201_system_context.md",
+        "parent_id": "00200",
+        "required": true,
+        "expressed": false,
+        "processing_status": "not_started"
+      },
+      "00202": {
+        "id": "00202",
+        "type": "file",
+        "path": "00200_architecture/00202_component_model.md",
+        "parent_id": "00200",
+        "required": true,
+        "expressed": false,
+        "processing_status": "not_started"
+      },
+      "00203": {
+        "id": "00203",
+        "type": "file",
+        "path": "00200_architecture/00203_domain_boundaries.md",
+        "parent_id": "00200",
+        "required": true,
+        "expressed": false,
+        "processing_status": "not_started"
+      },
+      "00204": {
+        "id": "00204",
+        "type": "file",
+        "path": "00200_architecture/00204_tradeoffs.md",
+        "parent_id": "00200",
+        "required": false,
+        "expressed": false,
+        "processing_status": "not_started"
+      },
+      "00300": {
+        "id": "00300",
+        "type": "directory",
+        "path": "00300_data_models",
+        "parent_id": null,
+        "required": false,
+        "expressed": false,
+        "processing_status": "container"
+      },
+      "00301": {
+        "id": "00301",
+        "type": "file",
+        "path": "00300_data_models/00301_domain_entities.md",
+        "parent_id": "00300",
+        "required": false,
+        "expressed": false,
+        "processing_status": "not_started"
+      },
+      "00302": {
+        "id": "00302",
+        "type": "file",
+        "path": "00300_data_models/00302_schema_strategy.md",
+        "parent_id": "00300",
+        "required": false,
+        "expressed": false,
+        "processing_status": "not_started"
+      },
+      "00303": {
+        "id": "00303",
+        "type": "file",
+        "path": "00300_data_models/00303_data_retention.md",
+        "parent_id": "00300",
+        "required": false,
+        "expressed": false,
+        "processing_status": "not_started"
+      },
+      "00400": {
+        "id": "00400",
+        "type": "directory",
+        "path": "00400_security",
+        "parent_id": null,
+        "required": false,
+        "expressed": false,
+        "processing_status": "container"
+      },
+      "00401": {
+        "id": "00401",
+        "type": "file",
+        "path": "00400_security/00401_threat_model.md",
+        "parent_id": "00400",
+        "required": false,
+        "expressed": false,
+        "processing_status": "not_started"
+      },
+      "00402": {
+        "id": "00402",
+        "type": "file",
+        "path": "00400_security/00402_authn_authz.md",
+        "parent_id": "00400",
+        "required": false,
+        "expressed": false,
+        "processing_status": "not_started"
+      },
+      "00403": {
+        "id": "00403",
+        "type": "file",
+        "path": "00400_security/00403_secret_management.md",
+        "parent_id": "00400",
+        "required": false,
+        "expressed": false,
+        "processing_status": "not_started"
+      },
+      "00404": {
+        "id": "00404",
+        "type": "file",
+        "path": "00400_security/00404_compliance_controls.md",
+        "parent_id": "00400",
+        "required": false,
+        "expressed": false,
+        "processing_status": "not_started"
+      },
+      "00500": {
+        "id": "00500",
+        "type": "directory",
+        "path": "00500_api_contracts",
+        "parent_id": null,
+        "required": false,
+        "expressed": false,
+        "processing_status": "container"
+      },
+      "00501": {
+        "id": "00501",
+        "type": "file",
+        "path": "00500_api_contracts/00501_service_map.md",
+        "parent_id": "00500",
+        "required": false,
+        "expressed": false,
+        "processing_status": "not_started"
+      },
+      "00502": {
+        "id": "00502",
+        "type": "file",
+        "path": "00500_api_contracts/00502_endpoint_contracts.md",
+        "parent_id": "00500",
+        "required": false,
+        "expressed": false,
+        "processing_status": "not_started"
+      },
+      "00503": {
+        "id": "00503",
+        "type": "file",
+        "path": "00500_api_contracts/00503_event_contracts.md",
+        "parent_id": "00500",
+        "required": false,
+        "expressed": false,
+        "processing_status": "not_started"
+      },
+      "00600": {
+        "id": "00600",
+        "type": "directory",
+        "path": "00600_ui_ux",
+        "parent_id": null,
+        "required": false,
+        "expressed": false,
+        "processing_status": "container"
+      },
+      "00601": {
+        "id": "00601",
+        "type": "file",
+        "path": "00600_ui_ux/00601_user_journeys.md",
+        "parent_id": "00600",
+        "required": false,
+        "expressed": false,
+        "processing_status": "not_started"
+      },
+      "00602": {
+        "id": "00602",
+        "type": "file",
+        "path": "00600_ui_ux/00602_information_architecture.md",
+        "parent_id": "00600",
+        "required": false,
+        "expressed": false,
+        "processing_status": "not_started"
+      },
+      "00603": {
+        "id": "00603",
+        "type": "file",
+        "path": "00600_ui_ux/00603_design_system_tokens.md",
+        "parent_id": "00600",
+        "required": false,
+        "expressed": false,
+        "processing_status": "not_started"
+      },
+      "00700": {
+        "id": "00700",
+        "type": "directory",
+        "path": "00700_platform_ops",
+        "parent_id": null,
+        "required": false,
+        "expressed": false,
+        "processing_status": "container"
+      },
+      "00701": {
+        "id": "00701",
+        "type": "file",
+        "path": "00700_platform_ops/00701_environments.md",
+        "parent_id": "00700",
+        "required": false,
+        "expressed": false,
+        "processing_status": "not_started"
+      },
+      "00702": {
+        "id": "00702",
+        "type": "file",
+        "path": "00700_platform_ops/00702_release_orchestration.md",
+        "parent_id": "00700",
+        "required": false,
+        "expressed": false,
+        "processing_status": "not_started"
+      },
+      "00703": {
+        "id": "00703",
+        "type": "file",
+        "path": "00700_platform_ops/00703_resilience_patterns.md",
+        "parent_id": "00700",
+        "required": false,
+        "expressed": false,
+        "processing_status": "not_started"
+      },
+      "00800": {
+        "id": "00800",
+        "type": "directory",
+        "path": "00800_quality_testing",
+        "parent_id": null,
+        "required": false,
+        "expressed": false,
+        "processing_status": "container"
+      },
+      "00801": {
+        "id": "00801",
+        "type": "file",
+        "path": "00800_quality_testing/00801_quality_strategy.md",
+        "parent_id": "00800",
+        "required": false,
+        "expressed": false,
+        "processing_status": "not_started"
+      },
+      "00802": {
+        "id": "00802",
+        "type": "file",
+        "path": "00800_quality_testing/00802_test_matrix.md",
+        "parent_id": "00800",
+        "required": false,
+        "expressed": false,
+        "processing_status": "not_started"
+      },
+      "00803": {
+        "id": "00803",
+        "type": "file",
+        "path": "00800_quality_testing/00803_incident_learning.md",
+        "parent_id": "00800",
+        "required": false,
+        "expressed": false,
+        "processing_status": "not_started"
+      },
+      "00900": {
+        "id": "00900",
+        "type": "directory",
+        "path": "00900_delivery_governance",
+        "parent_id": null,
+        "required": false,
+        "expressed": false,
+        "processing_status": "container"
+      },
+      "00901": {
+        "id": "00901",
+        "type": "file",
+        "path": "00900_delivery_governance/00901_delivery_phases.md",
+        "parent_id": "00900",
+        "required": false,
+        "expressed": false,
+        "processing_status": "not_started"
+      },
+      "00902": {
+        "id": "00902",
+        "type": "file",
+        "path": "00900_delivery_governance/00902_dependency_map.md",
+        "parent_id": "00900",
+        "required": false,
+        "expressed": false,
+        "processing_status": "not_started"
+      },
+      "00903": {
+        "id": "00903",
+        "type": "file",
+        "path": "00900_delivery_governance/00903_risk_register.md",
+        "parent_id": "00900",
+        "required": false,
+        "expressed": false,
+        "processing_status": "not_started"
+      },
+      "01000": {
+        "id": "01000",
+        "type": "directory",
+        "path": "01000_observability",
+        "parent_id": null,
+        "required": false,
+        "expressed": false,
+        "processing_status": "container"
+      },
+      "01001": {
+        "id": "01001",
+        "type": "file",
+        "path": "01000_observability/01001_telemetry_strategy.md",
+        "parent_id": "01000",
+        "required": false,
+        "expressed": false,
+        "processing_status": "not_started"
+      },
+      "01002": {
+        "id": "01002",
+        "type": "file",
+        "path": "01000_observability/01002_service_level_objectives.md",
+        "parent_id": "01000",
+        "required": false,
+        "expressed": false,
+        "processing_status": "not_started"
+      },
+      "01003": {
+        "id": "01003",
+        "type": "file",
+        "path": "01000_observability/01003_operational_dashboards.md",
+        "parent_id": "01000",
+        "required": false,
+        "expressed": false,
+        "processing_status": "not_started"
+      },
+      "01100": {
+        "id": "01100",
+        "type": "directory",
+        "path": "01100_scalability_finops",
+        "parent_id": null,
+        "required": false,
+        "expressed": false,
+        "processing_status": "container"
+      },
+      "01101": {
+        "id": "01101",
+        "type": "file",
+        "path": "01100_scalability_finops/01101_scalability_model.md",
+        "parent_id": "01100",
+        "required": false,
+        "expressed": false,
+        "processing_status": "not_started"
+      },
+      "01102": {
+        "id": "01102",
+        "type": "file",
+        "path": "01100_scalability_finops/01102_cost_controls.md",
+        "parent_id": "01100",
+        "required": false,
+        "expressed": false,
+        "processing_status": "not_started"
+      },
+      "01103": {
+        "id": "01103",
+        "type": "file",
+        "path": "01100_scalability_finops/01103_capacity_plan.md",
+        "parent_id": "01100",
+        "required": false,
+        "expressed": false,
+        "processing_status": "not_started"
+      },
+      "01200": {
+        "id": "01200",
+        "type": "directory",
+        "path": "01200_risk_continuity",
+        "parent_id": null,
+        "required": false,
+        "expressed": false,
+        "processing_status": "container"
+      },
+      "01201": {
+        "id": "01201",
+        "type": "file",
+        "path": "01200_risk_continuity/01201_business_continuity.md",
+        "parent_id": "01200",
+        "required": false,
+        "expressed": false,
+        "processing_status": "not_started"
+      },
+      "01202": {
+        "id": "01202",
+        "type": "file",
+        "path": "01200_risk_continuity/01202_disaster_recovery.md",
+        "parent_id": "01200",
+        "required": false,
+        "expressed": false,
+        "processing_status": "not_started"
+      },
+      "01203": {
+        "id": "01203",
+        "type": "file",
+        "path": "01200_risk_continuity/01203_audit_readiness.md",
+        "parent_id": "01200",
+        "required": false,
+        "expressed": false,
+        "processing_status": "not_started"
+      }
+    }
+  },
+  "filesystem": {
+    "tracked_files": {
+      "00100_concept/00101_problem_statement.md": {
+        "node_id": "00101",
+        "required": true,
+        "expressed": false,
+        "exists": false,
+        "processing_status": "not_started",
+        "word_count": 0,
+        "sha256": null,
+        "updated_at": null
+      },
+      "00100_concept/00102_target_audience.md": {
+        "node_id": "00102",
+        "required": true,
+        "expressed": false,
+        "exists": false,
+        "processing_status": "not_started",
+        "word_count": 0,
+        "sha256": null,
+        "updated_at": null
+      },
+      "00100_concept/00103_success_metrics.md": {
+        "node_id": "00103",
+        "required": true,
+        "expressed": false,
+        "exists": false,
+        "processing_status": "not_started",
+        "word_count": 0,
+        "sha256": null,
+        "updated_at": null
+      },
+      "00100_concept/00104_non_goals.md": {
+        "node_id": "00104",
+        "required": false,
+        "expressed": false,
+        "exists": false,
+        "processing_status": "not_started",
+        "word_count": 0,
+        "sha256": null,
+        "updated_at": null
+      },
+      "00200_architecture/00201_system_context.md": {
+        "node_id": "00201",
+        "required": true,
+        "expressed": false,
+        "exists": false,
+        "processing_status": "not_started",
+        "word_count": 0,
+        "sha256": null,
+        "updated_at": null
+      },
+      "00200_architecture/00202_component_model.md": {
+        "node_id": "00202",
+        "required": true,
+        "expressed": false,
+        "exists": false,
+        "processing_status": "not_started",
+        "word_count": 0,
+        "sha256": null,
+        "updated_at": null
+      },
+      "00200_architecture/00203_domain_boundaries.md": {
+        "node_id": "00203",
+        "required": true,
+        "expressed": false,
+        "exists": false,
+        "processing_status": "not_started",
+        "word_count": 0,
+        "sha256": null,
+        "updated_at": null
+      },
+      "00200_architecture/00204_tradeoffs.md": {
+        "node_id": "00204",
+        "required": false,
+        "expressed": false,
+        "exists": false,
+        "processing_status": "not_started",
+        "word_count": 0,
+        "sha256": null,
+        "updated_at": null
+      },
+      "00300_data_models/00301_domain_entities.md": {
+        "node_id": "00301",
+        "required": false,
+        "expressed": false,
+        "exists": false,
+        "processing_status": "not_started",
+        "word_count": 0,
+        "sha256": null,
+        "updated_at": null
+      },
+      "00300_data_models/00302_schema_strategy.md": {
+        "node_id": "00302",
+        "required": false,
+        "expressed": false,
+        "exists": false,
+        "processing_status": "not_started",
+        "word_count": 0,
+        "sha256": null,
+        "updated_at": null
+      },
+      "00300_data_models/00303_data_retention.md": {
+        "node_id": "00303",
+        "required": false,
+        "expressed": false,
+        "exists": false,
+        "processing_status": "not_started",
+        "word_count": 0,
+        "sha256": null,
+        "updated_at": null
+      },
+      "00400_security/00401_threat_model.md": {
+        "node_id": "00401",
+        "required": false,
+        "expressed": false,
+        "exists": false,
+        "processing_status": "not_started",
+        "word_count": 0,
+        "sha256": null,
+        "updated_at": null
+      },
+      "00400_security/00402_authn_authz.md": {
+        "node_id": "00402",
+        "required": false,
+        "expressed": false,
+        "exists": false,
+        "processing_status": "not_started",
+        "word_count": 0,
+        "sha256": null,
+        "updated_at": null
+      },
+      "00400_security/00403_secret_management.md": {
+        "node_id": "00403",
+        "required": false,
+        "expressed": false,
+        "exists": false,
+        "processing_status": "not_started",
+        "word_count": 0,
+        "sha256": null,
+        "updated_at": null
+      },
+      "00400_security/00404_compliance_controls.md": {
+        "node_id": "00404",
+        "required": false,
+        "expressed": false,
+        "exists": false,
+        "processing_status": "not_started",
+        "word_count": 0,
+        "sha256": null,
+        "updated_at": null
+      },
+      "00500_api_contracts/00501_service_map.md": {
+        "node_id": "00501",
+        "required": false,
+        "expressed": false,
+        "exists": false,
+        "processing_status": "not_started",
+        "word_count": 0,
+        "sha256": null,
+        "updated_at": null
+      },
+      "00500_api_contracts/00502_endpoint_contracts.md": {
+        "node_id": "00502",
+        "required": false,
+        "expressed": false,
+        "exists": false,
+        "processing_status": "not_started",
+        "word_count": 0,
+        "sha256": null,
+        "updated_at": null
+      },
+      "00500_api_contracts/00503_event_contracts.md": {
+        "node_id": "00503",
+        "required": false,
+        "expressed": false,
+        "exists": false,
+        "processing_status": "not_started",
+        "word_count": 0,
+        "sha256": null,
+        "updated_at": null
+      },
+      "00600_ui_ux/00601_user_journeys.md": {
+        "node_id": "00601",
+        "required": false,
+        "expressed": false,
+        "exists": false,
+        "processing_status": "not_started",
+        "word_count": 0,
+        "sha256": null,
+        "updated_at": null
+      },
+      "00600_ui_ux/00602_information_architecture.md": {
+        "node_id": "00602",
+        "required": false,
+        "expressed": false,
+        "exists": false,
+        "processing_status": "not_started",
+        "word_count": 0,
+        "sha256": null,
+        "updated_at": null
+      },
+      "00600_ui_ux/00603_design_system_tokens.md": {
+        "node_id": "00603",
+        "required": false,
+        "expressed": false,
+        "exists": false,
+        "processing_status": "not_started",
+        "word_count": 0,
+        "sha256": null,
+        "updated_at": null
+      },
+      "00700_platform_ops/00701_environments.md": {
+        "node_id": "00701",
+        "required": false,
+        "expressed": false,
+        "exists": false,
+        "processing_status": "not_started",
+        "word_count": 0,
+        "sha256": null,
+        "updated_at": null
+      },
+      "00700_platform_ops/00702_release_orchestration.md": {
+        "node_id": "00702",
+        "required": false,
+        "expressed": false,
+        "exists": false,
+        "processing_status": "not_started",
+        "word_count": 0,
+        "sha256": null,
+        "updated_at": null
+      },
+      "00700_platform_ops/00703_resilience_patterns.md": {
+        "node_id": "00703",
+        "required": false,
+        "expressed": false,
+        "exists": false,
+        "processing_status": "not_started",
+        "word_count": 0,
+        "sha256": null,
+        "updated_at": null
+      },
+      "00800_quality_testing/00801_quality_strategy.md": {
+        "node_id": "00801",
+        "required": false,
+        "expressed": false,
+        "exists": false,
+        "processing_status": "not_started",
+        "word_count": 0,
+        "sha256": null,
+        "updated_at": null
+      },
+      "00800_quality_testing/00802_test_matrix.md": {
+        "node_id": "00802",
+        "required": false,
+        "expressed": false,
+        "exists": false,
+        "processing_status": "not_started",
+        "word_count": 0,
+        "sha256": null,
+        "updated_at": null
+      },
+      "00800_quality_testing/00803_incident_learning.md": {
+        "node_id": "00803",
+        "required": false,
+        "expressed": false,
+        "exists": false,
+        "processing_status": "not_started",
+        "word_count": 0,
+        "sha256": null,
+        "updated_at": null
+      },
+      "00900_delivery_governance/00901_delivery_phases.md": {
+        "node_id": "00901",
+        "required": false,
+        "expressed": false,
+        "exists": false,
+        "processing_status": "not_started",
+        "word_count": 0,
+        "sha256": null,
+        "updated_at": null
+      },
+      "00900_delivery_governance/00902_dependency_map.md": {
+        "node_id": "00902",
+        "required": false,
+        "expressed": false,
+        "exists": false,
+        "processing_status": "not_started",
+        "word_count": 0,
+        "sha256": null,
+        "updated_at": null
+      },
+      "00900_delivery_governance/00903_risk_register.md": {
+        "node_id": "00903",
+        "required": false,
+        "expressed": false,
+        "exists": false,
+        "processing_status": "not_started",
+        "word_count": 0,
+        "sha256": null,
+        "updated_at": null
+      },
+      "01000_observability/01001_telemetry_strategy.md": {
+        "node_id": "01001",
+        "required": false,
+        "expressed": false,
+        "exists": false,
+        "processing_status": "not_started",
+        "word_count": 0,
+        "sha256": null,
+        "updated_at": null
+      },
+      "01000_observability/01002_service_level_objectives.md": {
+        "node_id": "01002",
+        "required": false,
+        "expressed": false,
+        "exists": false,
+        "processing_status": "not_started",
+        "word_count": 0,
+        "sha256": null,
+        "updated_at": null
+      },
+      "01000_observability/01003_operational_dashboards.md": {
+        "node_id": "01003",
+        "required": false,
+        "expressed": false,
+        "exists": false,
+        "processing_status": "not_started",
+        "word_count": 0,
+        "sha256": null,
+        "updated_at": null
+      },
+      "01100_scalability_finops/01101_scalability_model.md": {
+        "node_id": "01101",
+        "required": false,
+        "expressed": false,
+        "exists": false,
+        "processing_status": "not_started",
+        "word_count": 0,
+        "sha256": null,
+        "updated_at": null
+      },
+      "01100_scalability_finops/01102_cost_controls.md": {
+        "node_id": "01102",
+        "required": false,
+        "expressed": false,
+        "exists": false,
+        "processing_status": "not_started",
+        "word_count": 0,
+        "sha256": null,
+        "updated_at": null
+      },
+      "01100_scalability_finops/01103_capacity_plan.md": {
+        "node_id": "01103",
+        "required": false,
+        "expressed": false,
+        "exists": false,
+        "processing_status": "not_started",
+        "word_count": 0,
+        "sha256": null,
+        "updated_at": null
+      },
+      "01200_risk_continuity/01201_business_continuity.md": {
+        "node_id": "01201",
+        "required": false,
+        "expressed": false,
+        "exists": false,
+        "processing_status": "not_started",
+        "word_count": 0,
+        "sha256": null,
+        "updated_at": null
+      },
+      "01200_risk_continuity/01202_disaster_recovery.md": {
+        "node_id": "01202",
+        "required": false,
+        "expressed": false,
+        "exists": false,
+        "processing_status": "not_started",
+        "word_count": 0,
+        "sha256": null,
+        "updated_at": null
+      },
+      "01200_risk_continuity/01203_audit_readiness.md": {
+        "node_id": "01203",
+        "required": false,
+        "expressed": false,
+        "exists": false,
+        "processing_status": "not_started",
+        "word_count": 0,
+        "sha256": null,
+        "updated_at": null
+      }
+    },
+    "missing_expressed_files": [],
+    "non_dna_markdown_files": [
+      "_engine/README.md"
+    ]
+  },
+  "progress": {
+    "global_completion_pct": 0,
+    "folders": {
+      "00100": {
+        "path": "00100_concept",
+        "total_expressed_files": 0,
+        "completed_files": 0,
+        "completion_pct": 0
+      },
+      "00200": {
+        "path": "00200_architecture",
+        "total_expressed_files": 0,
+        "completed_files": 0,
+        "completion_pct": 0
+      },
+      "00300": {
+        "path": "00300_data_models",
+        "total_expressed_files": 0,
+        "completed_files": 0,
+        "completion_pct": 0
+      },
+      "00400": {
+        "path": "00400_security",
+        "total_expressed_files": 0,
+        "completed_files": 0,
+        "completion_pct": 0
+      },
+      "00500": {
+        "path": "00500_api_contracts",
+        "total_expressed_files": 0,
+        "completed_files": 0,
+        "completion_pct": 0
+      },
+      "00600": {
+        "path": "00600_ui_ux",
+        "total_expressed_files": 0,
+        "completed_files": 0,
+        "completion_pct": 0
+      },
+      "00700": {
+        "path": "00700_platform_ops",
+        "total_expressed_files": 0,
+        "completed_files": 0,
+        "completion_pct": 0
+      },
+      "00800": {
+        "path": "00800_quality_testing",
+        "total_expressed_files": 0,
+        "completed_files": 0,
+        "completion_pct": 0
+      },
+      "00900": {
+        "path": "00900_delivery_governance",
+        "total_expressed_files": 0,
+        "completed_files": 0,
+        "completion_pct": 0
+      },
+      "01000": {
+        "path": "01000_observability",
+        "total_expressed_files": 0,
+        "completed_files": 0,
+        "completion_pct": 0
+      },
+      "01100": {
+        "path": "01100_scalability_finops",
+        "total_expressed_files": 0,
+        "completed_files": 0,
+        "completion_pct": 0
+      },
+      "01200": {
+        "path": "01200_risk_continuity",
+        "total_expressed_files": 0,
+        "completed_files": 0,
+        "completion_pct": 0
+      }
+    }
+  },
+  "context": {
+    "summaries_generated": []
+  },
+  "events": []
+}

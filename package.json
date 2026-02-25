@@ -1,0 +1,11 @@
+{
+  "name": "brainwave-framework",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Autonomous, DNA-driven architecture expansion framework",
+  "scripts": {
+    "brainwave:run": "node _engine/brainwave_runner.js run",
+    "brainwave:watch": "node _engine/brainwave_runner.js watch",
+    "brainwave:status": "node _engine/brainwave_runner.js status"
+  }
+}

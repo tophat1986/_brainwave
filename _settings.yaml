@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0.0",
+  "configured": false,
+  "onboarding_status": "pending",
+  "technical_proficiency": null,
+  "ideation_mode": "thought_partner",
+  "verbosity_budget": "standard",
+  "profile_last_updated": null,
+  "onboarding_questions": [
+    "What is your technical proficiency? (beginner/intermediate/architect)",
+    "How should I operate? (thought_partner/fast_execution)",
+    "How much detail do you prefer? (lean/standard/exhaustive)"
+  ],
+  "allowed_values": {
+    "technical_proficiency": ["beginner", "intermediate", "architect"],
+    "ideation_mode": ["thought_partner", "fast_execution"],
+    "verbosity_budget": ["lean", "standard", "exhaustive"]
+  },
+  "engine": {
+    "rate_limit_ms": 900,
+    "max_context_chars": 32000,
+    "summary_char_budget": 1400,
+    "max_files_per_cycle": 120
+  }
+}
