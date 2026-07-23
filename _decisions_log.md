@@ -1,6 +1,6 @@
 # Brainwave Decisions Log
 
-Purpose: preserve decision rationale across context loss and future agent handoffs.
+Purpose: preserve only material rationale for North Star direction and architecture-documentation scope. Architectural decisions belong in the relevant document or ADR; operational continuation belongs in a handover.
 
 ## Entry Template
 

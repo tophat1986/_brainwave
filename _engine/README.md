@@ -1,24 +1,29 @@
 # _engine
 
-Execution arm for `_brainwave`.
+Deterministic execution arm for Brainwave.
 
 ## Responsibilities
 
-- Read `_my_brainwave.md` seed input.
-- Evaluate and toggle relevant dormant nodes in `_dna.yaml`.
-- Reconcile filesystem so only `expressed: true` nodes are scaffolded.
-- Refresh `_manifest.yaml` with processing state and metadata.
-- Inject manifest JSON into `_dashboard.html` (`#brainwave-state`).
-- Generate compressed folder summaries in `_context/` at 100% completion.
+- Validate the fixed Brainwave lifecycle.
+- Lock and verify the immutable Brainwave Seed.
+- Require an explicitly agreed North Star before architecture-documentation work.
+- Validate agent-selected DNA expression and naming.
+- Scaffold only already-expressed documents.
+- Track explicit document status, hashes, and completion.
+- Refresh `_manifest.yaml`, `_context/`, and `_dashboard.html`.
+- Become passive after `architecture_documentation_complete`.
+
+The engine does not interpret the seed or North Star, call an AI model, or decide which DNA nodes are relevant.
 
 ## Commands
 
+- `node _engine/brainwave_runner.js status`
+- `node _engine/brainwave_runner.js refresh`
+- `node _engine/brainwave_runner.js transition <stage>`
+- `node _engine/brainwave_runner.js express <id...>`
 - `node _engine/brainwave_runner.js run`
 - `node _engine/brainwave_runner.js watch`
-- `node _engine/brainwave_runner.js status`
-- `node _engine/brainwave_runner.js express 00500 00501`
 
-## Notes
+## Storage
 
-- `_dna.yaml`, `_manifest.yaml`, and `_settings.yaml` are JSON-compatible YAML (YAML 1.2 subset) for zero external dependencies.
-- Reconciliation is additive and non-destructive: it creates expressed artifacts and tracks state, but does not auto-delete existing docs.
+`_dna.yaml`, `_manifest.yaml`, `_settings.yaml`, and `_brainwave_state.yaml` use JSON-compatible YAML so the engine has no external runtime dependencies.

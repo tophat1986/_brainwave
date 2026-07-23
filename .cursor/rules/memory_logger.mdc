@@ -1,5 +1,5 @@
 ---
-description: Log steering decisions before structural changes
+description: Log material Brainwave steering decisions before directional or scope changes
 globs:
   - "**/*"
 alwaysApply: true
@@ -7,16 +7,19 @@ alwaysApply: true
 
 # Memory Logger Rule
 
-When either condition occurs:
+Log only when either condition occurs:
 
-1. The agent asks a steering question and the user answers
-2. A structural pivot changes scope, architecture, or DNA expression plan
+1. The user approves a material change to the North Star direction
+2. The user approves a change to architecture-documentation scope or DNA expression
 
-The agent must append a structured entry to `_decisions_log.md` **before**:
+Do not log routine answers, implementation progress, file inventories, or handover state.
 
+The agent must append a concise structured entry to `_decisions_log.md` **before**:
+
+- materially revising an agreed North Star
 - editing `_dna.yaml`
 - running `_engine/brainwave_runner.js`
-- creating/removing architecture files
+- creating or removing architecture documentation
 
 Required decision entry fields:
 

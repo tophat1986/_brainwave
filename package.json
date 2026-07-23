@@ -6,6 +6,8 @@
   "scripts": {
     "brainwave:run": "node _engine/brainwave_runner.js run",
     "brainwave:watch": "node _engine/brainwave_runner.js watch",
-    "brainwave:status": "node _engine/brainwave_runner.js status"
+    "brainwave:status": "node _engine/brainwave_runner.js status",
+    "brainwave:refresh": "node _engine/brainwave_runner.js refresh",
+    "test": "node --test _engine/*.test.js"
   }
 }

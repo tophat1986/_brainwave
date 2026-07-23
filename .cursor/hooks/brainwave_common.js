@@ -34,9 +34,9 @@ function parseJson(value) {
 function walkUpForBrainwaveRoot(start) {
   let current = path.resolve(start || process.cwd());
   while (true) {
-    const seed = path.join(current, "_my_brainwave.md");
     const dna = path.join(current, "_dna.yaml");
-    if (fs.existsSync(seed) && fs.existsSync(dna)) return current;
+    const engine = path.join(current, "_engine", "brainwave_runner.js");
+    if (fs.existsSync(dna) && fs.existsSync(engine)) return current;
     const parent = path.dirname(current);
     if (parent === current) return null;
     current = parent;
@@ -45,7 +45,7 @@ function walkUpForBrainwaveRoot(start) {
 
 function readSeed(root) {
   if (!root) return "";
-  const seedPath = path.join(root, "_my_brainwave.md");
+  const seedPath = path.join(root, "_my_brainwave_seed.md");
   try {
     return fs.readFileSync(seedPath, "utf8");
   } catch (error) {
@@ -57,15 +57,37 @@ function isSeedEmpty(root) {
   return readSeed(root).trim().length === 0;
 }
 
-function writeSeed(root, content) {
-  if (!root) return false;
-  const seedPath = path.join(root, "_my_brainwave.md");
+function readNorthStar(root) {
+  if (!root) return "";
+  const northStarPath = path.join(root, "_my_brainwave_north_star.md");
   try {
-    fs.writeFileSync(seedPath, `${String(content || "").trim()}\n`, "utf8");
-    return true;
+    return fs.readFileSync(northStarPath, "utf8");
   } catch (error) {
-    return false;
+    return "";
   }
+}
+
+function readState(root) {
+  if (!root) return {};
+  const statePath = path.join(root, "_brainwave_state.yaml");
+  try {
+    return parseJson(fs.readFileSync(statePath, "utf8"));
+  } catch (error) {
+    return {};
+  }
+}
+
+function northStarStatus(root) {
+  const content = readNorthStar(root);
+  return content.match(/^\s*status:\s*(shaping|agreed)\s*$/im)?.[1]?.toLowerCase() || "missing";
+}
+
+function brainwaveStage(root) {
+  return readState(root)?.stage || "awaiting_seed";
+}
+
+function isPassive(root) {
+  return brainwaveStage(root) === "architecture_documentation_complete";
 }
 
 function readSettings(root) {
@@ -113,7 +135,11 @@ module.exports = {
   readStdin,
   walkUpForBrainwaveRoot,
   isSeedEmpty,
-  writeSeed,
+  readNorthStar,
+  readState,
+  northStarStatus,
+  brainwaveStage,
+  isPassive,
   readSettings,
   writeSettings,
   isSettingsConfigured

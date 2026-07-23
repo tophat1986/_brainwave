@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "framework": "_brainwave",
-  "description": "Master genetic map for adaptive enterprise architecture generation.",
+  "description": "Master genetic map for proportionate architecture documentation.",
   "rules": {
     "indexing": "5-digit open spacing with 100-step jumps for directories",
     "index_space": {
@@ -14,57 +14,6 @@
     "default_expressed_state": false
   },
   "nodes": {
-    "00100": {
-      "id": "00100",
-      "type": "directory",
-      "path": "00100_concept",
-      "title": "Concept",
-      "parent_id": null,
-      "required": true,
-      "expressed": false,
-      "activation_keywords": ["idea", "problem", "market", "customer", "vision", "concept"]
-    },
-    "00101": {
-      "id": "00101",
-      "type": "file",
-      "path": "00100_concept/00101_problem_statement.md",
-      "title": "Problem Statement",
-      "intent": "Define the exact problem and business pressure.",
-      "parent_id": "00100",
-      "required": true,
-      "expressed": false
-    },
-    "00102": {
-      "id": "00102",
-      "type": "file",
-      "path": "00100_concept/00102_target_audience.md",
-      "title": "Target Audience",
-      "intent": "Capture user segments and stakeholders.",
-      "parent_id": "00100",
-      "required": true,
-      "expressed": false
-    },
-    "00103": {
-      "id": "00103",
-      "type": "file",
-      "path": "00100_concept/00103_success_metrics.md",
-      "title": "Success Metrics",
-      "intent": "Define measurable outcomes and KPIs.",
-      "parent_id": "00100",
-      "required": true,
-      "expressed": false
-    },
-    "00104": {
-      "id": "00104",
-      "type": "file",
-      "path": "00100_concept/00104_non_goals.md",
-      "title": "Non Goals",
-      "intent": "Record deliberate exclusions to reduce scope drift.",
-      "parent_id": "00100",
-      "required": false,
-      "expressed": false
-    },
-
     "00200": {
       "id": "00200",
       "type": "directory",
@@ -73,7 +22,7 @@
       "parent_id": null,
       "required": true,
       "expressed": false,
-      "activation_keywords": ["architecture", "service", "domain", "system", "modular", "design"]
+      "when_relevant": "Use when system boundaries, major components, domain responsibilities, or structural tradeoffs need to be made explicit."
     },
     "00201": {
       "id": "00201",
@@ -124,7 +73,7 @@
       "parent_id": null,
       "required": false,
       "expressed": false,
-      "activation_keywords": ["data", "database", "schema", "entity", "model", "etl"]
+      "when_relevant": "Use when the product stores persistent information or has meaningful entities, relationships, ownership, retention, or migration concerns."
     },
     "00301": {
       "id": "00301",
@@ -165,7 +114,7 @@
       "parent_id": null,
       "required": false,
       "expressed": false,
-      "activation_keywords": ["security", "auth", "compliance", "threat", "privacy", "risk"]
+      "when_relevant": "Use when identity, permissions, sensitive information, threats, privacy, or compliance obligations affect the design."
     },
     "00401": {
       "id": "00401",
@@ -216,7 +165,7 @@
       "parent_id": null,
       "required": false,
       "expressed": false,
-      "activation_keywords": ["api", "endpoint", "contract", "event", "integration", "webhook"]
+      "when_relevant": "Use when modules, services, clients, partners, or external systems communicate through APIs, events, webhooks, or other contracts."
     },
     "00501": {
       "id": "00501",
@@ -257,7 +206,7 @@
       "parent_id": null,
       "required": false,
       "expressed": false,
-      "activation_keywords": ["ui", "ux", "frontend", "design", "wireframe", "journey"]
+      "when_relevant": "Use when an interactive experience requires journeys, navigation, information architecture, or reusable visual rules."
     },
     "00601": {
       "id": "00601",
@@ -298,7 +247,7 @@
       "parent_id": null,
       "required": false,
       "expressed": false,
-      "activation_keywords": ["infra", "devops", "ops", "deployment", "kubernetes", "cloud"]
+      "when_relevant": "Use when environments, deployment, rollback, resilience, or operational ownership require deliberate design."
     },
     "00701": {
       "id": "00701",
@@ -339,7 +288,7 @@
       "parent_id": null,
       "required": false,
       "expressed": false,
-      "activation_keywords": ["test", "qa", "quality", "validation", "regression"]
+      "when_relevant": "Use when risk-based testing, acceptance criteria, regression protection, or incident learning need a defined strategy."
     },
     "00801": {
       "id": "00801",
@@ -380,7 +329,7 @@
       "parent_id": null,
       "required": false,
       "expressed": false,
-      "activation_keywords": ["roadmap", "governance", "delivery", "milestone", "program", "planning"]
+      "when_relevant": "Use when implementation needs phases, dependency sequencing, delivery ownership, or an explicit risk register."
     },
     "00901": {
       "id": "00901",
@@ -421,7 +370,7 @@
       "parent_id": null,
       "required": false,
       "expressed": false,
-      "activation_keywords": ["observability", "logging", "monitoring", "tracing", "slo"]
+      "when_relevant": "Use when logs, metrics, traces, service objectives, alerts, or operational dashboards are important to safe operation."
     },
     "01001": {
       "id": "01001",
@@ -462,7 +411,7 @@
       "parent_id": null,
       "required": false,
       "expressed": false,
-      "activation_keywords": ["scale", "cost", "performance", "capacity", "finops", "optimization"]
+      "when_relevant": "Use when growth, performance, capacity, infrastructure cost, or unit economics could materially shape the design."
     },
     "01101": {
       "id": "01101",
@@ -503,7 +452,7 @@
       "parent_id": null,
       "required": false,
       "expressed": false,
-      "activation_keywords": ["continuity", "disaster", "backup", "recovery", "legal", "audit"]
+      "when_relevant": "Use when continuity, backup, disaster recovery, audit evidence, or operational fallback requirements need to be planned."
     },
     "01201": {
       "id": "01201",

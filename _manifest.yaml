@@ -1,12 +1,28 @@
 {
   "schema_version": "1.0.0",
-  "generated_at": "2026-02-25T12:22:38.665Z",
+  "generated_at": "2026-07-23T16:15:47.391Z",
   "workspace_root": ".",
   "seed": {
-    "path": "_my_brainwave.md",
-    "word_count": 0,
-    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "last_ingested_at": "2026-02-25T12:22:38.665Z"
+    "path": "_my_brainwave_seed.md",
+    "word_count": 46,
+    "current_sha256": "a9af75973506fd953a6a3acbf1aecae7330c16bd88c941ddf600f65dc398e794",
+    "locked_sha256": "a9af75973506fd953a6a3acbf1aecae7330c16bd88c941ddf600f65dc398e794",
+    "integrity": "unchanged",
+    "captured_at": "2026-02-25T14:13:43.919Z",
+    "last_ingested_at": "2026-07-23T16:15:47.391Z"
+  },
+  "north_star": {
+    "path": "_my_brainwave_north_star.md",
+    "status": "shaping",
+    "word_count": 42,
+    "sha256": "d3ec2285bb2f40b86ef6bc92367283b6cd24d33ae2df250b16bf4fc14bbf5945",
+    "updated_at": "2026-07-23T15:20:18.933Z"
+  },
+  "lifecycle": {
+    "path": "_brainwave_state.yaml",
+    "stage": "shaping_north_star",
+    "stage_updated_at": "2026-07-23T15:19:41.874Z",
+    "passive": false
   },
   "settings": {
     "path": "_settings.yaml",
@@ -17,70 +33,24 @@
   },
   "engine": {
     "status": "ok",
-    "last_command": "run",
-    "last_cycle_at": "2026-02-25T12:22:38.665Z",
+    "last_command": "refresh",
+    "last_cycle_at": "2026-07-23T16:15:47.391Z",
     "warnings": [],
     "task_router": {
-      "pending_tasks": 0,
-      "model_tiers": {}
+      "pending_tasks": 0
     },
     "context_degraded": false
   },
   "dna": {
     "path": "_dna.yaml",
     "totals": {
-      "nodes": 51,
-      "directories": 12,
-      "files": 39,
+      "nodes": 46,
+      "directories": 11,
+      "files": 35,
       "expressed_nodes": 0,
       "expressed_files": 0
     },
     "nodes": {
-      "00100": {
-        "id": "00100",
-        "type": "directory",
-        "path": "00100_concept",
-        "parent_id": null,
-        "required": true,
-        "expressed": false,
-        "processing_status": "container"
-      },
-      "00101": {
-        "id": "00101",
-        "type": "file",
-        "path": "00100_concept/00101_problem_statement.md",
-        "parent_id": "00100",
-        "required": true,
-        "expressed": false,
-        "processing_status": "not_started"
-      },
-      "00102": {
-        "id": "00102",
-        "type": "file",
-        "path": "00100_concept/00102_target_audience.md",
-        "parent_id": "00100",
-        "required": true,
-        "expressed": false,
-        "processing_status": "not_started"
-      },
-      "00103": {
-        "id": "00103",
-        "type": "file",
-        "path": "00100_concept/00103_success_metrics.md",
-        "parent_id": "00100",
-        "required": true,
-        "expressed": false,
-        "processing_status": "not_started"
-      },
-      "00104": {
-        "id": "00104",
-        "type": "file",
-        "path": "00100_concept/00104_non_goals.md",
-        "parent_id": "00100",
-        "required": false,
-        "expressed": false,
-        "processing_status": "not_started"
-      },
       "00200": {
         "id": "00200",
         "type": "directory",
@@ -499,46 +469,6 @@
   },
   "filesystem": {
     "tracked_files": {
-      "00100_concept/00101_problem_statement.md": {
-        "node_id": "00101",
-        "required": true,
-        "expressed": false,
-        "exists": false,
-        "processing_status": "not_started",
-        "word_count": 0,
-        "sha256": null,
-        "updated_at": null
-      },
-      "00100_concept/00102_target_audience.md": {
-        "node_id": "00102",
-        "required": true,
-        "expressed": false,
-        "exists": false,
-        "processing_status": "not_started",
-        "word_count": 0,
-        "sha256": null,
-        "updated_at": null
-      },
-      "00100_concept/00103_success_metrics.md": {
-        "node_id": "00103",
-        "required": true,
-        "expressed": false,
-        "exists": false,
-        "processing_status": "not_started",
-        "word_count": 0,
-        "sha256": null,
-        "updated_at": null
-      },
-      "00100_concept/00104_non_goals.md": {
-        "node_id": "00104",
-        "required": false,
-        "expressed": false,
-        "exists": false,
-        "processing_status": "not_started",
-        "word_count": 0,
-        "sha256": null,
-        "updated_at": null
-      },
       "00200_architecture/00201_system_context.md": {
         "node_id": "00201",
         "required": true,
@@ -891,81 +821,106 @@
       }
     },
     "missing_expressed_files": [],
-    "non_dna_markdown_files": [
-      "_engine/README.md"
-    ]
+    "non_dna_markdown_files": []
   },
   "progress": {
     "global_completion_pct": 0,
     "folders": {
-      "00100": {
-        "path": "00100_concept",
-        "total_expressed_files": 0,
-        "completed_files": 0,
-        "completion_pct": 0
-      },
       "00200": {
+        "title": "Architecture",
         "path": "00200_architecture",
+        "available_files": 4,
+        "expressed_files": 0,
         "total_expressed_files": 0,
         "completed_files": 0,
         "completion_pct": 0
       },
       "00300": {
+        "title": "Data Models",
         "path": "00300_data_models",
+        "available_files": 3,
+        "expressed_files": 0,
         "total_expressed_files": 0,
         "completed_files": 0,
         "completion_pct": 0
       },
       "00400": {
+        "title": "Security",
         "path": "00400_security",
+        "available_files": 4,
+        "expressed_files": 0,
         "total_expressed_files": 0,
         "completed_files": 0,
         "completion_pct": 0
       },
       "00500": {
+        "title": "API Contracts",
         "path": "00500_api_contracts",
+        "available_files": 3,
+        "expressed_files": 0,
         "total_expressed_files": 0,
         "completed_files": 0,
         "completion_pct": 0
       },
       "00600": {
+        "title": "UI UX",
         "path": "00600_ui_ux",
+        "available_files": 3,
+        "expressed_files": 0,
         "total_expressed_files": 0,
         "completed_files": 0,
         "completion_pct": 0
       },
       "00700": {
+        "title": "Platform Ops",
         "path": "00700_platform_ops",
+        "available_files": 3,
+        "expressed_files": 0,
         "total_expressed_files": 0,
         "completed_files": 0,
         "completion_pct": 0
       },
       "00800": {
+        "title": "Quality and Testing",
         "path": "00800_quality_testing",
+        "available_files": 3,
+        "expressed_files": 0,
         "total_expressed_files": 0,
         "completed_files": 0,
         "completion_pct": 0
       },
       "00900": {
+        "title": "Delivery Governance",
         "path": "00900_delivery_governance",
+        "available_files": 3,
+        "expressed_files": 0,
         "total_expressed_files": 0,
         "completed_files": 0,
         "completion_pct": 0
       },
       "01000": {
+        "title": "Observability",
         "path": "01000_observability",
+        "available_files": 3,
+        "expressed_files": 0,
         "total_expressed_files": 0,
         "completed_files": 0,
         "completion_pct": 0
       },
       "01100": {
+        "title": "Scalability and FinOps",
         "path": "01100_scalability_finops",
+        "available_files": 3,
+        "expressed_files": 0,
         "total_expressed_files": 0,
         "completed_files": 0,
         "completion_pct": 0
       },
       "01200": {
+        "title": "Risk and Continuity",
         "path": "01200_risk_continuity",
+        "available_files": 3,
+        "expressed_files": 0,
         "total_expressed_files": 0,
         "completed_files": 0,
         "completion_pct": 0

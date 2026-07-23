@@ -8,28 +8,12 @@ const {
   readStdin,
   walkUpForBrainwaveRoot,
   isSeedEmpty,
-  writeSeed,
+  brainwaveStage,
+  isPassive,
   readSettings,
   writeSettings,
   isSettingsConfigured
 } = require("./brainwave_common");
-
-function isConceptLikePrompt(prompt) {
-  const text = String(prompt || "").trim().toLowerCase();
-  if (text.length < 20) return false;
-  const conceptSignals = [
-    /\bnew idea\b/,
-    /\bidea\b/,
-    /\bapp\b/,
-    /\bplatform\b/,
-    /\bsaas\b/,
-    /\bfeature\b/,
-    /\bbuild\b/,
-    /\bwishlist\b/,
-    /\bwish list\b/
-  ];
-  return conceptSignals.some((pattern) => pattern.test(text));
-}
 
 function pickWorkingRoot(payload) {
   const workspaceRootSnake = Array.isArray(payload.workspace_roots) ? payload.workspace_roots[0] : null;
@@ -89,17 +73,20 @@ function main() {
     return;
   }
   const prompt = String(payload.prompt || payload.message || payload.text || "");
-  const conceptLikePrompt = isConceptLikePrompt(prompt);
+  const brainwaveIntent =
+    /\bbrainwave\b/i.test(prompt) ||
+    /\bbuild concept\b/i.test(prompt) ||
+    /\bbrainwave_runner\.js\b/i.test(prompt);
+  if (isPassive(root) && !brainwaveIntent) {
+    respondJson({ continue: true });
+    return;
+  }
+
   const buildIntent =
     /\bbuild concept\b/i.test(prompt) ||
     /\bbrainwave:run\b/i.test(prompt) ||
     /\bbrainwave:watch\b/i.test(prompt) ||
-    /\bbrainwave_runner\.js\s+(run|watch|express)\b/i.test(prompt);
-
-  let capturedConcept = false;
-  if (isSeedEmpty(root) && conceptLikePrompt) {
-    capturedConcept = writeSeed(root, prompt);
-  }
+    /\bbrainwave_runner\.js\s+(run|watch|express|transition)\b/i.test(prompt);
 
   if (!isSettingsConfigured(root)) {
     const profile = parseProfileFromPrompt(prompt);
@@ -121,25 +108,30 @@ function main() {
     respondJson({
       continue: false,
       user_message:
-        "Brainwave pre-check: `_my_brainwave.md` is empty. Share your concept first (I can write it for you from chat), then run `build concept`."
+        "Brainwave is at `awaiting_seed`. Discuss the idea first, then explicitly ask the agent to capture it in the immutable `_my_brainwave_seed.md`."
     });
     return;
   }
 
   if (buildIntent && !isSettingsConfigured(root)) {
-    const capturedNote = capturedConcept ? "Concept captured into `_my_brainwave.md`. " : "";
     respondJson({
       continue: false,
       user_message:
-        `${capturedNote}Before ` +
-        "`build concept`, set profile dials in one message: `beginner|intermediate|architect`, " +
+        "Before progressing Brainwave, set profile dials in one message: `beginner|intermediate|architect`, " +
         "`thought_partner|fast_execution`, `lean|standard|exhaustive` " +
         "(example: `intermediate, thought_partner, standard`)."
     });
     return;
   }
 
-  respondJson({ continue: true });
+  const additionalContext = brainwaveIntent
+    ? `Brainwave stage: ${brainwaveStage(root)}. Follow the lifecycle and terminology in \`_brainwave_handbook.md\`.`
+    : null;
+  respondJson(
+    additionalContext
+      ? { continue: true, additional_context: additionalContext, additionalContext }
+      : { continue: true }
+  );
 }
 
 main();

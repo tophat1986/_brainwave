@@ -7,4 +7,4 @@ Examples:
 - `00100_state.md`
 - `00200_state.md`
 
-Agents should read this directory first for big-picture recall.
+Agents should read `_my_brainwave_north_star.md` first for current direction, then use the relevant summary here for local recall.

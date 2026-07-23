@@ -7,7 +7,9 @@ const crypto = require("crypto");
 
 const ROOT = path.resolve(__dirname, "..");
 const PATHS = {
-  seed: path.join(ROOT, "_my_brainwave.md"),
+  seed: path.join(ROOT, "_my_brainwave_seed.md"),
+  northStar: path.join(ROOT, "_my_brainwave_north_star.md"),
+  state: path.join(ROOT, "_brainwave_state.yaml"),
   settings: path.join(ROOT, "_settings.yaml"),
   dna: path.join(ROOT, "_dna.yaml"),
   manifest: path.join(ROOT, "_manifest.yaml"),
@@ -18,6 +20,38 @@ const PATHS = {
 
 const INTERNAL_WRITE_GUARD_MS = 2500;
 const internalWrites = new Map();
+const STAGES = Object.freeze([
+  "awaiting_seed",
+  "shaping_north_star",
+  "scoping_architecture_documentation",
+  "building_architecture_documentation",
+  "reviewing_architecture_documentation",
+  "architecture_documentation_complete"
+]);
+const ACTIVE_RECONCILIATION_STAGES = new Set([
+  "building_architecture_documentation",
+  "reviewing_architecture_documentation"
+]);
+const ALLOWED_STAGE_TRANSITIONS = Object.freeze({
+  awaiting_seed: ["shaping_north_star"],
+  shaping_north_star: ["scoping_architecture_documentation"],
+  scoping_architecture_documentation: ["shaping_north_star", "building_architecture_documentation"],
+  building_architecture_documentation: [
+    "shaping_north_star",
+    "scoping_architecture_documentation",
+    "reviewing_architecture_documentation"
+  ],
+  reviewing_architecture_documentation: [
+    "shaping_north_star",
+    "scoping_architecture_documentation",
+    "building_architecture_documentation",
+    "architecture_documentation_complete"
+  ],
+  architecture_documentation_complete: [
+    "shaping_north_star",
+    "scoping_architecture_documentation"
+  ]
+});
 
 function nowIso() {
   return new Date().toISOString();
@@ -72,11 +106,14 @@ function wordCount(content) {
 }
 
 function fileStatusFromContent(content) {
-  const words = wordCount(content);
-  if (words === 0) return "not_started";
-  if (/status:\s*complete/i.test(content) || /##\s*done/i.test(content)) return "complete";
-  if (words >= 120) return "complete";
+  if (!content.trim()) return "not_started";
+  const status = content.match(/^\s*status:\s*(not_started|in_progress|complete)\s*$/im)?.[1]?.toLowerCase();
+  if (status === "complete") return "complete";
   return "in_progress";
+}
+
+function northStarStatusFromContent(content) {
+  return content.match(/^\s*status:\s*(shaping|agreed)\s*$/im)?.[1]?.toLowerCase() || "missing";
 }
 
 function defaultSettings() {
@@ -102,8 +139,23 @@ function defaultSettings() {
   };
 }
 
+function defaultState() {
+  return {
+    schema_version: "1.0.0",
+    stage: "awaiting_seed",
+    stage_updated_at: nowIso(),
+    seed: {
+      path: "_my_brainwave_seed.md",
+      captured_at: null,
+      locked_sha256: null
+    }
+  };
+}
+
 function ensureCoreFiles() {
   if (!exists(PATHS.seed)) writeText(PATHS.seed, "");
+  if (!exists(PATHS.northStar)) writeText(PATHS.northStar, "");
+  if (!exists(PATHS.state)) writeJsonYaml(PATHS.state, defaultState());
   if (!exists(PATHS.settings)) writeJsonYaml(PATHS.settings, defaultSettings());
   if (!exists(PATHS.manifest)) writeJsonYaml(PATHS.manifest, defaultManifestSkeleton());
   if (!exists(PATHS.contextDir)) fs.mkdirSync(PATHS.contextDir, { recursive: true });
@@ -126,10 +178,26 @@ function defaultManifestSkeleton() {
     generated_at: nowIso(),
     workspace_root: ".",
     seed: {
-      path: "_my_brainwave.md",
+      path: "_my_brainwave_seed.md",
+      word_count: 0,
+      current_sha256: null,
+      locked_sha256: null,
+      integrity: "unlocked",
+      captured_at: null,
+      last_ingested_at: null
+    },
+    north_star: {
+      path: "_my_brainwave_north_star.md",
+      status: "missing",
       word_count: 0,
       sha256: null,
-      last_ingested_at: null
+      updated_at: null
+    },
+    lifecycle: {
+      path: "_brainwave_state.yaml",
+      stage: "awaiting_seed",
+      stage_updated_at: null,
+      passive: false
     },
     settings: {
       path: "_settings.yaml",
@@ -144,8 +212,7 @@ function defaultManifestSkeleton() {
       last_cycle_at: null,
       warnings: [],
       task_router: {
-        pending_tasks: 0,
-        model_tiers: {}
+        pending_tasks: 0
       },
       context_degraded: false
     },
@@ -209,45 +276,6 @@ function getDescendantFileNodes(dna, parentId) {
   return results.sort((a, b) => a.id.localeCompare(b.id));
 }
 
-function evaluateSeedAndToggleDna(seedText, dna) {
-  const activated = new Set();
-  const seed = seedText.toLowerCase();
-  if (!seed.trim()) {
-    return { changed: false, activated: [] };
-  }
-
-  const baseIds = ["00100", "00200"];
-  for (const id of baseIds) activated.add(id);
-
-  for (const node of Object.values(dna.nodes)) {
-    if (node.type !== "directory") continue;
-    const keywords = Array.isArray(node.activation_keywords) ? node.activation_keywords : [];
-    const matched = keywords.some((keyword) => seed.includes(String(keyword).toLowerCase()));
-    if (matched) activated.add(node.id);
-  }
-
-  for (const id of Array.from(activated)) {
-    const descendants = getDescendantFileNodes(dna, id);
-    descendants.forEach((fileNode) => activated.add(fileNode.id));
-    const dir = dna.nodes[id];
-    if (dir && dir.type === "directory") {
-      for (const child of getChildren(dna, id)) activated.add(child.id);
-    }
-  }
-
-  let changed = false;
-  for (const id of activated) {
-    const node = dna.nodes[id];
-    if (!node) continue;
-    if (!node.expressed) {
-      node.expressed = true;
-      changed = true;
-    }
-  }
-
-  return { changed, activated: Array.from(activated).sort() };
-}
-
 function inferParentPrefix(pathValue) {
   const firstSegment = String(pathValue).split("/")[0] || "";
   const match = firstSegment.match(/^(\d{4})\d_/);
@@ -268,13 +296,13 @@ function validateNamingConvention(node) {
   return { ok: true, reason: null };
 }
 
-function buildContextDigest(seedText, decisionsText, maxChars) {
-  const seed = (seedText || "").trim();
+function buildContextDigest(northStarText, decisionsText, maxChars) {
+  const northStar = (northStarText || "").trim();
   const decisions = (decisionsText || "").trim();
-  const combined = [seed, decisions].filter(Boolean).join("\n\n");
+  const combined = [northStar, decisions].filter(Boolean).join("\n\n");
   if (!combined) {
     return {
-      text: "No seed or decisions captured yet.",
+      text: "No North Star or steering decisions captured yet.",
       degraded: false
     };
   }
@@ -305,7 +333,6 @@ function routeGenerationTasks(dna) {
     tasks.push({
       node_id: node.id,
       path: node.path,
-      model_tier: node.required ? "reasoning_heavy" : "balanced",
       priority: node.required ? 1 : 2
     });
   }
@@ -327,31 +354,31 @@ class RateLimiter {
   }
 }
 
-function buildScaffoldContent(fileNode, seedText, contextDigest) {
+function buildScaffoldContent(fileNode) {
   const title = fileNode.title || fileNode.path.replace(".md", "");
-  const briefSeed = seedText.trim().slice(0, 300);
-  const seedLine = briefSeed ? briefSeed : "Seed not provided yet. Capture intent before execution.";
-  const digestLine = (contextDigest || "").trim().slice(0, 240).replace(/\n+/g, " ");
   return [
     `# ${title}`,
+    "",
+    "Status: in_progress",
+    `Last updated: ${nowIso()}`,
     "",
     "## Intent",
     `- ${fileNode.intent || "Define this area clearly before implementation."}`,
     "",
-    "## Seed Signal",
-    `- ${seedLine}`,
-    `- context_digest: ${digestLine || "none"}`,
+    "## Directional Context",
+    "- North Star: `_my_brainwave_north_star.md`",
+    "- Steering decisions: `_decisions_log.md`",
     "",
-    "## Working Notes",
-    "- status: in_progress",
-    "- decisions:",
-    "- constraints:",
-    "- open_questions:",
+    "## Decisions and Rationale",
+    "",
+    "## Constraints",
+    "",
+    "## Open Questions",
     ""
   ].join("\n");
 }
 
-async function reconcileExpressedNodes(dna, seedText, settings, manifest, taskPlan, contextDigest) {
+async function reconcileExpressedNodes(dna, settings, manifest, taskPlan) {
   const limiter = new RateLimiter(settings.engine?.rate_limit_ms || 900);
   const maxFiles = settings.engine?.max_files_per_cycle || 120;
   let createdCount = 0;
@@ -380,7 +407,7 @@ async function reconcileExpressedNodes(dna, seedText, settings, manifest, taskPl
 
     if (!exists(absolutePath)) {
       await limiter.waitTurn();
-      writeText(absolutePath, buildScaffoldContent(node, seedText, contextDigest));
+      writeText(absolutePath, buildScaffoldContent(node));
       createdCount += 1;
       touchedCount += 1;
     }
@@ -421,16 +448,20 @@ function computeFolderProgress(dna, trackedFiles) {
     .sort((a, b) => a.id.localeCompare(b.id));
 
   for (const directory of directoryNodes) {
-    const descendantFiles = getDescendantFileNodes(dna, directory.id).filter((fileNode) => fileNode.expressed);
-    const total = descendantFiles.length;
+    const catalogFiles = getDescendantFileNodes(dna, directory.id);
+    const expressedFiles = catalogFiles.filter((fileNode) => fileNode.expressed);
+    const total = expressedFiles.length;
     let complete = 0;
-    for (const fileNode of descendantFiles) {
+    for (const fileNode of expressedFiles) {
       const tracked = trackedFiles[fileNode.path];
       if (tracked && tracked.processing_status === "complete") complete += 1;
     }
     const pct = total === 0 ? 0 : Math.round((complete / total) * 100);
     folderProgress[directory.id] = {
+      title: directory.title,
       path: directory.path,
+      available_files: catalogFiles.length,
+      expressed_files: expressedFiles.length,
       total_expressed_files: total,
       completed_files: complete,
       completion_pct: pct
@@ -456,7 +487,13 @@ function generateCondensedSummaryForDir(dna, dirId, summaryCharBudget) {
     if (!text) continue;
     const lines = text.split("\n").map((line) => line.trim()).filter(Boolean);
     const headline = lines.find((line) => line.startsWith("#")) || fileNode.title || fileNode.id;
-    const bodyLine = lines.find((line) => !line.startsWith("#")) || "No detail captured yet.";
+    const bodyLine = lines.find(
+      (line) =>
+        !line.startsWith("#") &&
+        !/^status:/i.test(line) &&
+        !/^last updated:/i.test(line) &&
+        !/^-\s*(north star|steering decisions):/i.test(line)
+    ) || "No detail captured yet.";
     parts.push(`- ${fileNode.id}: ${headline.replace(/^#+\s*/, "")} -> ${bodyLine}`);
   }
 
@@ -485,7 +522,9 @@ function generateContextSummaries(dna, folderProgress, settings, manifest) {
 function buildManifest({
   dna,
   settings,
+  state,
   seedText,
+  northStarText,
   previousManifest,
   command,
   taskPlan = [],
@@ -501,11 +540,7 @@ function buildManifest({
   manifest.engine.last_command = command;
   manifest.engine.last_cycle_at = nowIso();
   manifest.engine.task_router = {
-    pending_tasks: taskPlan.length,
-    model_tiers: taskPlan.reduce((acc, task) => {
-      acc[task.model_tier] = (acc[task.model_tier] || 0) + 1;
-      return acc;
-    }, {})
+    pending_tasks: taskPlan.length
   };
   manifest.engine.context_degraded = degradedContext;
 
@@ -514,9 +549,29 @@ function buildManifest({
   manifest.settings.ideation_mode = settings.ideation_mode ?? null;
   manifest.settings.verbosity_budget = settings.verbosity_budget ?? null;
 
+  const currentSeedHash = seedText.trim() ? sha256(seedText) : null;
+  const lockedSeedHash = state?.seed?.locked_sha256 || null;
   manifest.seed.word_count = wordCount(seedText);
-  manifest.seed.sha256 = sha256(seedText);
+  manifest.seed.current_sha256 = currentSeedHash;
+  manifest.seed.locked_sha256 = lockedSeedHash;
+  manifest.seed.integrity = !lockedSeedHash
+    ? "unlocked"
+    : currentSeedHash === lockedSeedHash
+      ? "unchanged"
+      : "changed";
+  manifest.seed.captured_at = state?.seed?.captured_at || null;
   manifest.seed.last_ingested_at = nowIso();
+
+  manifest.north_star.status = northStarStatusFromContent(northStarText);
+  manifest.north_star.word_count = wordCount(northStarText);
+  manifest.north_star.sha256 = northStarText.trim() ? sha256(northStarText) : null;
+  manifest.north_star.updated_at = exists(PATHS.northStar)
+    ? fs.statSync(PATHS.northStar).mtime.toISOString()
+    : null;
+
+  manifest.lifecycle.stage = state.stage;
+  manifest.lifecycle.stage_updated_at = state.stage_updated_at || null;
+  manifest.lifecycle.passive = state.stage === "architecture_documentation_complete";
 
   const allNodes = Object.values(dna.nodes);
   const fileNodes = allNodes.filter((node) => node.type === "file");
@@ -562,13 +617,21 @@ function buildManifest({
     .filter((relative) => relative.endsWith(".md"));
   const dnaFileSet = new Set(fileNodes.map((node) => node.path));
   const internalFiles = new Set([
-    "_my_brainwave.md",
+    "_my_brainwave_seed.md",
+    "_my_brainwave_north_star.md",
+    "_brainwave_handbook.md",
     "_decisions_log.md",
+    "_engine/README.md",
     "README.md",
     "AGENTS.md"
   ]);
   manifest.filesystem.non_dna_markdown_files = allFiles.filter(
-    (relative) => !dnaFileSet.has(relative) && !relative.startsWith("_context/") && !internalFiles.has(relative)
+    (relative) =>
+      !dnaFileSet.has(relative) &&
+      !relative.startsWith("_context/") &&
+      !relative.startsWith("_templates/") &&
+      !relative.startsWith("_examples/") &&
+      !internalFiles.has(relative)
   );
 
   for (const node of allNodes) {
@@ -634,15 +697,6 @@ function shouldIgnoreWatchEvent(filePath) {
   return true;
 }
 
-function assertSeedReady(seedText, command) {
-  const blockedCommands = new Set(["run", "watch", "express"]);
-  if (!blockedCommands.has(command)) return;
-  if (seedText.trim()) return;
-  throw new Error(
-    "Pre-check failed: `_my_brainwave.md` is empty. Add your concept seed first, then rerun the command."
-  );
-}
-
 function hasAllowedSetting(settings, key) {
   const allowed = settings?.allowed_values?.[key];
   const value = settings?.[key];
@@ -659,66 +713,159 @@ function isSettingsConfigured(settings) {
   return true;
 }
 
-function assertSettingsReady(settings, command) {
-  const blockedCommands = new Set(["run", "watch", "express"]);
-  if (!blockedCommands.has(command)) return;
+function assertSettingsReady(settings) {
   if (isSettingsConfigured(settings)) return;
   throw new Error(
-    "Profile pre-check failed: `_settings.yaml` is incomplete. Ask onboarding questions in chat and update settings before running the engine."
+    "Profile pre-check failed: `_settings.yaml` is incomplete. Complete onboarding before progressing architecture documentation."
   );
 }
 
-async function runCycle(command) {
+function validateState(state) {
+  if (!state || typeof state !== "object") {
+    throw new Error("Invalid `_brainwave_state.yaml` content.");
+  }
+  if (!STAGES.includes(state.stage)) {
+    throw new Error(`Invalid Brainwave stage: ${state.stage || "missing"}`);
+  }
+}
+
+function assertSeedIntegrity(state, seedText) {
+  if (!seedText.trim()) {
+    throw new Error("Seed pre-check failed: `_my_brainwave_seed.md` is empty.");
+  }
+  const lockedHash = state?.seed?.locked_sha256;
+  if (!lockedHash) {
+    throw new Error(
+      "Seed pre-check failed: the Brainwave Seed has not been locked. Transition from `awaiting_seed` to `shaping_north_star` first."
+    );
+  }
+  const currentHash = sha256(seedText);
+  if (currentHash !== lockedHash) {
+    throw new Error(
+      "Seed integrity failed: `_my_brainwave_seed.md` changed after capture. Restore the immutable seed before continuing."
+    );
+  }
+}
+
+function assertNorthStarAgreed(northStarText) {
+  const status = northStarStatusFromContent(northStarText);
+  if (status !== "agreed") {
+    throw new Error(
+      "North Star pre-check failed: `_my_brainwave_north_star.md` must contain `Status: agreed` after explicit user agreement."
+    );
+  }
+}
+
+function expressedFileNodes(dna) {
+  return Object.values(dna.nodes)
+    .filter((node) => node.type === "file" && node.expressed)
+    .sort((a, b) => a.id.localeCompare(b.id));
+}
+
+function incompleteExpressedFiles(dna) {
+  return expressedFileNodes(dna).filter((node) => {
+    const absolute = path.join(ROOT, node.path);
+    return !exists(absolute) || fileStatusFromContent(readText(absolute)) !== "complete";
+  });
+}
+
+function loadWorkspace() {
   ensureCoreFiles();
 
   const settings = { ...defaultSettings(), ...readJsonYaml(PATHS.settings, defaultSettings()) };
   const dna = readJsonYaml(PATHS.dna, null);
   if (!dna) throw new Error("Missing _dna.yaml. Create it before running the engine.");
   validateDna(dna);
-
-  const previousManifest = readJsonYaml(PATHS.manifest, defaultManifestSkeleton());
-  const seedText = readText(PATHS.seed);
-  assertSeedReady(seedText, command);
-  assertSettingsReady(settings, command);
-  const decisionsText = readText(PATHS.decisions);
-  const contextDigest = buildContextDigest(seedText, decisionsText, settings.engine?.max_context_chars || 32000);
-  const planning = evaluateSeedAndToggleDna(seedText, dna);
-  if (planning.changed) {
-    writeJsonYaml(PATHS.dna, dna);
-  }
-
-  const taskPlan = routeGenerationTasks(dna);
-  const manifest = buildManifest({
-    dna,
+  const state = readJsonYaml(PATHS.state, defaultState());
+  validateState(state);
+  return {
     settings,
-    seedText,
+    dna,
+    state,
+    seedText: readText(PATHS.seed),
+    northStarText: readText(PATHS.northStar),
+    decisionsText: readText(PATHS.decisions),
+    previousManifest: readJsonYaml(PATHS.manifest, defaultManifestSkeleton())
+  };
+}
+
+function buildWorkspaceManifest(workspace, command, previousManifest = workspace.previousManifest) {
+  const contextDigest = buildContextDigest(
+    workspace.northStarText,
+    workspace.decisionsText,
+    workspace.settings.engine?.max_context_chars || 32000
+  );
+  return buildManifest({
+    dna: workspace.dna,
+    settings: workspace.settings,
+    state: workspace.state,
+    seedText: workspace.seedText,
+    northStarText: workspace.northStarText,
     previousManifest,
+    command,
+    taskPlan: routeGenerationTasks(workspace.dna),
+    degradedContext: contextDigest.degraded
+  });
+}
+
+function persistWorkspaceManifest(workspace, command, previousManifest = workspace.previousManifest) {
+  const manifest = buildWorkspaceManifest(workspace, command, previousManifest);
+  writeJsonYaml(PATHS.manifest, manifest);
+  injectManifestIntoDashboard(manifest);
+  return manifest;
+}
+
+function assertReconciliationReady(workspace) {
+  assertSeedIntegrity(workspace.state, workspace.seedText);
+  assertSettingsReady(workspace.settings);
+  assertNorthStarAgreed(workspace.northStarText);
+  if (!ACTIVE_RECONCILIATION_STAGES.has(workspace.state.stage)) {
+    if (workspace.state.stage === "architecture_documentation_complete") {
+      throw new Error(
+        "Brainwave is passive because architecture documentation is complete. Reopen Brainwave explicitly before reconciling."
+      );
+    }
+    throw new Error(
+      `Reconciliation is unavailable during \`${workspace.state.stage}\`. Transition to \`building_architecture_documentation\` first.`
+    );
+  }
+}
+
+async function runCycle(command) {
+  const workspace = loadWorkspace();
+  assertReconciliationReady(workspace);
+
+  const contextDigest = buildContextDigest(
+    workspace.northStarText,
+    workspace.decisionsText,
+    workspace.settings.engine?.max_context_chars || 32000
+  );
+  const taskPlan = routeGenerationTasks(workspace.dna);
+  const manifest = buildManifest({
+    dna: workspace.dna,
+    settings: workspace.settings,
+    state: workspace.state,
+    seedText: workspace.seedText,
+    northStarText: workspace.northStarText,
+    previousManifest: workspace.previousManifest,
     command,
     taskPlan,
     degradedContext: contextDigest.degraded
   });
-  if (planning.activated.length > 0) {
-    addEvent(manifest, "planning", "DNA nodes activated from seed analysis.", {
-      activated_node_ids: planning.activated
-    });
-  }
   if (contextDigest.degraded) {
     addEvent(manifest, "warning", "Context digest exceeded budget and was condensed.");
   }
   if (taskPlan.length > 0) {
-    addEvent(manifest, "routing", "Generation tasks routed to model tiers.", {
-      pending_tasks: taskPlan.length,
-      tiers: manifest.engine.task_router.model_tiers
+    addEvent(manifest, "routing", "Expressed architecture-documentation scaffolds are pending.", {
+      pending_tasks: taskPlan.length
     });
   }
 
   const reconcile = await reconcileExpressedNodes(
-    dna,
-    seedText,
-    settings,
+    workspace.dna,
+    workspace.settings,
     manifest,
-    taskPlan,
-    contextDigest.text
+    taskPlan
   );
   if (reconcile.createdCount > 0) {
     addEvent(manifest, "reconcile", "Expressed files scaffolded.", {
@@ -727,15 +874,22 @@ async function runCycle(command) {
   }
 
   const refreshedManifest = buildManifest({
-    dna,
-    settings,
-    seedText,
+    dna: workspace.dna,
+    settings: workspace.settings,
+    state: workspace.state,
+    seedText: workspace.seedText,
+    northStarText: workspace.northStarText,
     previousManifest: manifest,
     command,
-    taskPlan: routeGenerationTasks(dna),
+    taskPlan: routeGenerationTasks(workspace.dna),
     degradedContext: contextDigest.degraded
   });
-  generateContextSummaries(dna, refreshedManifest.progress.folders, settings, refreshedManifest);
+  generateContextSummaries(
+    workspace.dna,
+    refreshedManifest.progress.folders,
+    workspace.settings,
+    refreshedManifest
+  );
   writeJsonYaml(PATHS.manifest, refreshedManifest);
   injectManifestIntoDashboard(refreshedManifest);
   console.log(`[brainwave] cycle complete at ${nowIso()}`);
@@ -743,41 +897,134 @@ async function runCycle(command) {
 
 function printHelp() {
   console.log("Brainwave runner commands:");
-  console.log("  node _engine/brainwave_runner.js run      # evaluate seed, reconcile DNA, refresh manifest/dashboard");
-  console.log("  node _engine/brainwave_runner.js watch    # run once then watch for workspace changes");
-  console.log("  node _engine/brainwave_runner.js express <id...>  # manually toggle DNA nodes to expressed=true");
-  console.log("  node _engine/brainwave_runner.js status   # print high-level manifest status");
+  console.log("  node _engine/brainwave_runner.js status");
+  console.log("  node _engine/brainwave_runner.js refresh");
+  console.log("  node _engine/brainwave_runner.js transition <stage>");
+  console.log("  node _engine/brainwave_runner.js express <id...>");
+  console.log("  node _engine/brainwave_runner.js run");
+  console.log("  node _engine/brainwave_runner.js watch");
 }
 
 function expressNodes(nodeIds) {
-  const dna = readJsonYaml(PATHS.dna, null);
-  if (!dna) throw new Error("Missing _dna.yaml");
-  validateDna(dna);
+  const workspace = loadWorkspace();
+  assertSeedIntegrity(workspace.state, workspace.seedText);
+  assertSettingsReady(workspace.settings);
+  assertNorthStarAgreed(workspace.northStarText);
+  if (workspace.state.stage !== "scoping_architecture_documentation") {
+    throw new Error(
+      `DNA expression is available only during \`scoping_architecture_documentation\`, not \`${workspace.state.stage}\`.`
+    );
+  }
+
   const changed = [];
-  for (const id of nodeIds) {
-    const node = dna.nodes[id];
-    if (!node) continue;
+  const expressNode = (id) => {
+    const node = workspace.dna.nodes[id];
+    if (!node) throw new Error(`Unknown DNA node: ${id}`);
     if (!node.expressed) {
       node.expressed = true;
       changed.push(id);
     }
+    if (node.parent_id) expressNode(node.parent_id);
+  };
+  for (const id of nodeIds) {
+    expressNode(id);
   }
   if (changed.length > 0) {
-    writeJsonYaml(PATHS.dna, dna);
+    writeJsonYaml(PATHS.dna, workspace.dna);
   }
+  const manifest = buildWorkspaceManifest(workspace, "express");
+  addEvent(manifest, "scope", "Architecture-documentation nodes expressed after agent selection.", {
+    expressed_node_ids: changed.sort()
+  });
+  writeJsonYaml(PATHS.manifest, manifest);
+  injectManifestIntoDashboard(manifest);
   console.log(`[brainwave] expressed nodes: ${changed.join(", ") || "none"}`);
 }
 
 function printStatus() {
-  const manifest = readJsonYaml(PATHS.manifest, null);
-  if (!manifest) {
-    console.log("No manifest available yet.");
-    return;
-  }
-  console.log(`[brainwave] generated_at: ${manifest.generated_at}`);
+  const workspace = loadWorkspace();
+  const manifest = buildWorkspaceManifest(workspace, "status");
+  console.log(`[brainwave] stage: ${workspace.state.stage}`);
+  console.log(`[brainwave] seed_integrity: ${manifest.seed.integrity}`);
+  console.log(`[brainwave] north_star_status: ${manifest.north_star.status}`);
   console.log(`[brainwave] global_completion_pct: ${manifest.progress.global_completion_pct}%`);
   console.log(`[brainwave] expressed_files: ${manifest.dna.totals.expressed_files}`);
   console.log(`[brainwave] missing_expressed_files: ${manifest.filesystem.missing_expressed_files.length}`);
+}
+
+function refreshDerivedState() {
+  const workspace = loadWorkspace();
+  persistWorkspaceManifest(workspace, "refresh");
+  console.log(`[brainwave] derived state refreshed at ${nowIso()}`);
+}
+
+function transitionStage(targetStage) {
+  if (!STAGES.includes(targetStage)) {
+    throw new Error(`Unknown Brainwave stage: ${targetStage}`);
+  }
+  const workspace = loadWorkspace();
+  const currentStage = workspace.state.stage;
+  if (targetStage === currentStage) {
+    console.log(`[brainwave] stage unchanged: ${currentStage}`);
+    return;
+  }
+  const allowed = ALLOWED_STAGE_TRANSITIONS[currentStage] || [];
+  if (!allowed.includes(targetStage)) {
+    throw new Error(`Invalid stage transition: ${currentStage} -> ${targetStage}`);
+  }
+
+  if (currentStage === "awaiting_seed" && targetStage === "shaping_north_star") {
+    if (!workspace.seedText.trim()) {
+      throw new Error("Cannot capture the Brainwave Seed because `_my_brainwave_seed.md` is empty.");
+    }
+    workspace.state.seed = {
+      path: "_my_brainwave_seed.md",
+      captured_at: nowIso(),
+      locked_sha256: sha256(workspace.seedText)
+    };
+  } else {
+    assertSeedIntegrity(workspace.state, workspace.seedText);
+  }
+
+  if (
+    [
+      "scoping_architecture_documentation",
+      "building_architecture_documentation",
+      "reviewing_architecture_documentation",
+      "architecture_documentation_complete"
+    ].includes(targetStage)
+  ) {
+    assertSettingsReady(workspace.settings);
+    assertNorthStarAgreed(workspace.northStarText);
+  }
+
+  if (
+    ["building_architecture_documentation", "reviewing_architecture_documentation", "architecture_documentation_complete"]
+      .includes(targetStage) &&
+    expressedFileNodes(workspace.dna).length === 0
+  ) {
+    throw new Error("No architecture-documentation files are expressed.");
+  }
+
+  if (
+    ["reviewing_architecture_documentation", "architecture_documentation_complete"].includes(targetStage)
+  ) {
+    const incomplete = incompleteExpressedFiles(workspace.dna);
+    if (incomplete.length > 0) {
+      throw new Error(
+        `Architecture documentation is incomplete: ${incomplete.map((node) => node.id).join(", ")}`
+      );
+    }
+  }
+
+  workspace.state.stage = targetStage;
+  workspace.state.stage_updated_at = nowIso();
+  writeJsonYaml(PATHS.state, workspace.state);
+  const manifest = buildWorkspaceManifest(workspace, "transition");
+  addEvent(manifest, "lifecycle", `Brainwave stage changed from ${currentStage} to ${targetStage}.`);
+  writeJsonYaml(PATHS.manifest, manifest);
+  injectManifestIntoDashboard(manifest);
+  console.log(`[brainwave] stage: ${currentStage} -> ${targetStage}`);
 }
 
 async function watchWorkspace() {
@@ -785,14 +1032,20 @@ async function watchWorkspace() {
   console.log("[brainwave] watching for changes...");
 
   let timer = null;
-  fs.watch(ROOT, { recursive: true }, (eventType, relativePath) => {
+  const watcher = fs.watch(ROOT, { recursive: true }, (eventType, relativePath) => {
     if (!relativePath) return;
     const absolute = path.join(ROOT, relativePath);
     if (shouldIgnoreWatchEvent(absolute)) return;
-    if (relativePath.includes(".git/")) return;
+    if (String(relativePath).replace(/\\/g, "/").includes(".git/")) return;
     if (timer) clearTimeout(timer);
     timer = setTimeout(async () => {
       try {
+        const state = readJsonYaml(PATHS.state, defaultState());
+        if (state.stage === "architecture_documentation_complete") {
+          watcher.close();
+          console.log("[brainwave] architecture documentation is complete; watch mode is now passive.");
+          return;
+        }
         await runCycle("watch");
       } catch (error) {
         console.error(`[brainwave] watch cycle failed: ${error.message}`);
@@ -814,12 +1067,25 @@ async function main() {
       throw new Error("Provide at least one node id.");
     }
     expressNodes(ids);
-    await runCycle("express");
+    return;
+  }
+
+  if (command === "transition") {
+    const targetStage = process.argv[3];
+    if (!targetStage) {
+      throw new Error("Provide a target Brainwave stage.");
+    }
+    transitionStage(targetStage);
     return;
   }
 
   if (command === "status") {
     printStatus();
+    return;
+  }
+
+  if (command === "refresh") {
+    refreshDerivedState();
     return;
   }
 
