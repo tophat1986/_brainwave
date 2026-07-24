@@ -1,61 +1,58 @@
 # _brainwave
 
-_brainwave turns an original idea into an agreed North Star and a proportionate set of architecture documentation before implementation begins.
+_brainwave turns an original idea into an agreed North Star and a proportionate set of domain documentation before downstream work begins.
 
-The AI agent supplies interpretation and discussion. The deterministic engine enforces lifecycle, seed integrity, document selection, naming, scaffolding, progress, and passive completion behavior.
+It is designed first for AI-built software products and currently includes:
 
-Read the concise [`_brainwave_handbook.md`](./_brainwave_handbook.md) for lifecycle and terminology.
+- **Software Application DNA** for software architecture documentation.
+- **Brand Identity DNA** for enduring verbal and visual identity guidance.
 
-## Quick Start
+The AI agent interprets meaning and recommends relevant DNA. The deterministic engine protects the immutable seed, lifecycle, approved scope, naming, versions, scaffolding, and completion state.
 
-1. Share an idea and explicitly ask the agent to capture it as the Brainwave Seed.
-2. The seed is written once to `_my_brainwave_seed.md` and locked against later changes.
-3. In chat, type `build concept`.
-4. Complete the three short profile choices when prompted.
-5. Shape `_my_brainwave_north_star.md` through focused natural-language discussion.
-6. Explicitly agree the North Star.
-7. Review and approve the agent's proposed architecture-documentation scope.
-8. Let the agent express the approved `_dna.yaml` nodes and run the engine.
-9. Review the completed documentation before accepting `architecture_documentation_complete`.
-10. Open `_dashboard.html` whenever you want the current lifecycle, catalogue, expression, and completion view.
+Read [`_brainwave_handbook.md`](./_brainwave_handbook.md) for the lifecycle and terminology. Open `_dashboard.html` for the current visual state and live DNA catalogue.
 
-## Lifecycle
+## Add to a Project
 
-- `awaiting_seed`
-- `shaping_north_star`
-- `scoping_architecture_documentation`
-- `building_architecture_documentation`
-- `reviewing_architecture_documentation`
-- `architecture_documentation_complete`
+Place this complete folder at `<project-root>/_brainwave/`, then run from the project root:
 
-When architecture documentation is complete, Brainwave becomes passive and normal product development continues without Brainwave announcements or prompt interception.
+```text
+node _brainwave/_engine/brainwave_runner.js integrate
+```
 
-## Core Artifacts
+The integration command:
 
-- `_my_brainwave_seed.md` — immutable original concept
-- `_my_brainwave_north_star.md` — living current direction
-- `_brainwave_state.yaml` — authoritative lifecycle and seed fingerprint
-- `_dna.yaml` — catalogue and expression state for architecture documentation
-- `_decisions_log.md` — concise North Star and documentation-scope steering rationale
-- `_manifest.yaml` — derived progress, integrity, and filesystem state
-- `_context/` — compressed summaries of completed documentation sections
-- `_dashboard.html` — the primary visual window into lifecycle, catalogue, expression, and completion state
+- adds a managed `_brainwave` bridge to root `AGENTS.md` and `CLAUDE.md`
+- merges the two Cursor hooks into root `.cursor/hooks.json`
+- preserves existing project instructions and hooks
+- is safe to run again without creating duplicates
 
-Templates are stored in `_templates/`. `_examples/` shows the current wishlist example without treating example files as live project state.
+It does not move files or modify `_brainwave` lifecycle state. Restart Cursor after the first integration so its root hook configuration reloads.
 
-## Engine Boundary
+When this repository is opened directly with `_brainwave` as the workspace root, its included Cursor configuration already applies and integration is unnecessary.
 
-The engine does not interpret ideas or automatically select documentation. The AI agent proposes DNA expression using the North Star and `when_relevant` guidance; the user approves it; the engine scaffolds only those expressed nodes.
+## Begin with _brainwave
+
+1. Share the idea and explicitly ask the agent to capture the immutable seed.
+2. Type `build concept`.
+3. Complete the three short profile choices.
+4. Shape and explicitly agree the North Star.
+5. Review the agent's recommended DNA modules.
+6. Approve the proportionate documentation entries.
+7. Let the engine scaffold them beneath `_documentation/_DNA-CODE/`.
+8. Review the completed documentation before accepting `brainwave_documentation_complete`.
+
+The engine never interprets the idea or chooses documentation. Those decisions remain conversational and require explicit user agreement.
 
 ## Commands
 
+- `node _engine/brainwave_runner.js dna`
 - `node _engine/brainwave_runner.js status`
 - `node _engine/brainwave_runner.js refresh`
 - `node _engine/brainwave_runner.js transition <stage>`
-- `node _engine/brainwave_runner.js express <id...>`
+- `node _engine/brainwave_runner.js select-dna <_DNA-CODE...>`
+- `node _engine/brainwave_runner.js express <_DNA-CODE-00000...>`
+- `node _engine/brainwave_runner.js unexpress <_DNA-CODE-00000...>`
 - `node _engine/brainwave_runner.js run`
 - `node _engine/brainwave_runner.js watch`
 
-`express` is available only during `scoping_architecture_documentation`. `run` and `watch` are available only while architecture documentation is being built or reviewed.
-
-If `.cursor/hooks.json` changes, restart Cursor so its hook configuration reloads.
+Commands above are relative to the `_brainwave` folder. From a containing project root, prefix the runner path with `_brainwave/`.

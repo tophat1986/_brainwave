@@ -6,7 +6,8 @@ const path = require("path");
 const {
   parseJson,
   readStdin,
-  walkUpForBrainwaveRoot,
+  findFrameworkRoot,
+  brainwaveArtifactPath,
   isSeedEmpty,
   brainwaveStage,
   isPassive,
@@ -67,14 +68,17 @@ function applyProfileSettings(root, profile) {
 function main() {
   const payload = parseJson(readStdin());
   const cwd = pickWorkingRoot(payload);
-  const root = walkUpForBrainwaveRoot(cwd) || walkUpForBrainwaveRoot(path.resolve(__dirname, "..", ".."));
+  const root = findFrameworkRoot(cwd) || findFrameworkRoot(path.resolve(__dirname, "..", ".."));
   if (!root) {
     respondJson({ continue: true });
     return;
   }
   const prompt = String(payload.prompt || payload.message || payload.text || "");
+  const seedPath = brainwaveArtifactPath(root, cwd, "_my_brainwave_seed.md");
+  const settingsPath = brainwaveArtifactPath(root, cwd, "_settings.yaml");
+  const handbookPath = brainwaveArtifactPath(root, cwd, "_brainwave_handbook.md");
   const brainwaveIntent =
-    /\bbrainwave\b/i.test(prompt) ||
+    /(?:_brainwave|\bbrainwave)\b/i.test(prompt) ||
     /\bbuild concept\b/i.test(prompt) ||
     /\bbrainwave_runner\.js\b/i.test(prompt);
   if (isPassive(root) && !brainwaveIntent) {
@@ -86,7 +90,7 @@ function main() {
     /\bbuild concept\b/i.test(prompt) ||
     /\bbrainwave:run\b/i.test(prompt) ||
     /\bbrainwave:watch\b/i.test(prompt) ||
-    /\bbrainwave_runner\.js\s+(run|watch|express|transition)\b/i.test(prompt);
+    /\bbrainwave_runner\.js\s+(run|watch|dna|select-dna|express|unexpress|transition)\b/i.test(prompt);
 
   if (!isSettingsConfigured(root)) {
     const profile = parseProfileFromPrompt(prompt);
@@ -97,7 +101,7 @@ function main() {
         respondJson({
           continue: false,
           user_message:
-            "Brainwave profile capture failed while writing `_settings.yaml`. Please try again with: `intermediate, thought_partner, standard`."
+            `_brainwave profile capture failed while writing \`${settingsPath}\`. Please try again with: \`intermediate, thought_partner, standard\`.`
         });
         return;
       }
@@ -108,7 +112,7 @@ function main() {
     respondJson({
       continue: false,
       user_message:
-        "Brainwave is at `awaiting_seed`. Discuss the idea first, then explicitly ask the agent to capture it in the immutable `_my_brainwave_seed.md`."
+        `_brainwave is at \`awaiting_seed\`. Discuss the idea first, then explicitly ask the agent to capture it in the immutable \`${seedPath}\`.`
     });
     return;
   }
@@ -117,7 +121,7 @@ function main() {
     respondJson({
       continue: false,
       user_message:
-        "Before progressing Brainwave, set profile dials in one message: `beginner|intermediate|architect`, " +
+        "Before progressing _brainwave, set profile dials in one message: `beginner|intermediate|architect`, " +
         "`thought_partner|fast_execution`, `lean|standard|exhaustive` " +
         "(example: `intermediate, thought_partner, standard`)."
     });
@@ -125,7 +129,7 @@ function main() {
   }
 
   const additionalContext = brainwaveIntent
-    ? `Brainwave stage: ${brainwaveStage(root)}. Follow the lifecycle and terminology in \`_brainwave_handbook.md\`.`
+    ? `_brainwave stage: ${brainwaveStage(root)}. Follow the lifecycle and terminology in \`${handbookPath}\`.`
     : null;
   respondJson(
     additionalContext

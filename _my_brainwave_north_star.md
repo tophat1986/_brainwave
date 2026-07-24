@@ -1,4 +1,4 @@
-# My Brainwave North Star
+# My _brainwave North Star
 
 Status: shaping
 Last updated: 2026-07-23T15:19:41.874Z

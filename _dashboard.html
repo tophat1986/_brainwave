@@ -3,282 +3,534 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Brainwave Dashboard</title>
+  <title>_brainwave Dashboard</title>
   <style>
     :root {
-      --bg: #0c1020;
-      --panel: #121a33;
-      --panel-soft: #1b2750;
-      --text: #d8e0ff;
-      --muted: #9aa9d9;
-      --ok: #3ddc97;
-      --warn: #ffcb6b;
-      --danger: #ff6b6b;
-      --line: #2c3967;
+      color-scheme: light;
+      --ink: #18221d;
+      --muted: #647169;
+      --paper: #f5f1e8;
+      --panel: rgba(255, 255, 255, 0.78);
+      --line: #d8d2c5;
+      --green: #1f6848;
+      --green-soft: #dcecdf;
+      --amber: #a55d13;
+      --amber-soft: #f6e5c8;
+      --blue: #335f91;
+      --blue-soft: #dce8f4;
+      --shadow: 0 18px 55px rgba(51, 45, 34, 0.09);
     }
+
     * { box-sizing: border-box; }
+
     body {
       margin: 0;
-      font-family: Inter, Segoe UI, Arial, sans-serif;
-      background: linear-gradient(180deg, #0a0f1f 0%, #0f1630 100%);
-      color: var(--text);
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 12% 0%, rgba(192, 219, 198, 0.65), transparent 32rem),
+        radial-gradient(circle at 90% 18%, rgba(228, 206, 165, 0.55), transparent 28rem),
+        var(--paper);
+      font: 15px/1.55 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
-    .wrap {
-      max-width: 1200px;
+
+    .shell {
+      width: min(1180px, calc(100% - 32px));
       margin: 0 auto;
-      padding: 20px;
+      padding: 48px 0 72px;
     }
-    h1 {
-      margin: 0 0 6px;
-      font-size: 24px;
-    }
-    .meta {
-      color: var(--muted);
-      margin-bottom: 18px;
-      font-size: 13px;
-    }
-    .grid {
+
+    header {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 12px;
-      margin-bottom: 16px;
+      grid-template-columns: 1fr auto;
+      gap: 24px;
+      align-items: end;
+      margin-bottom: 28px;
     }
-    .card {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      padding: 12px;
-    }
-    .label {
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--green);
       font-size: 12px;
-      color: var(--muted);
+      font-weight: 800;
+      letter-spacing: 0.16em;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
-      margin-bottom: 8px;
     }
-    .value {
-      font-size: 22px;
-      font-weight: 600;
+
+    h1, h2, h3, p { margin-top: 0; }
+
+    h1 {
+      margin-bottom: 8px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(36px, 6vw, 64px);
+      font-weight: 500;
+      letter-spacing: -0.045em;
+      line-height: 0.98;
+    }
+
+    .lede {
+      max-width: 700px;
+      margin-bottom: 0;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .updated {
+      color: var(--muted);
+      font-size: 12px;
+      text-align: right;
+    }
+
+    .panel {
+      padding: 24px;
+      border: 1px solid rgba(132, 124, 108, 0.25);
+      border-radius: 18px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+    }
+
+    .lifecycle {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 18px;
+      padding: 10px;
+    }
+
+    .stage {
+      min-height: 70px;
+      padding: 12px;
+      border: 1px solid transparent;
+      border-radius: 12px;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.45);
+      font-size: 11px;
+      font-weight: 700;
       overflow-wrap: anywhere;
     }
-    .row {
+
+    .stage span {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 10px;
+      opacity: 0.65;
+    }
+
+    .stage.active {
+      border-color: rgba(31, 104, 72, 0.45);
+      color: #fff;
+      background: var(--green);
+    }
+
+    .stage.past {
+      color: var(--green);
+      background: var(--green-soft);
+    }
+
+    .status-line {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 28px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.7);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .pill.ok { color: var(--green); background: var(--green-soft); }
+    .pill.warn { color: var(--amber); background: var(--amber-soft); }
+    .pill.info { color: var(--blue); background: var(--blue-soft); }
+
+    .stats {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 12px;
-      margin-bottom: 12px;
+      margin-bottom: 34px;
     }
-    .panel {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      overflow: hidden;
-    }
-    .panel h2 {
-      margin: 0;
-      background: var(--panel-soft);
-      border-bottom: 1px solid var(--line);
-      font-size: 14px;
-      padding: 10px 12px;
-      letter-spacing: 0.04em;
+
+    .stat { min-height: 126px; }
+    .stat .label {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: #c9d5ff;
     }
-    .panel .body {
-      padding: 10px 12px;
-      max-height: 340px;
-      overflow: auto;
+
+    .stat .value {
+      margin: 12px 0 3px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 38px;
+      line-height: 1;
+    }
+
+    .stat .note { color: var(--muted); font-size: 12px; }
+
+    .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 20px;
+      margin: 36px 0 14px;
+    }
+
+    .section-head h2 {
+      margin-bottom: 3px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 27px;
+      font-weight: 500;
+    }
+
+    .section-head p { margin: 0; color: var(--muted); font-size: 13px; }
+
+    .module-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .module-card {
+      display: flex;
+      flex-direction: column;
+      min-height: 240px;
+    }
+
+    .module-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .module-card h3 {
+      margin-bottom: 4px;
+      font-size: 19px;
+    }
+
+    .module-id {
+      color: var(--muted);
+      font: 12px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace;
+    }
+
+    .module-card .description {
+      margin: 18px 0;
+      color: var(--muted);
       font-size: 13px;
     }
-    .pill {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 999px;
-      font-size: 12px;
-      border: 1px solid var(--line);
-      margin-right: 6px;
-    }
-    .status-complete { color: var(--ok); border-color: #2d805e; }
-    .status-in_progress { color: var(--warn); border-color: #786333; }
-    .status-not_started { color: var(--danger); border-color: #7b3a3a; }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 12px;
-    }
-    th, td {
-      border-bottom: 1px solid var(--line);
-      text-align: left;
-      padding: 6px 4px;
-      vertical-align: top;
-    }
-    th { color: var(--muted); font-weight: 500; }
-    .footer {
-      margin-top: 12px;
+
+    .module-meta {
+      display: flex;
+      gap: 18px;
+      margin-top: auto;
       color: var(--muted);
       font-size: 12px;
     }
-    button {
-      background: #2a3a73;
-      color: #dbe4ff;
-      border: 1px solid #4059a8;
-      padding: 6px 10px;
-      border-radius: 8px;
-      cursor: pointer;
+
+    .module-meta strong { display: block; color: var(--ink); font-size: 18px; }
+
+    .progress {
+      height: 8px;
+      margin-top: 14px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #e7e2d7;
     }
-    button:hover { filter: brightness(1.06); }
-    @media (max-width: 900px) {
-      .row { grid-template-columns: 1fr; }
+
+    .progress > span {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--green);
+    }
+
+    .catalogue { display: grid; gap: 14px; }
+
+    details.module-detail { padding: 0; overflow: hidden; }
+
+    summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 20px 22px;
+      cursor: pointer;
+      list-style: none;
+      font-weight: 800;
+    }
+
+    summary::-webkit-details-marker { display: none; }
+    summary::after { content: "+"; color: var(--green); font-size: 22px; }
+    details[open] summary::after { content: "−"; }
+
+    .module-detail-body {
+      padding: 0 22px 22px;
+      border-top: 1px solid var(--line);
+    }
+
+    .area {
+      display: grid;
+      grid-template-columns: minmax(180px, 0.7fr) 1.8fr;
+      gap: 22px;
+      padding: 22px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .area:last-child { border-bottom: 0; padding-bottom: 0; }
+    .area h3 { margin-bottom: 4px; font-size: 15px; }
+    .area-note { margin: 0; color: var(--muted); font-size: 12px; }
+
+    .documents { display: grid; gap: 7px; }
+
+    .document {
+      display: grid;
+      grid-template-columns: minmax(138px, auto) minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      padding: 9px 11px;
+      border-radius: 9px;
+      background: rgba(245, 241, 232, 0.72);
+      font-size: 12px;
+    }
+
+    code {
+      color: var(--green);
+      font: 11px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace;
+      overflow-wrap: anywhere;
+    }
+
+    .doc-state {
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .doc-state.complete { color: var(--green); }
+    .doc-state.in_progress { color: var(--amber); }
+    .doc-state.expressed { color: var(--blue); }
+
+    .events { display: grid; gap: 8px; }
+
+    .event {
+      display: grid;
+      grid-template-columns: 155px 100px 1fr;
+      gap: 14px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 12px;
+    }
+
+    .event:last-child { border-bottom: 0; }
+    .event time, .event .type { color: var(--muted); }
+
+    footer {
+      margin-top: 30px;
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center;
+    }
+
+    @media (max-width: 880px) {
+      .lifecycle { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .module-grid { grid-template-columns: 1fr; }
+      .area { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 560px) {
+      .shell { width: min(100% - 20px, 1180px); padding-top: 28px; }
+      header { grid-template-columns: 1fr; }
+      .updated { text-align: left; }
+      .lifecycle { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .stats { grid-template-columns: 1fr; }
+      .document { grid-template-columns: 1fr; }
+      .doc-state { grid-column: 1; }
+      .event { grid-template-columns: 1fr; gap: 2px; }
     }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <h1>_brainwave Live State</h1>
-    <div class="meta" id="meta">Waiting for embedded manifest state...</div>
-    <div class="grid" id="top-cards"></div>
-    <div class="row">
-      <section class="panel">
-        <h2>Architecture Documentation Catalogue</h2>
-        <div class="body" id="folder-progress"></div>
-      </section>
-      <section class="panel">
+  <main class="shell">
+    <header>
+      <div>
+        <p class="eyebrow">The window into the system</p>
+        <h1>_brainwave</h1>
+        <p class="lede">From an immutable seed to an agreed North Star and a proportionate set of documentation drawn from the right domain DNA.</p>
+      </div>
+      <div class="updated" id="updated">No derived state loaded</div>
+    </header>
+
+    <section class="panel lifecycle" id="lifecycle" aria-label="_brainwave lifecycle"></section>
+    <div class="status-line" id="status-line"></div>
+    <section class="stats" id="stats"></section>
+
+    <div class="section-head">
+      <div>
+        <h2>DNA Modules</h2>
+        <p>Installed domain catalogues and the selection for this _brainwave.</p>
+      </div>
+    </div>
+    <section class="module-grid" id="modules"></section>
+
+    <div class="section-head">
+      <div>
+        <h2>_brainwave Documentation Catalogue</h2>
+        <p>Live document groups and documents, grouped by their owning DNA module.</p>
+      </div>
+    </div>
+    <section class="catalogue" id="catalogue"></section>
+
+    <div class="section-head">
+      <div>
         <h2>Recent Events</h2>
-        <div class="body" id="events"></div>
-      </section>
+        <p>Derived lifecycle, selection, scope, and reconciliation activity.</p>
+      </div>
     </div>
-    <section class="panel">
-      <h2>Tracked DNA Files</h2>
-      <div class="body" id="tracked-files"></div>
-    </section>
-    <div class="footer">
-      <button onclick="location.reload()">Reload Embedded State</button>
-      <span>Open this file directly from disk. No local server required.</span>
-    </div>
-  </div>
+    <section class="panel events" id="events"></section>
 
-  <script id="brainwave-state" type="application/json">{"schema_version":"1.0.0","generated_at":"2026-07-23T16:15:47.391Z","workspace_root":".","seed":{"path":"_my_brainwave_seed.md","word_count":46,"current_sha256":"a9af75973506fd953a6a3acbf1aecae7330c16bd88c941ddf600f65dc398e794","locked_sha256":"a9af75973506fd953a6a3acbf1aecae7330c16bd88c941ddf600f65dc398e794","integrity":"unchanged","captured_at":"2026-02-25T14:13:43.919Z","last_ingested_at":"2026-07-23T16:15:47.391Z"},"north_star":{"path":"_my_brainwave_north_star.md","status":"shaping","word_count":42,"sha256":"d3ec2285bb2f40b86ef6bc92367283b6cd24d33ae2df250b16bf4fc14bbf5945","updated_at":"2026-07-23T15:20:18.933Z"},"lifecycle":{"path":"_brainwave_state.yaml","stage":"shaping_north_star","stage_updated_at":"2026-07-23T15:19:41.874Z","passive":false},"settings":{"path":"_settings.yaml","loaded":true,"technical_proficiency":null,"ideation_mode":"thought_partner","verbosity_budget":"standard"},"engine":{"status":"ok","last_command":"refresh","last_cycle_at":"2026-07-23T16:15:47.391Z","warnings":[],"task_router":{"pending_tasks":0},"context_degraded":false},"dna":{"path":"_dna.yaml","totals":{"nodes":46,"directories":11,"files":35,"expressed_nodes":0,"expressed_files":0},"nodes":{"00200":{"id":"00200","type":"directory","path":"00200_architecture","parent_id":null,"required":true,"expressed":false,"processing_status":"container"},"00201":{"id":"00201","type":"file","path":"00200_architecture/00201_system_context.md","parent_id":"00200","required":true,"expressed":false,"processing_status":"not_started"},"00202":{"id":"00202","type":"file","path":"00200_architecture/00202_component_model.md","parent_id":"00200","required":true,"expressed":false,"processing_status":"not_started"},"00203":{"id":"00203","type":"file","path":"00200_architecture/00203_domain_boundaries.md","parent_id":"00200","required":true,"expressed":false,"processing_status":"not_started"},"00204":{"id":"00204","type":"file","path":"00200_architecture/00204_tradeoffs.md","parent_id":"00200","required":false,"expressed":false,"processing_status":"not_started"},"00300":{"id":"00300","type":"directory","path":"00300_data_models","parent_id":null,"required":false,"expressed":false,"processing_status":"container"},"00301":{"id":"00301","type":"file","path":"00300_data_models/00301_domain_entities.md","parent_id":"00300","required":false,"expressed":false,"processing_status":"not_started"},"00302":{"id":"00302","type":"file","path":"00300_data_models/00302_schema_strategy.md","parent_id":"00300","required":false,"expressed":false,"processing_status":"not_started"},"00303":{"id":"00303","type":"file","path":"00300_data_models/00303_data_retention.md","parent_id":"00300","required":false,"expressed":false,"processing_status":"not_started"},"00400":{"id":"00400","type":"directory","path":"00400_security","parent_id":null,"required":false,"expressed":false,"processing_status":"container"},"00401":{"id":"00401","type":"file","path":"00400_security/00401_threat_model.md","parent_id":"00400","required":false,"expressed":false,"processing_status":"not_started"},"00402":{"id":"00402","type":"file","path":"00400_security/00402_authn_authz.md","parent_id":"00400","required":false,"expressed":false,"processing_status":"not_started"},"00403":{"id":"00403","type":"file","path":"00400_security/00403_secret_management.md","parent_id":"00400","required":false,"expressed":false,"processing_status":"not_started"},"00404":{"id":"00404","type":"file","path":"00400_security/00404_compliance_controls.md","parent_id":"00400","required":false,"expressed":false,"processing_status":"not_started"},"00500":{"id":"00500","type":"directory","path":"00500_api_contracts","parent_id":null,"required":false,"expressed":false,"processing_status":"container"},"00501":{"id":"00501","type":"file","path":"00500_api_contracts/00501_service_map.md","parent_id":"00500","required":false,"expressed":false,"processing_status":"not_started"},"00502":{"id":"00502","type":"file","path":"00500_api_contracts/00502_endpoint_contracts.md","parent_id":"00500","required":false,"expressed":false,"processing_status":"not_started"},"00503":{"id":"00503","type":"file","path":"00500_api_contracts/00503_event_contracts.md","parent_id":"00500","required":false,"expressed":false,"processing_status":"not_started"},"00600":{"id":"00600","type":"directory","path":"00600_ui_ux","parent_id":null,"required":false,"expressed":false,"processing_status":"container"},"00601":{"id":"00601","type":"file","path":"00600_ui_ux/00601_user_journeys.md","parent_id":"00600","required":false,"expressed":false,"processing_status":"not_started"},"00602":{"id":"00602","type":"file","path":"00600_ui_ux/00602_information_architecture.md","parent_id":"00600","required":false,"expressed":false,"processing_status":"not_started"},"00603":{"id":"00603","type":"file","path":"00600_ui_ux/00603_design_system_tokens.md","parent_id":"00600","required":false,"expressed":false,"processing_status":"not_started"},"00700":{"id":"00700","type":"directory","path":"00700_platform_ops","parent_id":null,"required":false,"expressed":false,"processing_status":"container"},"00701":{"id":"00701","type":"file","path":"00700_platform_ops/00701_environments.md","parent_id":"00700","required":false,"expressed":false,"processing_status":"not_started"},"00702":{"id":"00702","type":"file","path":"00700_platform_ops/00702_release_orchestration.md","parent_id":"00700","required":false,"expressed":false,"processing_status":"not_started"},"00703":{"id":"00703","type":"file","path":"00700_platform_ops/00703_resilience_patterns.md","parent_id":"00700","required":false,"expressed":false,"processing_status":"not_started"},"00800":{"id":"00800","type":"directory","path":"00800_quality_testing","parent_id":null,"required":false,"expressed":false,"processing_status":"container"},"00801":{"id":"00801","type":"file","path":"00800_quality_testing/00801_quality_strategy.md","parent_id":"00800","required":false,"expressed":false,"processing_status":"not_started"},"00802":{"id":"00802","type":"file","path":"00800_quality_testing/00802_test_matrix.md","parent_id":"00800","required":false,"expressed":false,"processing_status":"not_started"},"00803":{"id":"00803","type":"file","path":"00800_quality_testing/00803_incident_learning.md","parent_id":"00800","required":false,"expressed":false,"processing_status":"not_started"},"00900":{"id":"00900","type":"directory","path":"00900_delivery_governance","parent_id":null,"required":false,"expressed":false,"processing_status":"container"},"00901":{"id":"00901","type":"file","path":"00900_delivery_governance/00901_delivery_phases.md","parent_id":"00900","required":false,"expressed":false,"processing_status":"not_started"},"00902":{"id":"00902","type":"file","path":"00900_delivery_governance/00902_dependency_map.md","parent_id":"00900","required":false,"expressed":false,"processing_status":"not_started"},"00903":{"id":"00903","type":"file","path":"00900_delivery_governance/00903_risk_register.md","parent_id":"00900","required":false,"expressed":false,"processing_status":"not_started"},"01000":{"id":"01000","type":"directory","path":"01000_observability","parent_id":null,"required":false,"expressed":false,"processing_status":"container"},"01001":{"id":"01001","type":"file","path":"01000_observability/01001_telemetry_strategy.md","parent_id":"01000","required":false,"expressed":false,"processing_status":"not_started"},"01002":{"id":"01002","type":"file","path":"01000_observability/01002_service_level_objectives.md","parent_id":"01000","required":false,"expressed":false,"processing_status":"not_started"},"01003":{"id":"01003","type":"file","path":"01000_observability/01003_operational_dashboards.md","parent_id":"01000","required":false,"expressed":false,"processing_status":"not_started"},"01100":{"id":"01100","type":"directory","path":"01100_scalability_finops","parent_id":null,"required":false,"expressed":false,"processing_status":"container"},"01101":{"id":"01101","type":"file","path":"01100_scalability_finops/01101_scalability_model.md","parent_id":"01100","required":false,"expressed":false,"processing_status":"not_started"},"01102":{"id":"01102","type":"file","path":"01100_scalability_finops/01102_cost_controls.md","parent_id":"01100","required":false,"expressed":false,"processing_status":"not_started"},"01103":{"id":"01103","type":"file","path":"01100_scalability_finops/01103_capacity_plan.md","parent_id":"01100","required":false,"expressed":false,"processing_status":"not_started"},"01200":{"id":"01200","type":"directory","path":"01200_risk_continuity","parent_id":null,"required":false,"expressed":false,"processing_status":"container"},"01201":{"id":"01201","type":"file","path":"01200_risk_continuity/01201_business_continuity.md","parent_id":"01200","required":false,"expressed":false,"processing_status":"not_started"},"01202":{"id":"01202","type":"file","path":"01200_risk_continuity/01202_disaster_recovery.md","parent_id":"01200","required":false,"expressed":false,"processing_status":"not_started"},"01203":{"id":"01203","type":"file","path":"01200_risk_continuity/01203_audit_readiness.md","parent_id":"01200","required":false,"expressed":false,"processing_status":"not_started"}}},"filesystem":{"tracked_files":{"00200_architecture/00201_system_context.md":{"node_id":"00201","required":true,"expressed":false,"exists":false,"processing_status":"not_started","word_count":0,"sha256":null,"updated_at":null},"00200_architecture/00202_component_model.md":{"node_id":"00202","required":true,"expressed":false,"exists":false,"processing_status":"not_started","word_count":0,"sha256":null,"updated_at":null},"00200_architecture/00203_domain_boundaries.md":{"node_id":"00203","required":true,"expressed":false,"exists":false,"processing_status":"not_started","word_count":0,"sha256":null,"updated_at":null},"00200_architecture/00204_tradeoffs.md":{"node_id":"00204","required":false,"expressed":false,"exists":false,"processing_status":"not_started","word_count":0,"sha256":null,"updated_at":null},"00300_data_models/00301_domain_entities.md":{"node_id":"00301","required":false,"expressed":false,"exists":false,"processing_status":"not_started","word_count":0,"sha256":null,"updated_at":null},"00300_data_models/00302_schema_strategy.md":{"node_id":"00302","required":false,"expressed":false,"exists":false,"processing_status":"not_started","word_count":0,"sha256":null,"updated_at":null},"00300_data_models/00303_data_retention.md":{"node_id":"00303","required":false,"expressed":false,"exists":false,"processing_status":"not_started","word_count":0,"sha256":null,"updated_at":null},"00400_security/00401_threat_model.md":{"node_id":"00401","required":false,"expressed":false,"exists":false,"processing_status":"not_started","word_count":0,"sha256":null,"updated_at":null},"00400_security/00402_authn_authz.md":{"node_id":"00402","required":false,"expressed":false,"exists":false,"processing_status":"not_started","word_count":0,"sha256":null,"updated_at":null},"00400_security/00403_secret_management.md":{"node_id":"00403","required":false,"expressed":false,"exists":false,"processing_status":"not_started","word_count":0,"sha256":null,"updated_at":null},"00400_security/00404_compliance_controls.md":{"node_id":"00404","required":false,"expressed":false,"exists":false,"processing_status":"not_started","word_count":0,"sha256":null,"updated_at":null},"00500_api_contracts/00501_service_map.md":{"node_id":"00501","required":false,"expressed":false,"exists":false,"processing_status":"not_started","word_count":0,"sha256":null,"updated_at":null},"00500_api_contracts/00502_endpoint_contracts.md":{"node_id":"00502","required":false,"expressed":false,"exists":false,"processing_status":"not_started","word_count":0,"sha256":null,"updated_at":null},"00500_api_contracts/00503_event_contracts.md":{"node_id":"00503","required":false,"expressed":false,"exists":false,"processing_status":"not_started","word_count":0,"sha256":null,"updated_at":null},"00600_ui_ux/00601_user_journeys.md":{"node_id":"00601","required":false,"expressed":false,"exists":false,"processing_status":"not_started","word_count":0,"sha256":null,"updated_at":null},"00600_ui_ux/00602_information_architecture.md":{"node_id":"00602","required":false,"expressed":false,"exists":false,"processing_status":"not_started","word_count":0,"sha256":null,"updated_at":null},"00600_ui_ux/00603_design_system_tokens.md":{"node_id":"00603","required":false,"expressed":false,"exists":false,"processing_status":"not_started","word_count":0,"sha256":null,"updated_at":null},"00700_platform_ops/00701_environments.md":{"node_id":"00701","required":false,"expressed":false,"exists":false,"processing_status":"not_started","word_count":0,"sha256":null,"updated_at":null},"00700_platform_ops/00702_release_orchestration.md":{"node_id":"00702","required":false,"expressed":false,"exists":false,"processing_status":"not_started","word_count":0,"sha256":null,"updated_at":null},"00700_platform_ops/00703_resilience_patterns.md":{"node_id":"00703","required":false,"expressed":false,"exists":false,"processing_status":"not_started","word_count":0,"sha256":null,"updated_at":null},"00800_quality_testing/00801_quality_strategy.md":{"node_id":"00801","required":false,"expressed":false,"exists":false,"processing_status":"not_started","word_count":0,"sha256":null,"updated_at":null},"00800_quality_testing/00802_test_matrix.md":{"node_id":"00802","required":false,"expressed":false,"exists":false,"processing_status":"not_started","word_count":0,"sha256":null,"updated_at":null},"00800_quality_testing/00803_incident_learning.md":{"node_id":"00803","required":false,"expressed":false,"exists":false,"processing_status":"not_started","word_count":0,"sha256":null,"updated_at":null},"00900_delivery_governance/00901_delivery_phases.md":{"node_id":"00901","required":false,"expressed":false,"exists":false,"processing_status":"not_started","word_count":0,"sha256":null,"updated_at":null},"00900_delivery_governance/00902_dependency_map.md":{"node_id":"00902","required":false,"expressed":false,"exists":false,"processing_status":"not_started","word_count":0,"sha256":null,"updated_at":null},"00900_delivery_governance/00903_risk_register.md":{"node_id":"00903","required":false,"expressed":false,"exists":false,"processing_status":"not_started","word_count":0,"sha256":null,"updated_at":null},"01000_observability/01001_telemetry_strategy.md":{"node_id":"01001","required":false,"expressed":false,"exists":false,"processing_status":"not_started","word_count":0,"sha256":null,"updated_at":null},"01000_observability/01002_service_level_objectives.md":{"node_id":"01002","required":false,"expressed":false,"exists":false,"processing_status":"not_started","word_count":0,"sha256":null,"updated_at":null},"01000_observability/01003_operational_dashboards.md":{"node_id":"01003","required":false,"expressed":false,"exists":false,"processing_status":"not_started","word_count":0,"sha256":null,"updated_at":null},"01100_scalability_finops/01101_scalability_model.md":{"node_id":"01101","required":false,"expressed":false,"exists":false,"processing_status":"not_started","word_count":0,"sha256":null,"updated_at":null},"01100_scalability_finops/01102_cost_controls.md":{"node_id":"01102","required":false,"expressed":false,"exists":false,"processing_status":"not_started","word_count":0,"sha256":null,"updated_at":null},"01100_scalability_finops/01103_capacity_plan.md":{"node_id":"01103","required":false,"expressed":false,"exists":false,"processing_status":"not_started","word_count":0,"sha256":null,"updated_at":null},"01200_risk_continuity/01201_business_continuity.md":{"node_id":"01201","required":false,"expressed":false,"exists":false,"processing_status":"not_started","word_count":0,"sha256":null,"updated_at":null},"01200_risk_continuity/01202_disaster_recovery.md":{"node_id":"01202","required":false,"expressed":false,"exists":false,"processing_status":"not_started","word_count":0,"sha256":null,"updated_at":null},"01200_risk_continuity/01203_audit_readiness.md":{"node_id":"01203","required":false,"expressed":false,"exists":false,"processing_status":"not_started","word_count":0,"sha256":null,"updated_at":null}},"missing_expressed_files":[],"non_dna_markdown_files":[]},"progress":{"global_completion_pct":0,"folders":{"00200":{"title":"Architecture","path":"00200_architecture","available_files":4,"expressed_files":0,"total_expressed_files":0,"completed_files":0,"completion_pct":0},"00300":{"title":"Data Models","path":"00300_data_models","available_files":3,"expressed_files":0,"total_expressed_files":0,"completed_files":0,"completion_pct":0},"00400":{"title":"Security","path":"00400_security","available_files":4,"expressed_files":0,"total_expressed_files":0,"completed_files":0,"completion_pct":0},"00500":{"title":"API Contracts","path":"00500_api_contracts","available_files":3,"expressed_files":0,"total_expressed_files":0,"completed_files":0,"completion_pct":0},"00600":{"title":"UI UX","path":"00600_ui_ux","available_files":3,"expressed_files":0,"total_expressed_files":0,"completed_files":0,"completion_pct":0},"00700":{"title":"Platform Ops","path":"00700_platform_ops","available_files":3,"expressed_files":0,"total_expressed_files":0,"completed_files":0,"completion_pct":0},"00800":{"title":"Quality and Testing","path":"00800_quality_testing","available_files":3,"expressed_files":0,"total_expressed_files":0,"completed_files":0,"completion_pct":0},"00900":{"title":"Delivery Governance","path":"00900_delivery_governance","available_files":3,"expressed_files":0,"total_expressed_files":0,"completed_files":0,"completion_pct":0},"01000":{"title":"Observability","path":"01000_observability","available_files":3,"expressed_files":0,"total_expressed_files":0,"completed_files":0,"completion_pct":0},"01100":{"title":"Scalability and FinOps","path":"01100_scalability_finops","available_files":3,"expressed_files":0,"total_expressed_files":0,"completed_files":0,"completion_pct":0},"01200":{"title":"Risk and Continuity","path":"01200_risk_continuity","available_files":3,"expressed_files":0,"total_expressed_files":0,"completed_files":0,"completion_pct":0}}},"context":{"summaries_generated":[]},"events":[]}</script>
+    <footer>DNA definitions and project selection remain the sources of truth. This dashboard is a derived snapshot.</footer>
+  </main>
+
+  <script id="brainwave-state" type="application/json">{"schema_version":"2.0.0","generated_at":"2026-07-24T21:46:11.242Z","workspace_root":".","seed":{"path":"_my_brainwave_seed.md","word_count":46,"current_sha256":"a9af75973506fd953a6a3acbf1aecae7330c16bd88c941ddf600f65dc398e794","locked_sha256":"a9af75973506fd953a6a3acbf1aecae7330c16bd88c941ddf600f65dc398e794","integrity":"unchanged","captured_at":"2026-02-25T14:13:43.919Z","last_ingested_at":"2026-07-24T21:46:11.242Z"},"north_star":{"path":"_my_brainwave_north_star.md","status":"shaping","word_count":42,"sha256":"bda9b3a10f5579ec0aa27f4d8abf25dcda35859af718b2a07ebff85d538c17b9","updated_at":"2026-07-24T11:10:56.533Z"},"lifecycle":{"path":"_brainwave_state.yaml","stage":"shaping_north_star","stage_updated_at":"2026-07-23T15:19:41.874Z","passive":false},"settings":{"path":"_settings.yaml","loaded":true,"technical_proficiency":null,"ideation_mode":"thought_partner","verbosity_budget":"standard"},"engine":{"status":"ok","last_command":"refresh","last_cycle_at":"2026-07-24T21:46:11.242Z","task_router":{"pending_tasks":0}},"dna":{"directory":"_dna","totals":{"available_modules":2,"selected_modules":0,"nodes":61,"directories":15,"files":46,"expressed_nodes":0,"expressed_files":0},"modules":{"brand_identity":{"source_path":"_dna/brand_identity.yaml","dna_code":"BRND","canonical_id":"_DNA-BRND","name":"Brand Identity DNA","description":"A proportionate catalogue for defining the enduring brand identity of a product or organisation. It translates an agreed North Star into recognisable verbal and visual direction without redefining product strategy or expanding into campaigns, acquisition, or go-to-market planning.","version":"1.1.0","schema_version":"1.1.0","documentation_label":"brand identity documentation","selected":false,"selected_version":null,"totals":{"nodes":15,"directories":4,"files":11,"expressed_nodes":0,"expressed_files":0},"nodes":{"00100":{"id":"00100","qualified_id":"_DNA-BRND-00100","type":"directory","title":"Brand Direction","when_relevant":"Use when the intended perception, character, or distinctive identity must be established. Derive this direction from the North Star without repeating its product purpose, audience definition, or success criteria.","parent_id":null,"required":true,"expressed":false,"processing_status":"container"},"00101":{"id":"00101","qualified_id":"_DNA-BRND-00101","type":"file","title":"Positioning and Perception","when_relevant":null,"parent_id":"00100","required":true,"expressed":false,"processing_status":"not_started"},"00102":{"id":"00102","qualified_id":"_DNA-BRND-00102","type":"file","title":"Personality and Principles","when_relevant":null,"parent_id":"00100","required":true,"expressed":false,"processing_status":"not_started"},"00200":{"id":"00200","qualified_id":"_DNA-BRND-00200","type":"directory","title":"Verbal Identity","when_relevant":"Use when the brand communicates through product copy, documentation, support, public content, or human conversation and needs a consistent verbal character. This area governs enduring expression, not campaign messaging or channel strategy.","parent_id":null,"required":true,"expressed":false,"processing_status":"container"},"00201":{"id":"00201","qualified_id":"_DNA-BRND-00201","type":"file","title":"Voice and Tone","when_relevant":null,"parent_id":"00200","required":true,"expressed":false,"processing_status":"not_started"},"00202":{"id":"00202","qualified_id":"_DNA-BRND-00202","type":"file","title":"Naming and Terminology","when_relevant":null,"parent_id":"00200","required":false,"expressed":false,"processing_status":"not_started"},"00300":{"id":"00300","qualified_id":"_DNA-BRND-00300","type":"directory","title":"Visual Identity","when_relevant":"Use when the brand needs a coherent and recognisable visual language. Define brand primitives and usage intent here; product interface components and interaction behaviour remain the responsibility of the applicable software or experience DNA.","parent_id":null,"required":true,"expressed":false,"processing_status":"container"},"00301":{"id":"00301","qualified_id":"_DNA-BRND-00301","type":"file","title":"Colour System","when_relevant":null,"parent_id":"00300","required":true,"expressed":false,"processing_status":"not_started"},"00302":{"id":"00302","qualified_id":"_DNA-BRND-00302","type":"file","title":"Typography System","when_relevant":null,"parent_id":"00300","required":true,"expressed":false,"processing_status":"not_started"},"00303":{"id":"00303","qualified_id":"_DNA-BRND-00303","type":"file","title":"Logo System","when_relevant":null,"parent_id":"00300","required":false,"expressed":false,"processing_status":"not_started"},"00304":{"id":"00304","qualified_id":"_DNA-BRND-00304","type":"file","title":"Imagery and Iconography","when_relevant":null,"parent_id":"00300","required":false,"expressed":false,"processing_status":"not_started"},"00400":{"id":"00400","qualified_id":"_DNA-BRND-00400","type":"directory","title":"Brand Application","when_relevant":"Use when identity decisions must be applied consistently and accessibly across product, communication, and operational touchpoints. Reference the earlier identity decisions rather than duplicating them.","parent_id":null,"required":true,"expressed":false,"processing_status":"container"},"00401":{"id":"00401","qualified_id":"_DNA-BRND-00401","type":"file","title":"Accessibility and Inclusive Expression","when_relevant":null,"parent_id":"00400","required":true,"expressed":false,"processing_status":"not_started"},"00402":{"id":"00402","qualified_id":"_DNA-BRND-00402","type":"file","title":"Application Guidance","when_relevant":null,"parent_id":"00400","required":true,"expressed":false,"processing_status":"not_started"},"00403":{"id":"00403","qualified_id":"_DNA-BRND-00403","type":"file","title":"Asset Governance","when_relevant":null,"parent_id":"00400","required":false,"expressed":false,"processing_status":"not_started"}}},"software_application":{"source_path":"_dna/software_application.yaml","dna_code":"SAPP","canonical_id":"_DNA-SAPP","name":"Software Application DNA","description":"Architecture documentation for AI-built software products and digital services, with an emphasis on web applications.","version":"1.1.0","schema_version":"1.1.0","documentation_label":"software architecture documentation","selected":false,"selected_version":null,"totals":{"nodes":46,"directories":11,"files":35,"expressed_nodes":0,"expressed_files":0},"nodes":{"00200":{"id":"00200","qualified_id":"_DNA-SAPP-00200","type":"directory","title":"Architecture","when_relevant":"Use when system boundaries, major components, domain responsibilities, or structural tradeoffs need to be made explicit.","parent_id":null,"required":true,"expressed":false,"processing_status":"container"},"00201":{"id":"00201","qualified_id":"_DNA-SAPP-00201","type":"file","title":"System Context","when_relevant":null,"parent_id":"00200","required":true,"expressed":false,"processing_status":"not_started"},"00202":{"id":"00202","qualified_id":"_DNA-SAPP-00202","type":"file","title":"Component Model","when_relevant":null,"parent_id":"00200","required":true,"expressed":false,"processing_status":"not_started"},"00203":{"id":"00203","qualified_id":"_DNA-SAPP-00203","type":"file","title":"Domain Boundaries","when_relevant":null,"parent_id":"00200","required":true,"expressed":false,"processing_status":"not_started"},"00204":{"id":"00204","qualified_id":"_DNA-SAPP-00204","type":"file","title":"Tradeoffs","when_relevant":null,"parent_id":"00200","required":false,"expressed":false,"processing_status":"not_started"},"00300":{"id":"00300","qualified_id":"_DNA-SAPP-00300","type":"directory","title":"Data Models","when_relevant":"Use when the product stores persistent information or has meaningful entities, relationships, ownership, retention, or migration concerns.","parent_id":null,"required":false,"expressed":false,"processing_status":"container"},"00301":{"id":"00301","qualified_id":"_DNA-SAPP-00301","type":"file","title":"Domain Entities","when_relevant":null,"parent_id":"00300","required":false,"expressed":false,"processing_status":"not_started"},"00302":{"id":"00302","qualified_id":"_DNA-SAPP-00302","type":"file","title":"Schema Strategy","when_relevant":null,"parent_id":"00300","required":false,"expressed":false,"processing_status":"not_started"},"00303":{"id":"00303","qualified_id":"_DNA-SAPP-00303","type":"file","title":"Data Retention","when_relevant":null,"parent_id":"00300","required":false,"expressed":false,"processing_status":"not_started"},"00400":{"id":"00400","qualified_id":"_DNA-SAPP-00400","type":"directory","title":"Security","when_relevant":"Use when identity, permissions, sensitive information, threats, privacy, or compliance obligations affect the design.","parent_id":null,"required":false,"expressed":false,"processing_status":"container"},"00401":{"id":"00401","qualified_id":"_DNA-SAPP-00401","type":"file","title":"Threat Model","when_relevant":null,"parent_id":"00400","required":false,"expressed":false,"processing_status":"not_started"},"00402":{"id":"00402","qualified_id":"_DNA-SAPP-00402","type":"file","title":"Authentication and Authorization","when_relevant":null,"parent_id":"00400","required":false,"expressed":false,"processing_status":"not_started"},"00403":{"id":"00403","qualified_id":"_DNA-SAPP-00403","type":"file","title":"Secret Management","when_relevant":null,"parent_id":"00400","required":false,"expressed":false,"processing_status":"not_started"},"00404":{"id":"00404","qualified_id":"_DNA-SAPP-00404","type":"file","title":"Compliance Controls","when_relevant":null,"parent_id":"00400","required":false,"expressed":false,"processing_status":"not_started"},"00500":{"id":"00500","qualified_id":"_DNA-SAPP-00500","type":"directory","title":"API Contracts","when_relevant":"Use when modules, services, clients, partners, or external systems communicate through APIs, events, webhooks, or other contracts.","parent_id":null,"required":false,"expressed":false,"processing_status":"container"},"00501":{"id":"00501","qualified_id":"_DNA-SAPP-00501","type":"file","title":"Service Map","when_relevant":null,"parent_id":"00500","required":false,"expressed":false,"processing_status":"not_started"},"00502":{"id":"00502","qualified_id":"_DNA-SAPP-00502","type":"file","title":"Endpoint Contracts","when_relevant":null,"parent_id":"00500","required":false,"expressed":false,"processing_status":"not_started"},"00503":{"id":"00503","qualified_id":"_DNA-SAPP-00503","type":"file","title":"Event Contracts","when_relevant":null,"parent_id":"00500","required":false,"expressed":false,"processing_status":"not_started"},"00600":{"id":"00600","qualified_id":"_DNA-SAPP-00600","type":"directory","title":"UI UX","when_relevant":"Use when an interactive experience requires journeys, navigation, information architecture, or reusable visual rules.","parent_id":null,"required":false,"expressed":false,"processing_status":"container"},"00601":{"id":"00601","qualified_id":"_DNA-SAPP-00601","type":"file","title":"User Journeys","when_relevant":null,"parent_id":"00600","required":false,"expressed":false,"processing_status":"not_started"},"00602":{"id":"00602","qualified_id":"_DNA-SAPP-00602","type":"file","title":"Information Architecture","when_relevant":null,"parent_id":"00600","required":false,"expressed":false,"processing_status":"not_started"},"00603":{"id":"00603","qualified_id":"_DNA-SAPP-00603","type":"file","title":"Design System Tokens","when_relevant":null,"parent_id":"00600","required":false,"expressed":false,"processing_status":"not_started"},"00700":{"id":"00700","qualified_id":"_DNA-SAPP-00700","type":"directory","title":"Platform Ops","when_relevant":"Use when environments, deployment, rollback, resilience, or operational ownership require deliberate design.","parent_id":null,"required":false,"expressed":false,"processing_status":"container"},"00701":{"id":"00701","qualified_id":"_DNA-SAPP-00701","type":"file","title":"Environments","when_relevant":null,"parent_id":"00700","required":false,"expressed":false,"processing_status":"not_started"},"00702":{"id":"00702","qualified_id":"_DNA-SAPP-00702","type":"file","title":"Release Orchestration","when_relevant":null,"parent_id":"00700","required":false,"expressed":false,"processing_status":"not_started"},"00703":{"id":"00703","qualified_id":"_DNA-SAPP-00703","type":"file","title":"Resilience Patterns","when_relevant":null,"parent_id":"00700","required":false,"expressed":false,"processing_status":"not_started"},"00800":{"id":"00800","qualified_id":"_DNA-SAPP-00800","type":"directory","title":"Quality and Testing","when_relevant":"Use when risk-based testing, acceptance criteria, regression protection, or incident learning need a defined strategy.","parent_id":null,"required":false,"expressed":false,"processing_status":"container"},"00801":{"id":"00801","qualified_id":"_DNA-SAPP-00801","type":"file","title":"Quality Strategy","when_relevant":null,"parent_id":"00800","required":false,"expressed":false,"processing_status":"not_started"},"00802":{"id":"00802","qualified_id":"_DNA-SAPP-00802","type":"file","title":"Test Matrix","when_relevant":null,"parent_id":"00800","required":false,"expressed":false,"processing_status":"not_started"},"00803":{"id":"00803","qualified_id":"_DNA-SAPP-00803","type":"file","title":"Incident Learning","when_relevant":null,"parent_id":"00800","required":false,"expressed":false,"processing_status":"not_started"},"00900":{"id":"00900","qualified_id":"_DNA-SAPP-00900","type":"directory","title":"Delivery Governance","when_relevant":"Use when implementation needs phases, dependency sequencing, delivery ownership, or an explicit risk register.","parent_id":null,"required":false,"expressed":false,"processing_status":"container"},"00901":{"id":"00901","qualified_id":"_DNA-SAPP-00901","type":"file","title":"Delivery Phases","when_relevant":null,"parent_id":"00900","required":false,"expressed":false,"processing_status":"not_started"},"00902":{"id":"00902","qualified_id":"_DNA-SAPP-00902","type":"file","title":"Dependency Map","when_relevant":null,"parent_id":"00900","required":false,"expressed":false,"processing_status":"not_started"},"00903":{"id":"00903","qualified_id":"_DNA-SAPP-00903","type":"file","title":"Risk Register","when_relevant":null,"parent_id":"00900","required":false,"expressed":false,"processing_status":"not_started"},"01000":{"id":"01000","qualified_id":"_DNA-SAPP-01000","type":"directory","title":"Observability","when_relevant":"Use when logs, metrics, traces, service objectives, alerts, or operational dashboards are important to safe operation.","parent_id":null,"required":false,"expressed":false,"processing_status":"container"},"01001":{"id":"01001","qualified_id":"_DNA-SAPP-01001","type":"file","title":"Telemetry Strategy","when_relevant":null,"parent_id":"01000","required":false,"expressed":false,"processing_status":"not_started"},"01002":{"id":"01002","qualified_id":"_DNA-SAPP-01002","type":"file","title":"Service Level Objectives","when_relevant":null,"parent_id":"01000","required":false,"expressed":false,"processing_status":"not_started"},"01003":{"id":"01003","qualified_id":"_DNA-SAPP-01003","type":"file","title":"Operational Dashboards","when_relevant":null,"parent_id":"01000","required":false,"expressed":false,"processing_status":"not_started"},"01100":{"id":"01100","qualified_id":"_DNA-SAPP-01100","type":"directory","title":"Scalability and FinOps","when_relevant":"Use when growth, performance, capacity, infrastructure cost, or unit economics could materially shape the design.","parent_id":null,"required":false,"expressed":false,"processing_status":"container"},"01101":{"id":"01101","qualified_id":"_DNA-SAPP-01101","type":"file","title":"Scalability Model","when_relevant":null,"parent_id":"01100","required":false,"expressed":false,"processing_status":"not_started"},"01102":{"id":"01102","qualified_id":"_DNA-SAPP-01102","type":"file","title":"Cost Controls","when_relevant":null,"parent_id":"01100","required":false,"expressed":false,"processing_status":"not_started"},"01103":{"id":"01103","qualified_id":"_DNA-SAPP-01103","type":"file","title":"Capacity Plan","when_relevant":null,"parent_id":"01100","required":false,"expressed":false,"processing_status":"not_started"},"01200":{"id":"01200","qualified_id":"_DNA-SAPP-01200","type":"directory","title":"Risk and Continuity","when_relevant":"Use when continuity, backup, disaster recovery, audit evidence, or operational fallback requirements need to be planned.","parent_id":null,"required":false,"expressed":false,"processing_status":"container"},"01201":{"id":"01201","qualified_id":"_DNA-SAPP-01201","type":"file","title":"Business Continuity","when_relevant":null,"parent_id":"01200","required":false,"expressed":false,"processing_status":"not_started"},"01202":{"id":"01202","qualified_id":"_DNA-SAPP-01202","type":"file","title":"Disaster Recovery","when_relevant":null,"parent_id":"01200","required":false,"expressed":false,"processing_status":"not_started"},"01203":{"id":"01203","qualified_id":"_DNA-SAPP-01203","type":"file","title":"Audit Readiness","when_relevant":null,"parent_id":"01200","required":false,"expressed":false,"processing_status":"not_started"}}}}},"filesystem":{"tracked_files":{},"missing_expressed_files":[]},"progress":{"global_completion_pct":0,"modules":{"brand_identity":{"name":"Brand Identity DNA","version":"1.1.0","documentation_label":"brand identity documentation","selected":false,"available_files":11,"expressed_files":0,"completed_files":0,"completion_pct":0,"folders":{"00100":{"title":"Brand Direction","path":"_documentation/_DNA-BRND/00100_brand_direction","available_files":2,"expressed_files":0,"completed_files":0,"completion_pct":0},"00200":{"title":"Verbal Identity","path":"_documentation/_DNA-BRND/00200_verbal_identity","available_files":2,"expressed_files":0,"completed_files":0,"completion_pct":0},"00300":{"title":"Visual Identity","path":"_documentation/_DNA-BRND/00300_visual_identity","available_files":4,"expressed_files":0,"completed_files":0,"completion_pct":0},"00400":{"title":"Brand Application","path":"_documentation/_DNA-BRND/00400_brand_application","available_files":3,"expressed_files":0,"completed_files":0,"completion_pct":0}}},"software_application":{"name":"Software Application DNA","version":"1.1.0","documentation_label":"software architecture documentation","selected":false,"available_files":35,"expressed_files":0,"completed_files":0,"completion_pct":0,"folders":{"00200":{"title":"Architecture","path":"_documentation/_DNA-SAPP/00200_architecture","available_files":4,"expressed_files":0,"completed_files":0,"completion_pct":0},"00300":{"title":"Data Models","path":"_documentation/_DNA-SAPP/00300_data_models","available_files":3,"expressed_files":0,"completed_files":0,"completion_pct":0},"00400":{"title":"Security","path":"_documentation/_DNA-SAPP/00400_security","available_files":4,"expressed_files":0,"completed_files":0,"completion_pct":0},"00500":{"title":"API Contracts","path":"_documentation/_DNA-SAPP/00500_api_contracts","available_files":3,"expressed_files":0,"completed_files":0,"completion_pct":0},"00600":{"title":"UI UX","path":"_documentation/_DNA-SAPP/00600_ui_ux","available_files":3,"expressed_files":0,"completed_files":0,"completion_pct":0},"00700":{"title":"Platform Ops","path":"_documentation/_DNA-SAPP/00700_platform_ops","available_files":3,"expressed_files":0,"completed_files":0,"completion_pct":0},"00800":{"title":"Quality and Testing","path":"_documentation/_DNA-SAPP/00800_quality_testing","available_files":3,"expressed_files":0,"completed_files":0,"completion_pct":0},"00900":{"title":"Delivery Governance","path":"_documentation/_DNA-SAPP/00900_delivery_governance","available_files":3,"expressed_files":0,"completed_files":0,"completion_pct":0},"01000":{"title":"Observability","path":"_documentation/_DNA-SAPP/01000_observability","available_files":3,"expressed_files":0,"completed_files":0,"completion_pct":0},"01100":{"title":"Scalability and FinOps","path":"_documentation/_DNA-SAPP/01100_scalability_finops","available_files":3,"expressed_files":0,"completed_files":0,"completion_pct":0},"01200":{"title":"Risk and Continuity","path":"_documentation/_DNA-SAPP/01200_risk_continuity","available_files":3,"expressed_files":0,"completed_files":0,"completion_pct":0}}}}},"context":{"summaries_generated":[]},"events":[]}</script>
   <script>
-    function safeReadState() {
-      const el = document.getElementById("brainwave-state");
-      if (!el) return {};
-      try {
-        return JSON.parse(el.textContent || "{}");
-      } catch (error) {
-        return { parse_error: error.message };
-      }
-    }
-
-    function pct(value) {
-      if (typeof value !== "number" || Number.isNaN(value)) return "0%";
-      return value + "%";
-    }
-
-    function statusPill(status) {
-      const cls = "status-" + String(status || "not_started");
-      return `<span class="pill ${cls}">${status || "unknown"}</span>`;
-    }
-
-    function renderCards(state) {
-      const dnaTotals = state?.dna?.totals || {};
-      const cards = [
-        { label: "Brainwave Stage", value: state?.lifecycle?.stage || "unknown" },
-        { label: "Seed Integrity", value: state?.seed?.integrity || "unknown" },
-        { label: "North Star", value: state?.north_star?.status || "unknown" },
-        { label: "Global Completion", value: pct(state?.progress?.global_completion_pct || 0) },
-        { label: "Available Documents", value: dnaTotals.files || 0 },
-        { label: "Expressed Files", value: dnaTotals.expressed_files || 0 },
-        { label: "Missing Expressed Files", value: (state?.filesystem?.missing_expressed_files || []).length },
-        { label: "Engine Status", value: state?.engine?.status || "unknown" }
+    (() => {
+      const stages = [
+        "awaiting_seed",
+        "shaping_north_star",
+        "selecting_dna",
+        "scoping_brainwave_documentation",
+        "building_brainwave_documentation",
+        "reviewing_brainwave_documentation",
+        "brainwave_documentation_complete"
       ];
-      const root = document.getElementById("top-cards");
-      root.innerHTML = cards.map((c) => `
-        <div class="card">
-          <div class="label">${c.label}</div>
-          <div class="value">${c.value}</div>
-        </div>
-      `).join("");
-    }
+      const labels = {
+        awaiting_seed: "Awaiting Seed",
+        shaping_north_star: "Shaping North Star",
+        selecting_dna: "Selecting DNA",
+        scoping_brainwave_documentation: "Scoping Documentation",
+        building_brainwave_documentation: "Building Documentation",
+        reviewing_brainwave_documentation: "Reviewing Documentation",
+        brainwave_documentation_complete: "Complete"
+      };
 
-    function renderFolderProgress(state) {
-      const folders = state?.progress?.folders || {};
-      const entries = Object.entries(folders).sort((a, b) => a[0].localeCompare(b[0]));
-      const root = document.getElementById("folder-progress");
-      if (entries.length === 0) {
-        root.textContent = "No folders tracked yet.";
-        return;
-      }
-      root.innerHTML = entries.map(([id, item]) => `
-        <div style="margin-bottom:8px;">
-          <strong>${id} ${item.title || ""}</strong>
-          <span style="color:#9aa9d9;">${item.path}</span><br>
-          ${item.available_files || 0} available · ${item.expressed_files || 0} expressed ·
-          ${item.completed_files || 0} complete
-          ${item.expressed_files ? `(${pct(item.completion_pct)} of expressed documents)` : ""}
-        </div>
-      `).join("");
-    }
+      const stateElement = document.getElementById("brainwave-state");
+      let state = {};
+      try { state = JSON.parse(stateElement.textContent || "{}"); } catch (_) {}
+      const esc = (value) => String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+      const modules = state.dna?.modules || {};
+      const totals = state.dna?.totals || {};
+      const currentStage = state.lifecycle?.stage || "awaiting_seed";
+      const currentIndex = stages.indexOf(currentStage);
 
-    function renderEvents(state) {
-      const events = Array.isArray(state?.events) ? state.events.slice(-20).reverse() : [];
-      const root = document.getElementById("events");
-      if (events.length === 0) {
-        root.textContent = "No events yet.";
-        return;
-      }
-      root.innerHTML = events.map((event) => `
-        <div style="margin-bottom:8px;">
-          <div><strong>${event.type || "event"}</strong> - ${event.message || ""}</div>
-          <div style="color:#9aa9d9;">${event.at || ""}</div>
-        </div>
-      `).join("");
-    }
+      document.getElementById("updated").textContent = state.generated_at
+        ? `Snapshot ${new Date(state.generated_at).toLocaleString()}`
+        : "Run refresh to generate the current snapshot";
 
-    function renderTrackedFiles(state) {
-      const tracked = state?.filesystem?.tracked_files || {};
-      const rows = Object.entries(tracked).sort((a, b) => a[0].localeCompare(b[0]));
-      const root = document.getElementById("tracked-files");
-      if (rows.length === 0) {
-        root.textContent = "No tracked files available.";
-        return;
-      }
-      root.innerHTML = `
-        <table>
-          <thead>
-            <tr>
-              <th>Path</th>
-              <th>Status</th>
-              <th>Words</th>
-              <th>Expressed</th>
-              <th>Exists</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rows.map(([filePath, item]) => `
-              <tr>
-                <td>${filePath}</td>
-                <td>${statusPill(item.processing_status)}</td>
-                <td>${item.word_count || 0}</td>
-                <td>${item.expressed ? "true" : "false"}</td>
-                <td>${item.exists ? "true" : "false"}</td>
-              </tr>
-            `).join("")}
-          </tbody>
-        </table>
-      `;
-    }
+      document.getElementById("lifecycle").innerHTML = stages.map((stage, index) => {
+        const className = index === currentIndex ? "stage active" : index < currentIndex ? "stage past" : "stage";
+        return `<div class="${className}"><span>${index + 1}</span>${esc(labels[stage])}</div>`;
+      }).join("");
 
-    (function boot() {
-      const state = safeReadState();
-      const meta = document.getElementById("meta");
-      if (state.parse_error) {
-        meta.textContent = "State parse error: " + state.parse_error;
-        return;
-      }
-      meta.textContent = `Stage: ${state?.lifecycle?.stage || "unknown"} | Manifest generated: ${state.generated_at || "not yet"} | Last command: ${state?.engine?.last_command || "n/a"}`;
-      renderCards(state);
-      renderFolderProgress(state);
-      renderEvents(state);
-      renderTrackedFiles(state);
+      const integrity = state.seed?.integrity || "unknown";
+      const northStar = state.north_star?.status || "unknown";
+      const passive = Boolean(state.lifecycle?.passive);
+      document.getElementById("status-line").innerHTML = [
+        `<span class="pill ${integrity === "unchanged" ? "ok" : "warn"}">Seed: ${esc(integrity)}</span>`,
+        `<span class="pill ${northStar === "agreed" ? "ok" : "warn"}">North Star: ${esc(northStar)}</span>`,
+        `<span class="pill info">${passive ? "Passive" : "Active"} lifecycle</span>`
+      ].join("");
+
+      const statItems = [
+        ["Available DNA", totals.available_modules || 0, "installed modules"],
+        ["Selected DNA", totals.selected_modules || 0, "agreed for this _brainwave"],
+        ["Available Documents", totals.files || 0, "across installed modules"],
+        ["Expressed Documents", totals.expressed_files || 0, "in the approved scope"],
+        ["Completion", `${state.progress?.global_completion_pct || 0}%`, "of expressed documents"]
+      ];
+      document.getElementById("stats").innerHTML = statItems.map(([label, value, note]) =>
+        `<article class="panel stat"><div class="label">${esc(label)}</div><div class="value">${esc(value)}</div><div class="note">${esc(note)}</div></article>`
+      ).join("");
+
+      const moduleEntries = Object.entries(modules);
+      document.getElementById("modules").innerHTML = moduleEntries.length
+        ? moduleEntries.map(([id, module]) => {
+            const progress = state.progress?.modules?.[id] || {};
+            const badge = module.selected
+              ? '<span class="pill ok">Selected</span>'
+              : '<span class="pill">Available</span>';
+            return `<article class="panel module-card">
+              <div class="module-top">
+                <div><h3>${esc(module.name)}</h3><div class="module-id">${esc(module.canonical_id || id)} · v${esc(module.version)}</div></div>
+                ${badge}
+              </div>
+              <p class="description">${esc(module.description)}</p>
+              <div class="module-meta">
+                <div><strong>${esc(module.totals?.directories || 0)}</strong>document groups</div>
+                <div><strong>${esc(module.totals?.files || 0)}</strong>documents</div>
+                <div><strong>${esc(progress.completion_pct || 0)}%</strong>complete</div>
+              </div>
+              <div class="progress" aria-label="${esc(progress.completion_pct || 0)} percent complete"><span style="width:${Number(progress.completion_pct || 0)}%"></span></div>
+            </article>`;
+          }).join("")
+        : '<div class="panel">No DNA modules discovered.</div>';
+
+      document.getElementById("catalogue").innerHTML = moduleEntries.map(([id, module]) => {
+        const nodes = module.nodes || {};
+        const documentGroups = Object.values(nodes)
+          .filter((node) => node.type === "directory" && !node.parent_id)
+          .sort((a, b) => a.id.localeCompare(b.id));
+        const groupMarkup = documentGroups.map((directory) => {
+          const documents = Object.values(nodes)
+            .filter((node) => node.type === "file" && node.parent_id === directory.id)
+            .sort((a, b) => a.id.localeCompare(b.id));
+          return `<div class="area">
+            <div>
+              <h3>${esc(directory.title)}</h3>
+              <p class="area-note">${esc(directory.when_relevant || "")}</p>
+            </div>
+            <div class="documents">${documents.map((document) => {
+              const status = document.processing_status === "complete"
+                ? "complete"
+                : document.processing_status === "in_progress"
+                  ? "in_progress"
+                  : document.expressed ? "expressed" : "available";
+              return `<div class="document">
+                <code>${esc(document.qualified_id || document.id)}</code>
+                <span>${esc(document.title)}</span>
+                <span class="doc-state ${status}">${esc(status.replace("_", " "))}</span>
+              </div>`;
+            }).join("")}</div>
+          </div>`;
+        }).join("");
+        return `<details class="panel module-detail" ${module.selected ? "open" : ""}>
+          <summary><span>${esc(module.name)}</span><span class="module-id">${esc(module.canonical_id || id)} · ${esc(module.documentation_label)} · ${esc(module.totals?.files || 0)} documents</span></summary>
+          <div class="module-detail-body">${groupMarkup}</div>
+        </details>`;
+      }).join("");
+
+      const events = Array.isArray(state.events) ? state.events.slice(-8).reverse() : [];
+      document.getElementById("events").innerHTML = events.length
+        ? events.map((event) => `<div class="event">
+            <time>${esc(event.at ? new Date(event.at).toLocaleString() : "")}</time>
+            <span class="type">${esc(event.type || "event")}</span>
+            <span>${esc(event.message || "")}</span>
+          </div>`).join("")
+        : '<div class="event"><span>No derived events yet.</span></div>';
     })();
   </script>
 </body>

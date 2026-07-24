@@ -5,7 +5,8 @@ const path = require("path");
 const {
   parseJson,
   readStdin,
-  walkUpForBrainwaveRoot,
+  findFrameworkRoot,
+  brainwaveArtifactPath,
   isSeedEmpty,
   northStarStatus,
   brainwaveStage,
@@ -23,31 +24,42 @@ function pickWorkingRoot(payload) {
   return payload.cwd || normalizedWorkspaceRoot || process.cwd();
 }
 
-function buildAdditionalContext(stage, seedEmpty, northStarStatusValue, settingsReady) {
+function buildAdditionalContext(stage, seedEmpty, northStarStatusValue, settingsReady, root, cwd) {
+  const agentsPath = brainwaveArtifactPath(root, cwd, "AGENTS.md");
+  const handbookPath = brainwaveArtifactPath(root, cwd, "_brainwave_handbook.md");
+  const settingsPath = brainwaveArtifactPath(root, cwd, "_settings.yaml");
+  const seedPath = brainwaveArtifactPath(root, cwd, "_my_brainwave_seed.md");
+  const northStarPath = brainwaveArtifactPath(root, cwd, "_my_brainwave_north_star.md");
+  const dnaPath = brainwaveArtifactPath(root, cwd, "_dna/");
+  const statePath = brainwaveArtifactPath(root, cwd, "_brainwave_state.yaml");
   const lines = [];
-  lines.push(`Brainwave is active at stage \`${stage}\`. Follow \`AGENTS.md\` and \`_brainwave_handbook.md\`.`);
-  lines.push("In the first assistant reply, state the current Brainwave stage in plain language.");
+  lines.push(`_brainwave is active at stage \`${stage}\`. Follow \`${agentsPath}\` and \`${handbookPath}\`.`);
+  lines.push("In the first assistant reply, state the current _brainwave stage in plain language.");
   if (!settingsReady) {
     lines.push(
-      "The user profile is incomplete. Ask the three concise profile questions and update `_settings.yaml` automatically."
+      `The user profile is incomplete. Ask the three concise profile questions and update \`${settingsPath}\` automatically.`
     );
   }
   if (stage === "awaiting_seed" || seedEmpty) {
     lines.push(
-      "Help the user clarify the idea in natural language. Capture `_my_brainwave_seed.md` only after explicit instruction; it becomes immutable."
+      `Help the user clarify the idea in natural language. Capture \`${seedPath}\` only after explicit instruction; it becomes immutable.`
     );
   } else if (stage === "shaping_north_star") {
     lines.push(
-      `The immutable seed exists and the North Star status is \`${northStarStatusValue}\`. Read the North Star first, use the seed only for provenance, and ask one to three material gap-filling questions at a time.`
+      `The immutable seed exists and the North Star status is \`${northStarStatusValue}\`. Read \`${northStarPath}\` first, use \`${seedPath}\` only for provenance, and ask one to three material gap-filling questions at a time.`
     );
-  } else if (stage === "scoping_architecture_documentation") {
+  } else if (stage === "selecting_dna") {
     lines.push(
-      "Use semantic judgment to propose proportionate DNA expression. Log the rationale and obtain explicit agreement before changing `_dna.yaml`."
+      `Recommend one or more DNA modules from \`${dnaPath}\` using the conversation's meaning and each module's declared purpose. Explain the recommendation and obtain explicit user agreement before recording selection in \`${statePath}\`.`
     );
-  } else if (stage === "building_architecture_documentation") {
-    lines.push("Complete only the agreed architecture documentation, in coherent slices, using the North Star as direction.");
-  } else if (stage === "reviewing_architecture_documentation") {
-    lines.push("Review expressed architecture documentation for gaps, contradictions, unresolved material questions, and implementation readiness.");
+  } else if (stage === "scoping_brainwave_documentation") {
+    lines.push(
+      `Use semantic judgment and \`when_relevant\` guidance to propose proportionate entries within the selected DNA modules. Obtain explicit agreement before recording expression in \`${statePath}\`.`
+    );
+  } else if (stage === "building_brainwave_documentation") {
+    lines.push("Complete only the agreed _brainwave documentation, in coherent dependency-aware slices, using the North Star as direction.");
+  } else if (stage === "reviewing_brainwave_documentation") {
+    lines.push("Review expressed _brainwave documentation for gaps, contradictions, unresolved material questions, and readiness for its intended downstream work.");
   }
   return lines.join(" ");
 }
@@ -59,7 +71,7 @@ function respondJson(payload) {
 function main() {
   const payload = parseJson(readStdin());
   const cwd = pickWorkingRoot(payload);
-  const root = walkUpForBrainwaveRoot(cwd) || walkUpForBrainwaveRoot(path.resolve(__dirname, "..", ".."));
+  const root = findFrameworkRoot(cwd) || findFrameworkRoot(path.resolve(__dirname, "..", ".."));
   if (!root) {
     respondJson({ continue: true });
     return;
@@ -75,7 +87,9 @@ function main() {
     stage,
     seedEmpty,
     northStarStatus(root),
-    settingsReady
+    settingsReady,
+    root,
+    cwd
   );
   respondJson({
     continue: true,

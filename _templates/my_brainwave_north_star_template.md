@@ -1,10 +1,10 @@
-# My Brainwave North Star
+# My _brainwave North Star
 
 Status: shaping
 Last updated: YYYY-MM-DDTHH:mm:ss.sssZ
 Source seed: `_my_brainwave_seed.md`
 
-The North Star is the living, current interpretation of the immutable seed. Keep sections proportionate. Unknowns may remain explicit when they do not block architecture documentation.
+The North Star is the living, current interpretation of the immutable seed. Keep sections proportionate. Unknowns may remain explicit when they do not block DNA selection or _brainwave documentation.
 
 ## Why It Should Exist
 
@@ -19,4 +19,3 @@ The North Star is the living, current interpretation of the immutable seed. Keep
 ## Success Looks Like
 
 ## Open Questions
-

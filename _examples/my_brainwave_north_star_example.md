@@ -1,10 +1,10 @@
-# My Brainwave North Star — Wishlist Example
+# My _brainwave North Star — Wishlist Example
 
 Status: shaping
 Last updated: 2026-07-23T15:19:41.874Z
 Source seed: `my_brainwave_seed_example.md`
 
-This example intentionally remains in shaping state. It demonstrates how Brainwave preserves known direction without inventing answers to unresolved questions.
+This example intentionally remains in shaping state. It demonstrates how _brainwave preserves known direction without inventing answers to unresolved questions.
 
 ## Why It Should Exist
 

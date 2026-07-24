@@ -31,12 +31,12 @@ function parseJson(value) {
   }
 }
 
-function walkUpForBrainwaveRoot(start) {
+function findFrameworkRoot(start) {
   let current = path.resolve(start || process.cwd());
   while (true) {
-    const dna = path.join(current, "_dna.yaml");
+    const dna = path.join(current, "_dna");
     const engine = path.join(current, "_engine", "brainwave_runner.js");
-    if (fs.existsSync(dna) && fs.existsSync(engine)) return current;
+    if (fs.existsSync(dna) && fs.statSync(dna).isDirectory() && fs.existsSync(engine)) return current;
     const parent = path.dirname(current);
     if (parent === current) return null;
     current = parent;
@@ -67,6 +67,12 @@ function readNorthStar(root) {
   }
 }
 
+function brainwaveArtifactPath(root, cwd, artifact) {
+  if (!root) return artifact;
+  const prefix = path.relative(path.resolve(cwd || process.cwd()), root).replace(/\\/g, "/");
+  return prefix ? `${prefix}/${artifact}` : artifact;
+}
+
 function readState(root) {
   if (!root) return {};
   const statePath = path.join(root, "_brainwave_state.yaml");
@@ -87,7 +93,7 @@ function brainwaveStage(root) {
 }
 
 function isPassive(root) {
-  return brainwaveStage(root) === "architecture_documentation_complete";
+  return brainwaveStage(root) === "brainwave_documentation_complete";
 }
 
 function readSettings(root) {
@@ -133,7 +139,8 @@ function isSettingsConfigured(root) {
 module.exports = {
   parseJson,
   readStdin,
-  walkUpForBrainwaveRoot,
+  findFrameworkRoot,
+  brainwaveArtifactPath,
   isSeedEmpty,
   readNorthStar,
   readState,

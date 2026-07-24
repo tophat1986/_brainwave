@@ -1,18 +1,11 @@
 {
-  "schema_version": "1.0.0",
-  "framework": "_brainwave",
-  "description": "Master genetic map for proportionate architecture documentation.",
-  "rules": {
-    "indexing": "5-digit open spacing with 100-step jumps for directories",
-    "index_space": {
-      "start": 100,
-      "step": 100,
-      "max": 99900
-    },
-    "file_naming": "When expressed, files must start with the node id and follow snake_case",
-    "physical_generation": "Only expressed=true nodes may be scaffolded physically",
-    "default_expressed_state": false
-  },
+  "schema_version": "1.1.0",
+  "dna_id": "software_application",
+  "dna_code": "SAPP",
+  "dna_version": "1.1.0",
+  "name": "Software Application DNA",
+  "description": "Architecture documentation for AI-built software products and digital services, with an emphasis on web applications.",
+  "documentation_label": "software architecture documentation",
   "nodes": {
     "00200": {
       "id": "00200",
@@ -21,7 +14,6 @@
       "title": "Architecture",
       "parent_id": null,
       "required": true,
-      "expressed": false,
       "when_relevant": "Use when system boundaries, major components, domain responsibilities, or structural tradeoffs need to be made explicit."
     },
     "00201": {
@@ -31,8 +23,7 @@
       "title": "System Context",
       "intent": "Capture system boundaries and external dependencies.",
       "parent_id": "00200",
-      "required": true,
-      "expressed": false
+      "required": true
     },
     "00202": {
       "id": "00202",
@@ -41,8 +32,7 @@
       "title": "Component Model",
       "intent": "Define modules and interaction contracts.",
       "parent_id": "00200",
-      "required": true,
-      "expressed": false
+      "required": true
     },
     "00203": {
       "id": "00203",
@@ -51,8 +41,7 @@
       "title": "Domain Boundaries",
       "intent": "Separate responsibilities and ownership edges.",
       "parent_id": "00200",
-      "required": true,
-      "expressed": false
+      "required": true
     },
     "00204": {
       "id": "00204",
@@ -61,10 +50,8 @@
       "title": "Tradeoffs",
       "intent": "Document core tradeoffs and rationale.",
       "parent_id": "00200",
-      "required": false,
-      "expressed": false
+      "required": false
     },
-
     "00300": {
       "id": "00300",
       "type": "directory",
@@ -72,7 +59,6 @@
       "title": "Data Models",
       "parent_id": null,
       "required": false,
-      "expressed": false,
       "when_relevant": "Use when the product stores persistent information or has meaningful entities, relationships, ownership, retention, or migration concerns."
     },
     "00301": {
@@ -82,8 +68,7 @@
       "title": "Domain Entities",
       "intent": "Define core entities, ownership, and lifecycles.",
       "parent_id": "00300",
-      "required": false,
-      "expressed": false
+      "required": false
     },
     "00302": {
       "id": "00302",
@@ -92,8 +77,7 @@
       "title": "Schema Strategy",
       "intent": "Capture relational/document patterns and migration approach.",
       "parent_id": "00300",
-      "required": false,
-      "expressed": false
+      "required": false
     },
     "00303": {
       "id": "00303",
@@ -102,10 +86,8 @@
       "title": "Data Retention",
       "intent": "Define retention windows and archival policy.",
       "parent_id": "00300",
-      "required": false,
-      "expressed": false
+      "required": false
     },
-
     "00400": {
       "id": "00400",
       "type": "directory",
@@ -113,7 +95,6 @@
       "title": "Security",
       "parent_id": null,
       "required": false,
-      "expressed": false,
       "when_relevant": "Use when identity, permissions, sensitive information, threats, privacy, or compliance obligations affect the design."
     },
     "00401": {
@@ -123,8 +104,7 @@
       "title": "Threat Model",
       "intent": "Identify attack surfaces and risk mitigations.",
       "parent_id": "00400",
-      "required": false,
-      "expressed": false
+      "required": false
     },
     "00402": {
       "id": "00402",
@@ -133,8 +113,7 @@
       "title": "Authentication and Authorization",
       "intent": "Define identity model and permission boundaries.",
       "parent_id": "00400",
-      "required": false,
-      "expressed": false
+      "required": false
     },
     "00403": {
       "id": "00403",
@@ -143,8 +122,7 @@
       "title": "Secret Management",
       "intent": "Specify secret storage and rotation controls.",
       "parent_id": "00400",
-      "required": false,
-      "expressed": false
+      "required": false
     },
     "00404": {
       "id": "00404",
@@ -153,10 +131,8 @@
       "title": "Compliance Controls",
       "intent": "Map controls to policy obligations.",
       "parent_id": "00400",
-      "required": false,
-      "expressed": false
+      "required": false
     },
-
     "00500": {
       "id": "00500",
       "type": "directory",
@@ -164,7 +140,6 @@
       "title": "API Contracts",
       "parent_id": null,
       "required": false,
-      "expressed": false,
       "when_relevant": "Use when modules, services, clients, partners, or external systems communicate through APIs, events, webhooks, or other contracts."
     },
     "00501": {
@@ -174,8 +149,7 @@
       "title": "Service Map",
       "intent": "Catalog APIs, owners, and trust boundaries.",
       "parent_id": "00500",
-      "required": false,
-      "expressed": false
+      "required": false
     },
     "00502": {
       "id": "00502",
@@ -184,8 +158,7 @@
       "title": "Endpoint Contracts",
       "intent": "Define request/response schemas and behavior.",
       "parent_id": "00500",
-      "required": false,
-      "expressed": false
+      "required": false
     },
     "00503": {
       "id": "00503",
@@ -194,10 +167,8 @@
       "title": "Event Contracts",
       "intent": "Define event payloads, guarantees, and replay strategy.",
       "parent_id": "00500",
-      "required": false,
-      "expressed": false
+      "required": false
     },
-
     "00600": {
       "id": "00600",
       "type": "directory",
@@ -205,7 +176,6 @@
       "title": "UI UX",
       "parent_id": null,
       "required": false,
-      "expressed": false,
       "when_relevant": "Use when an interactive experience requires journeys, navigation, information architecture, or reusable visual rules."
     },
     "00601": {
@@ -215,8 +185,7 @@
       "title": "User Journeys",
       "intent": "Map critical user flows and edge paths.",
       "parent_id": "00600",
-      "required": false,
-      "expressed": false
+      "required": false
     },
     "00602": {
       "id": "00602",
@@ -225,20 +194,17 @@
       "title": "Information Architecture",
       "intent": "Define screen hierarchy and navigation model.",
       "parent_id": "00600",
-      "required": false,
-      "expressed": false
+      "required": false
     },
     "00603": {
       "id": "00603",
       "type": "file",
       "path": "00600_ui_ux/00603_design_system_tokens.md",
       "title": "Design System Tokens",
-      "intent": "Capture visual primitives and consistency rules.",
+      "intent": "Translate any selected brand primitives into implementation-ready product tokens and define software-owned consistency rules without duplicating brand identity guidance.",
       "parent_id": "00600",
-      "required": false,
-      "expressed": false
+      "required": false
     },
-
     "00700": {
       "id": "00700",
       "type": "directory",
@@ -246,7 +212,6 @@
       "title": "Platform Ops",
       "parent_id": null,
       "required": false,
-      "expressed": false,
       "when_relevant": "Use when environments, deployment, rollback, resilience, or operational ownership require deliberate design."
     },
     "00701": {
@@ -256,8 +221,7 @@
       "title": "Environments",
       "intent": "Define dev, stage, and production landscape.",
       "parent_id": "00700",
-      "required": false,
-      "expressed": false
+      "required": false
     },
     "00702": {
       "id": "00702",
@@ -266,8 +230,7 @@
       "title": "Release Orchestration",
       "intent": "Define deployment sequencing and rollback strategy.",
       "parent_id": "00700",
-      "required": false,
-      "expressed": false
+      "required": false
     },
     "00703": {
       "id": "00703",
@@ -276,10 +239,8 @@
       "title": "Resilience Patterns",
       "intent": "Specify failover and recovery patterns.",
       "parent_id": "00700",
-      "required": false,
-      "expressed": false
+      "required": false
     },
-
     "00800": {
       "id": "00800",
       "type": "directory",
@@ -287,7 +248,6 @@
       "title": "Quality and Testing",
       "parent_id": null,
       "required": false,
-      "expressed": false,
       "when_relevant": "Use when risk-based testing, acceptance criteria, regression protection, or incident learning need a defined strategy."
     },
     "00801": {
@@ -297,8 +257,7 @@
       "title": "Quality Strategy",
       "intent": "Define quality gates and acceptance criteria.",
       "parent_id": "00800",
-      "required": false,
-      "expressed": false
+      "required": false
     },
     "00802": {
       "id": "00802",
@@ -307,8 +266,7 @@
       "title": "Test Matrix",
       "intent": "Map tests across risk and lifecycle.",
       "parent_id": "00800",
-      "required": false,
-      "expressed": false
+      "required": false
     },
     "00803": {
       "id": "00803",
@@ -317,10 +275,8 @@
       "title": "Incident Learning",
       "intent": "Track defects and corrective actions.",
       "parent_id": "00800",
-      "required": false,
-      "expressed": false
+      "required": false
     },
-
     "00900": {
       "id": "00900",
       "type": "directory",
@@ -328,7 +284,6 @@
       "title": "Delivery Governance",
       "parent_id": null,
       "required": false,
-      "expressed": false,
       "when_relevant": "Use when implementation needs phases, dependency sequencing, delivery ownership, or an explicit risk register."
     },
     "00901": {
@@ -338,8 +293,7 @@
       "title": "Delivery Phases",
       "intent": "Break implementation into milestone phases.",
       "parent_id": "00900",
-      "required": false,
-      "expressed": false
+      "required": false
     },
     "00902": {
       "id": "00902",
@@ -348,8 +302,7 @@
       "title": "Dependency Map",
       "intent": "Map cross-team and system dependencies.",
       "parent_id": "00900",
-      "required": false,
-      "expressed": false
+      "required": false
     },
     "00903": {
       "id": "00903",
@@ -358,10 +311,8 @@
       "title": "Risk Register",
       "intent": "Track delivery risk with mitigations and owners.",
       "parent_id": "00900",
-      "required": false,
-      "expressed": false
+      "required": false
     },
-
     "01000": {
       "id": "01000",
       "type": "directory",
@@ -369,7 +320,6 @@
       "title": "Observability",
       "parent_id": null,
       "required": false,
-      "expressed": false,
       "when_relevant": "Use when logs, metrics, traces, service objectives, alerts, or operational dashboards are important to safe operation."
     },
     "01001": {
@@ -379,8 +329,7 @@
       "title": "Telemetry Strategy",
       "intent": "Define logs, metrics, and traces strategy.",
       "parent_id": "01000",
-      "required": false,
-      "expressed": false
+      "required": false
     },
     "01002": {
       "id": "01002",
@@ -389,8 +338,7 @@
       "title": "Service Level Objectives",
       "intent": "Define reliability targets and alert strategy.",
       "parent_id": "01000",
-      "required": false,
-      "expressed": false
+      "required": false
     },
     "01003": {
       "id": "01003",
@@ -399,10 +347,8 @@
       "title": "Operational Dashboards",
       "intent": "Define key operations dashboard requirements.",
       "parent_id": "01000",
-      "required": false,
-      "expressed": false
+      "required": false
     },
-
     "01100": {
       "id": "01100",
       "type": "directory",
@@ -410,7 +356,6 @@
       "title": "Scalability and FinOps",
       "parent_id": null,
       "required": false,
-      "expressed": false,
       "when_relevant": "Use when growth, performance, capacity, infrastructure cost, or unit economics could materially shape the design."
     },
     "01101": {
@@ -420,8 +365,7 @@
       "title": "Scalability Model",
       "intent": "Define growth assumptions and scaling paths.",
       "parent_id": "01100",
-      "required": false,
-      "expressed": false
+      "required": false
     },
     "01102": {
       "id": "01102",
@@ -430,8 +374,7 @@
       "title": "Cost Controls",
       "intent": "Define unit economics and cost guardrails.",
       "parent_id": "01100",
-      "required": false,
-      "expressed": false
+      "required": false
     },
     "01103": {
       "id": "01103",
@@ -440,10 +383,8 @@
       "title": "Capacity Plan",
       "intent": "Define thresholds and expansion triggers.",
       "parent_id": "01100",
-      "required": false,
-      "expressed": false
+      "required": false
     },
-
     "01200": {
       "id": "01200",
       "type": "directory",
@@ -451,7 +392,6 @@
       "title": "Risk and Continuity",
       "parent_id": null,
       "required": false,
-      "expressed": false,
       "when_relevant": "Use when continuity, backup, disaster recovery, audit evidence, or operational fallback requirements need to be planned."
     },
     "01201": {
@@ -461,8 +401,7 @@
       "title": "Business Continuity",
       "intent": "Define continuity expectations and fallback operations.",
       "parent_id": "01200",
-      "required": false,
-      "expressed": false
+      "required": false
     },
     "01202": {
       "id": "01202",
@@ -471,8 +410,7 @@
       "title": "Disaster Recovery",
       "intent": "Define data recovery targets and runbooks.",
       "parent_id": "01200",
-      "required": false,
-      "expressed": false
+      "required": false
     },
     "01203": {
       "id": "01203",
@@ -481,8 +419,7 @@
       "title": "Audit Readiness",
       "intent": "Define evidence trails and readiness cadence.",
       "parent_id": "01200",
-      "required": false,
-      "expressed": false
+      "required": false
     }
   }
 }
