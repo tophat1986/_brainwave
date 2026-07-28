@@ -3,12 +3,7 @@
   "hooks": {
     "sessionStart": [
       {
-        "command": "node .cursor/hooks/brainwave_session_start.js"
-      }
-    ],
-    "beforeSubmitPrompt": [
-      {
-        "command": "node .cursor/hooks/brainwave_prompt_guard.js"
+        "command": "node _brainwave/_engine/adapters/cursor.js session-start"
       }
     ]
   }

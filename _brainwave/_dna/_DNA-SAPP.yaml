@@ -1,8 +1,7 @@
 {
-  "schema_version": "1.1.0",
-  "dna_id": "software_application",
+  "schema_version": "3.0.0",
   "dna_code": "SAPP",
-  "dna_version": "1.1.0",
+  "dna_version": "1.3.0",
   "name": "Software Application DNA",
   "description": "Architecture documentation for AI-built software products and digital services, with an emphasis on web applications.",
   "documentation_label": "software architecture documentation",
@@ -13,44 +12,35 @@
       "path": "00200_architecture",
       "title": "Architecture",
       "parent_id": null,
-      "required": true,
-      "when_relevant": "Use when system boundaries, major components, domain responsibilities, or structural tradeoffs need to be made explicit."
+      "baseline": true,
+      "when_relevant": "Establish a proportionate structural baseline for every software application, including its boundary, major components, responsibilities, and material dependencies."
     },
     "00201": {
       "id": "00201",
       "type": "file",
       "path": "00200_architecture/00201_system_context.md",
       "title": "System Context",
-      "intent": "Capture system boundaries and external dependencies.",
+      "intent": "Define the system boundary, principal actors, external systems, trust relationships, and material dependencies at a level proportionate to the product.",
       "parent_id": "00200",
-      "required": true
+      "baseline": true
     },
     "00202": {
       "id": "00202",
       "type": "file",
       "path": "00200_architecture/00202_component_model.md",
       "title": "Component Model",
-      "intent": "Define modules and interaction contracts.",
+      "intent": "Define major runtime or logical components, their responsibilities, dependencies, and interaction boundaries without duplicating detailed interface contracts.",
       "parent_id": "00200",
-      "required": true
+      "baseline": true
     },
     "00203": {
       "id": "00203",
       "type": "file",
       "path": "00200_architecture/00203_domain_boundaries.md",
       "title": "Domain Boundaries",
-      "intent": "Separate responsibilities and ownership edges.",
+      "intent": "Use when multiple business domains, invariants, data owners, or responsibility boundaries need explicit separation.",
       "parent_id": "00200",
-      "required": true
-    },
-    "00204": {
-      "id": "00204",
-      "type": "file",
-      "path": "00200_architecture/00204_tradeoffs.md",
-      "title": "Tradeoffs",
-      "intent": "Document core tradeoffs and rationale.",
-      "parent_id": "00200",
-      "required": false
+      "baseline": false
     },
     "00300": {
       "id": "00300",
@@ -58,7 +48,7 @@
       "path": "00300_data_models",
       "title": "Data Models",
       "parent_id": null,
-      "required": false,
+      "baseline": false,
       "when_relevant": "Use when the product stores persistent information or has meaningful entities, relationships, ownership, retention, or migration concerns."
     },
     "00301": {
@@ -66,27 +56,27 @@
       "type": "file",
       "path": "00300_data_models/00301_domain_entities.md",
       "title": "Domain Entities",
-      "intent": "Define core entities, ownership, and lifecycles.",
+      "intent": "Define core entities, relationships, invariant ownership, and lifecycles without prescribing storage schemas.",
       "parent_id": "00300",
-      "required": false
+      "baseline": false
     },
     "00302": {
       "id": "00302",
       "type": "file",
       "path": "00300_data_models/00302_schema_strategy.md",
       "title": "Schema Strategy",
-      "intent": "Capture relational/document patterns and migration approach.",
+      "intent": "Define storage models, schema ownership and evolution, consistency choices, and migration safety without assuming a particular database style.",
       "parent_id": "00300",
-      "required": false
+      "baseline": false
     },
     "00303": {
       "id": "00303",
       "type": "file",
       "path": "00300_data_models/00303_data_retention.md",
       "title": "Data Retention",
-      "intent": "Define retention windows and archival policy.",
+      "intent": "Define operational data lifecycle rules for retention, deletion, archival, legal holds, and backup expiry; privacy purposes and rights remain owned by Privacy and Data Protection.",
       "parent_id": "00300",
-      "required": false
+      "baseline": false
     },
     "00400": {
       "id": "00400",
@@ -94,7 +84,7 @@
       "path": "00400_security",
       "title": "Security",
       "parent_id": null,
-      "required": false,
+      "baseline": false,
       "when_relevant": "Use when identity, permissions, sensitive information, threats, privacy, or compliance obligations affect the design."
     },
     "00401": {
@@ -102,36 +92,45 @@
       "type": "file",
       "path": "00400_security/00401_threat_model.md",
       "title": "Threat Model",
-      "intent": "Identify attack surfaces and risk mitigations.",
+      "intent": "Identify protected assets, actors, trust boundaries, attack surfaces, abuse cases, and proportionate mitigations.",
       "parent_id": "00400",
-      "required": false
+      "baseline": false
     },
     "00402": {
       "id": "00402",
       "type": "file",
       "path": "00400_security/00402_authn_authz.md",
       "title": "Authentication and Authorization",
-      "intent": "Define identity model and permission boundaries.",
+      "intent": "Define identity sources, authentication lifecycle, authorization model, and permission boundaries.",
       "parent_id": "00400",
-      "required": false
+      "baseline": false
     },
     "00403": {
       "id": "00403",
       "type": "file",
       "path": "00400_security/00403_secret_management.md",
       "title": "Secret Management",
-      "intent": "Specify secret storage and rotation controls.",
+      "intent": "Define secret ownership, storage, access, rotation, revocation, and exposure response.",
       "parent_id": "00400",
-      "required": false
+      "baseline": false
     },
     "00404": {
       "id": "00404",
       "type": "file",
       "path": "00400_security/00404_compliance_controls.md",
       "title": "Compliance Controls",
-      "intent": "Map controls to policy obligations.",
+      "intent": "Define applicable obligations and the technical or operational controls that satisfy them; evidence readiness remains owned by Audit Readiness.",
       "parent_id": "00400",
-      "required": false
+      "baseline": false
+    },
+    "00405": {
+      "id": "00405",
+      "type": "file",
+      "path": "00400_security/00405_privacy_data_protection.md",
+      "title": "Privacy and Data Protection",
+      "intent": "Use when personal, sensitive, or regulated data requires explicit decisions about classification, minimisation, permitted processing and sharing, rights handling, deletion, residency, or privacy boundaries.",
+      "parent_id": "00400",
+      "baseline": false
     },
     "00500": {
       "id": "00500",
@@ -139,7 +138,7 @@
       "path": "00500_api_contracts",
       "title": "API Contracts",
       "parent_id": null,
-      "required": false,
+      "baseline": false,
       "when_relevant": "Use when modules, services, clients, partners, or external systems communicate through APIs, events, webhooks, or other contracts."
     },
     "00501": {
@@ -147,27 +146,27 @@
       "type": "file",
       "path": "00500_api_contracts/00501_service_map.md",
       "title": "Service Map",
-      "intent": "Catalog APIs, owners, and trust boundaries.",
+      "intent": "Use when several services, interfaces, owners, or trust zones need a map of responsibilities, dependencies, and contract boundaries.",
       "parent_id": "00500",
-      "required": false
+      "baseline": false
     },
     "00502": {
       "id": "00502",
       "type": "file",
       "path": "00500_api_contracts/00502_endpoint_contracts.md",
       "title": "Endpoint Contracts",
-      "intent": "Define request/response schemas and behavior.",
+      "intent": "Define request and response schemas, errors, compatibility, versioning, idempotency, and externally observable endpoint behaviour.",
       "parent_id": "00500",
-      "required": false
+      "baseline": false
     },
     "00503": {
       "id": "00503",
       "type": "file",
       "path": "00500_api_contracts/00503_event_contracts.md",
       "title": "Event Contracts",
-      "intent": "Define event payloads, guarantees, and replay strategy.",
+      "intent": "Define event payloads, ownership, delivery guarantees, ordering, compatibility, evolution, and replay behaviour.",
       "parent_id": "00500",
-      "required": false
+      "baseline": false
     },
     "00600": {
       "id": "00600",
@@ -175,26 +174,26 @@
       "path": "00600_ui_ux",
       "title": "UI UX",
       "parent_id": null,
-      "required": false,
-      "when_relevant": "Use when an interactive experience requires journeys, navigation, information architecture, or reusable visual rules."
+      "baseline": false,
+      "when_relevant": "Use when an interactive experience requires journeys, navigation, information architecture, accessible interaction behaviour, or reusable visual rules."
     },
     "00601": {
       "id": "00601",
       "type": "file",
       "path": "00600_ui_ux/00601_user_journeys.md",
       "title": "User Journeys",
-      "intent": "Map critical user flows and edge paths.",
+      "intent": "Map critical user goals, end-to-end flows, alternate paths, failure states, and recovery journeys.",
       "parent_id": "00600",
-      "required": false
+      "baseline": false
     },
     "00602": {
       "id": "00602",
       "type": "file",
       "path": "00600_ui_ux/00602_information_architecture.md",
       "title": "Information Architecture",
-      "intent": "Define screen hierarchy and navigation model.",
+      "intent": "Define content, feature and route hierarchy, navigation, labelling, findability, and orientation across the experience.",
       "parent_id": "00600",
-      "required": false
+      "baseline": false
     },
     "00603": {
       "id": "00603",
@@ -203,7 +202,16 @@
       "title": "Design System Tokens",
       "intent": "Translate any selected brand primitives into implementation-ready product tokens and define software-owned consistency rules without duplicating brand identity guidance.",
       "parent_id": "00600",
-      "required": false
+      "baseline": false
+    },
+    "00604": {
+      "id": "00604",
+      "type": "file",
+      "path": "00600_ui_ux/00604_interaction_accessibility.md",
+      "title": "Interaction and Accessibility",
+      "intent": "Define software-owned interaction behaviour, interface states, input, keyboard and focus rules, semantic accessibility, error recovery, and adaptive or reduced-motion behaviour without duplicating brand expression.",
+      "parent_id": "00600",
+      "baseline": true
     },
     "00700": {
       "id": "00700",
@@ -211,7 +219,7 @@
       "path": "00700_platform_ops",
       "title": "Platform Ops",
       "parent_id": null,
-      "required": false,
+      "baseline": false,
       "when_relevant": "Use when environments, deployment, rollback, resilience, or operational ownership require deliberate design."
     },
     "00701": {
@@ -219,27 +227,36 @@
       "type": "file",
       "path": "00700_platform_ops/00701_environments.md",
       "title": "Environments",
-      "intent": "Define dev, stage, and production landscape.",
+      "intent": "Define environment and runtime topology, promotion boundaries, configuration separation, data handling, and proportionate parity expectations.",
       "parent_id": "00700",
-      "required": false
+      "baseline": false
     },
     "00702": {
       "id": "00702",
       "type": "file",
       "path": "00700_platform_ops/00702_release_orchestration.md",
       "title": "Release Orchestration",
-      "intent": "Define deployment sequencing and rollback strategy.",
+      "intent": "Define build and deployment flow, promotion and rollout strategy, compatibility sequencing, rollback, and release ownership.",
       "parent_id": "00700",
-      "required": false
+      "baseline": false
     },
     "00703": {
       "id": "00703",
       "type": "file",
       "path": "00700_platform_ops/00703_resilience_patterns.md",
       "title": "Resilience Patterns",
-      "intent": "Specify failover and recovery patterns.",
+      "intent": "Define routine runtime failure handling, dependency resilience, graceful degradation, failover, and recovery patterns without duplicating disaster recovery.",
       "parent_id": "00700",
-      "required": false
+      "baseline": false
+    },
+    "00704": {
+      "id": "00704",
+      "type": "file",
+      "path": "00700_platform_ops/00704_operational_readiness.md",
+      "title": "Operational Readiness",
+      "intent": "Use when service ownership, incident response and escalation, runbook responsibilities, maintenance, support handoffs, or launch-readiness criteria require explicit agreement.",
+      "parent_id": "00700",
+      "baseline": false
     },
     "00800": {
       "id": "00800",
@@ -247,7 +264,7 @@
       "path": "00800_quality_testing",
       "title": "Quality and Testing",
       "parent_id": null,
-      "required": false,
+      "baseline": false,
       "when_relevant": "Use when risk-based testing, acceptance criteria, regression protection, or incident learning need a defined strategy."
     },
     "00801": {
@@ -255,27 +272,27 @@
       "type": "file",
       "path": "00800_quality_testing/00801_quality_strategy.md",
       "title": "Quality Strategy",
-      "intent": "Define quality gates and acceptance criteria.",
+      "intent": "Define material quality attributes, risk posture, test levels, ownership, acceptance criteria, and release gates.",
       "parent_id": "00800",
-      "required": false
+      "baseline": false
     },
     "00802": {
       "id": "00802",
       "type": "file",
       "path": "00800_quality_testing/00802_test_matrix.md",
       "title": "Test Matrix",
-      "intent": "Map tests across risk and lifecycle.",
+      "intent": "Map critical risks, requirements, and quality attributes to verification methods, environments, and regression coverage.",
       "parent_id": "00800",
-      "required": false
+      "baseline": false
     },
     "00803": {
       "id": "00803",
       "type": "file",
       "path": "00800_quality_testing/00803_incident_learning.md",
       "title": "Incident Learning",
-      "intent": "Track defects and corrective actions.",
+      "intent": "Define how production incidents are reviewed, systemic causes are identified, and corrective actions are verified and fed back into design and testing.",
       "parent_id": "00800",
-      "required": false
+      "baseline": false
     },
     "00900": {
       "id": "00900",
@@ -283,7 +300,7 @@
       "path": "00900_delivery_governance",
       "title": "Delivery Governance",
       "parent_id": null,
-      "required": false,
+      "baseline": false,
       "when_relevant": "Use when implementation needs phases, dependency sequencing, delivery ownership, or an explicit risk register."
     },
     "00901": {
@@ -291,27 +308,27 @@
       "type": "file",
       "path": "00900_delivery_governance/00901_delivery_phases.md",
       "title": "Delivery Phases",
-      "intent": "Break implementation into milestone phases.",
+      "intent": "Define milestone boundaries, architectural increments, sequencing rationale, and exit conditions without becoming a live task plan.",
       "parent_id": "00900",
-      "required": false
+      "baseline": false
     },
     "00902": {
       "id": "00902",
       "type": "file",
       "path": "00900_delivery_governance/00902_dependency_map.md",
       "title": "Dependency Map",
-      "intent": "Map cross-team and system dependencies.",
+      "intent": "Identify cross-team, system, vendor, and decision dependencies that constrain sequencing or ownership.",
       "parent_id": "00900",
-      "required": false
+      "baseline": false
     },
     "00903": {
       "id": "00903",
       "type": "file",
       "path": "00900_delivery_governance/00903_risk_register.md",
       "title": "Risk Register",
-      "intent": "Track delivery risk with mitigations and owners.",
+      "intent": "Identify material delivery risks that shape scope or sequencing, with owners and mitigations; do not duplicate a live issue tracker.",
       "parent_id": "00900",
-      "required": false
+      "baseline": false
     },
     "01000": {
       "id": "01000",
@@ -319,7 +336,7 @@
       "path": "01000_observability",
       "title": "Observability",
       "parent_id": null,
-      "required": false,
+      "baseline": false,
       "when_relevant": "Use when logs, metrics, traces, service objectives, alerts, or operational dashboards are important to safe operation."
     },
     "01001": {
@@ -327,27 +344,27 @@
       "type": "file",
       "path": "01000_observability/01001_telemetry_strategy.md",
       "title": "Telemetry Strategy",
-      "intent": "Define logs, metrics, and traces strategy.",
+      "intent": "Define logs, metrics, and traces, including signal ownership, sampling, retention, and controls preventing secret or personal-data leakage.",
       "parent_id": "01000",
-      "required": false
+      "baseline": false
     },
     "01002": {
       "id": "01002",
       "type": "file",
       "path": "01000_observability/01002_service_level_objectives.md",
       "title": "Service Level Objectives",
-      "intent": "Define reliability targets and alert strategy.",
+      "intent": "Use when reliability commitments justify measurable service objectives, indicators, error budgets, and actionable alerting.",
       "parent_id": "01000",
-      "required": false
+      "baseline": false
     },
     "01003": {
       "id": "01003",
       "type": "file",
       "path": "01000_observability/01003_operational_dashboards.md",
       "title": "Operational Dashboards",
-      "intent": "Define key operations dashboard requirements.",
+      "intent": "Define operational views, audiences, signals, thresholds, and the decision or response each dashboard must support.",
       "parent_id": "01000",
-      "required": false
+      "baseline": false
     },
     "01100": {
       "id": "01100",
@@ -355,35 +372,35 @@
       "path": "01100_scalability_finops",
       "title": "Scalability and FinOps",
       "parent_id": null,
-      "required": false,
-      "when_relevant": "Use when growth, performance, capacity, infrastructure cost, or unit economics could materially shape the design."
+      "baseline": false,
+      "when_relevant": "Use when growth, performance, capacity, or infrastructure cost could materially shape the design."
     },
     "01101": {
       "id": "01101",
       "type": "file",
-      "path": "01100_scalability_finops/01101_scalability_model.md",
-      "title": "Scalability Model",
-      "intent": "Define growth assumptions and scaling paths.",
+      "path": "01100_scalability_finops/01101_performance_scalability_model.md",
+      "title": "Performance and Scalability Model",
+      "intent": "Define workload and growth assumptions, material latency or throughput expectations, likely bottlenecks, performance budgets, and scaling paths.",
       "parent_id": "01100",
-      "required": false
+      "baseline": false
     },
     "01102": {
       "id": "01102",
       "type": "file",
       "path": "01100_scalability_finops/01102_cost_controls.md",
       "title": "Cost Controls",
-      "intent": "Define unit economics and cost guardrails.",
+      "intent": "Define infrastructure cost drivers, allocation expectations, budgets, measurement, and engineering guardrails.",
       "parent_id": "01100",
-      "required": false
+      "baseline": false
     },
     "01103": {
       "id": "01103",
       "type": "file",
       "path": "01100_scalability_finops/01103_capacity_plan.md",
       "title": "Capacity Plan",
-      "intent": "Define thresholds and expansion triggers.",
+      "intent": "Use when forecast demand, measured capacity, provisioning lead time, or expansion thresholds materially affect design or operations.",
       "parent_id": "01100",
-      "required": false
+      "baseline": false
     },
     "01200": {
       "id": "01200",
@@ -391,7 +408,7 @@
       "path": "01200_risk_continuity",
       "title": "Risk and Continuity",
       "parent_id": null,
-      "required": false,
+      "baseline": false,
       "when_relevant": "Use when continuity, backup, disaster recovery, audit evidence, or operational fallback requirements need to be planned."
     },
     "01201": {
@@ -399,27 +416,27 @@
       "type": "file",
       "path": "01200_risk_continuity/01201_business_continuity.md",
       "title": "Business Continuity",
-      "intent": "Define continuity expectations and fallback operations.",
+      "intent": "Define continuity expectations, essential capabilities, fallback operations, ownership, and return-to-normal criteria during major disruption.",
       "parent_id": "01200",
-      "required": false
+      "baseline": false
     },
     "01202": {
       "id": "01202",
       "type": "file",
       "path": "01200_risk_continuity/01202_disaster_recovery.md",
       "title": "Disaster Recovery",
-      "intent": "Define data recovery targets and runbooks.",
+      "intent": "Define backup and restoration strategy, recovery-point and recovery-time objectives, recovery from major service or site loss, and exercised recovery runbooks.",
       "parent_id": "01200",
-      "required": false
+      "baseline": false
     },
     "01203": {
       "id": "01203",
       "type": "file",
       "path": "01200_risk_continuity/01203_audit_readiness.md",
       "title": "Audit Readiness",
-      "intent": "Define evidence trails and readiness cadence.",
+      "intent": "Use when contractual, regulatory, or internal assurance requires maintained audit trails, evidence availability, ownership, retention, and review cadence.",
       "parent_id": "01200",
-      "required": false
+      "baseline": false
     }
   }
 }

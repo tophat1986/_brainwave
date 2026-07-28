@@ -1,0 +1,11 @@
+{
+  "schema_version": "3.0.0",
+  "stage": "awaiting_seed",
+  "stage_updated_at": null,
+  "seed": {
+    "path": "_my_brainwave_seed.md",
+    "captured_at": null,
+    "locked_sha256": null
+  },
+  "selected_dna": {}
+}

@@ -1,8 +1,7 @@
 {
-  "schema_version": "1.1.0",
-  "dna_id": "brand_identity",
+  "schema_version": "3.0.0",
   "dna_code": "BRND",
-  "dna_version": "1.1.0",
+  "dna_version": "1.3.0",
   "name": "Brand Identity DNA",
   "description": "A proportionate catalogue for defining the enduring brand identity of a product or organisation. It translates an agreed North Star into recognisable verbal and visual direction without redefining product strategy or expanding into campaigns, acquisition, or go-to-market planning.",
   "documentation_label": "brand identity documentation",
@@ -13,7 +12,7 @@
       "path": "00100_brand_direction",
       "title": "Brand Direction",
       "parent_id": null,
-      "required": true,
+      "baseline": true,
       "when_relevant": "Use when the intended perception, character, or distinctive identity must be established. Derive this direction from the North Star without repeating its product purpose, audience definition, or success criteria."
     },
     "00101": {
@@ -23,7 +22,7 @@
       "title": "Positioning and Perception",
       "intent": "Define the distinctive position the brand should occupy, the qualities people should associate with it, and perceptions it should deliberately avoid. Translate the agreed North Star rather than redefining product or market strategy.",
       "parent_id": "00100",
-      "required": true
+      "baseline": true
     },
     "00102": {
       "id": "00102",
@@ -32,7 +31,7 @@
       "title": "Personality and Principles",
       "intent": "Define a small set of characteristic traits and decision principles that make the brand's behaviour and expression recognisable and consistent.",
       "parent_id": "00100",
-      "required": true
+      "baseline": true
     },
 
     "00200": {
@@ -41,8 +40,8 @@
       "path": "00200_verbal_identity",
       "title": "Verbal Identity",
       "parent_id": null,
-      "required": true,
-      "when_relevant": "Use when the brand communicates through product copy, documentation, support, public content, or human conversation and needs a consistent verbal character. This area governs enduring expression, not campaign messaging or channel strategy."
+      "baseline": true,
+      "when_relevant": "Use when the brand communicates through product copy, documentation, support, public content, or human conversation and needs a consistent verbal character. This document group governs enduring expression, not campaign messaging or channel strategy."
     },
     "00201": {
       "id": "00201",
@@ -51,7 +50,7 @@
       "title": "Voice and Tone",
       "intent": "Define the stable brand voice, how tone adapts by context and emotional stakes, and clear examples of language that fits or conflicts with the identity.",
       "parent_id": "00200",
-      "required": true
+      "baseline": true
     },
     "00202": {
       "id": "00202",
@@ -60,7 +59,7 @@
       "title": "Naming and Terminology",
       "intent": "Establish durable naming conventions, preferred vocabulary, prohibited or misleading terms, and rules for naming product concepts or features where consistency matters.",
       "parent_id": "00200",
-      "required": false
+      "baseline": false
     },
 
     "00300": {
@@ -69,7 +68,7 @@
       "path": "00300_visual_identity",
       "title": "Visual Identity",
       "parent_id": null,
-      "required": true,
+      "baseline": true,
       "when_relevant": "Use when the brand needs a coherent and recognisable visual language. Define brand primitives and usage intent here; product interface components and interaction behaviour remain the responsibility of the applicable software or experience DNA."
     },
     "00301": {
@@ -79,7 +78,7 @@
       "title": "Colour System",
       "intent": "Define the primary, supporting, neutral, and semantic colour roles; their intended emotional effect; approved combinations; and constraints needed for consistent, accessible use.",
       "parent_id": "00300",
-      "required": true
+      "baseline": true
     },
     "00302": {
       "id": "00302",
@@ -88,7 +87,7 @@
       "title": "Typography System",
       "intent": "Define typeface direction, hierarchy, roles, weights, fallback expectations, and readability principles as brand primitives rather than implementation-specific interface components.",
       "parent_id": "00300",
-      "required": true
+      "baseline": true
     },
     "00303": {
       "id": "00303",
@@ -97,7 +96,7 @@
       "title": "Logo System",
       "intent": "Define the logo concept or approved marks, variants, clear space, minimum sizes, backgrounds, and misuse constraints when a distinct logo system is needed.",
       "parent_id": "00300",
-      "required": false
+      "baseline": false
     },
     "00304": {
       "id": "00304",
@@ -106,7 +105,7 @@
       "title": "Imagery and Iconography",
       "intent": "Define the art direction, image-selection principles, illustration character, and iconographic style needed to keep non-typographic visual expression coherent.",
       "parent_id": "00300",
-      "required": false
+      "baseline": false
     },
 
     "00400": {
@@ -115,7 +114,7 @@
       "path": "00400_brand_application",
       "title": "Brand Application",
       "parent_id": null,
-      "required": true,
+      "baseline": true,
       "when_relevant": "Use when identity decisions must be applied consistently and accessibly across product, communication, and operational touchpoints. Reference the earlier identity decisions rather than duplicating them."
     },
     "00401": {
@@ -125,7 +124,7 @@
       "title": "Accessibility and Inclusive Expression",
       "intent": "Define accessibility constraints for colour, typography, imagery, motion, and language, together with inclusive-expression principles that the brand must preserve across applications.",
       "parent_id": "00400",
-      "required": true
+      "baseline": true
     },
     "00402": {
       "id": "00402",
@@ -134,7 +133,7 @@
       "title": "Application Guidance",
       "intent": "Define how brand primitives should translate across product interfaces, websites, documents, support, and other relevant touchpoints while leaving component behaviour and technical implementation to their owning systems.",
       "parent_id": "00400",
-      "required": true
+      "baseline": true
     },
     "00403": {
       "id": "00403",
@@ -143,7 +142,7 @@
       "title": "Asset Governance",
       "intent": "Define source-of-truth locations, ownership, approval expectations, versioning, and controlled evolution for brand assets when multiple contributors or delivery surfaces make governance necessary.",
       "parent_id": "00400",
-      "required": false
+      "baseline": false
     }
   }
 }

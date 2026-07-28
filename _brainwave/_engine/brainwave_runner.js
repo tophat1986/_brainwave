@@ -4,7 +4,10 @@
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
-const { integrateProjectRoot } = require("./project_integration");
+const {
+  integrateProjectRoot,
+  removeProjectRootIntegration
+} = require("./project_integration");
 
 const ROOT = path.resolve(__dirname, "..");
 const PATHS = Object.freeze({
@@ -15,15 +18,24 @@ const PATHS = Object.freeze({
   dnaDir: path.join(ROOT, "_dna"),
   documentationDir: path.join(ROOT, "_documentation"),
   manifest: path.join(ROOT, "_manifest.yaml"),
-  dashboard: path.join(ROOT, "_dashboard.html"),
-  contextDir: path.join(ROOT, "_context")
+  dashboard: path.join(ROOT, "_dashboard.html")
 });
 
-const SUPPORTED_DNA_SCHEMA_VERSION = "1.1.0";
-const SUPPORTED_STATE_SCHEMA_VERSION = "2.0.0";
+const SUPPORTED_DNA_SCHEMA_VERSION = "3.0.0";
+const SUPPORTED_STATE_SCHEMA_VERSION = "3.0.0";
 const CONSOLE_PREFIX = "[_brainwave]";
 const INTERNAL_WRITE_GUARD_MS = 2500;
 const internalWrites = new Map();
+
+const DNA_BLOCK_STATUSES = Object.freeze([
+  "not_started",
+  "in_progress",
+  "implemented",
+  "verified",
+  "blocked",
+  "superseded",
+  "not_applicable"
+]);
 
 const STAGES = Object.freeze([
   "awaiting_seed",
@@ -120,7 +132,8 @@ function wordCount(content) {
 
 function fileStatusFromContent(content) {
   if (!content.trim()) return "not_started";
-  const status = content.match(
+  const header = content.split(/^###\s+_DNA-[A-Z]{4}-\d{5}\.\d{2}\b/m)[0];
+  const status = header.match(
     /^\s*status:\s*(not_started|in_progress|complete)\s*$/im
   )?.[1]?.toLowerCase();
   return status === "complete" ? "complete" : "in_progress";
@@ -145,7 +158,6 @@ function defaultSettings() {
       "How much detail do you prefer? (lean/standard/exhaustive)"
     ],
     engine: {
-      summary_char_budget: 1400,
       max_files_per_cycle: 120
     }
   };
@@ -155,7 +167,7 @@ function defaultState() {
   return {
     schema_version: SUPPORTED_STATE_SCHEMA_VERSION,
     stage: "awaiting_seed",
-    stage_updated_at: nowIso(),
+    stage_updated_at: null,
     seed: {
       path: "_my_brainwave_seed.md",
       captured_at: null,
@@ -167,7 +179,7 @@ function defaultState() {
 
 function defaultManifestSkeleton() {
   return {
-    schema_version: "2.0.0",
+    schema_version: "3.0.0",
     generated_at: nowIso(),
     workspace_root: ".",
     seed: {
@@ -223,11 +235,24 @@ function defaultManifestSkeleton() {
       missing_expressed_files: []
     },
     progress: {
-      global_completion_pct: 0,
+      documentation_completion_pct: 0,
       modules: {}
     },
-    context: {
-      summaries_generated: []
+    implementation: {
+      totals: {
+        blocks: 0,
+        not_started: 0,
+        in_progress: 0,
+        implemented: 0,
+        verified: 0,
+        blocked: 0,
+        superseded: 0,
+        not_applicable: 0,
+        invalid: 0
+      },
+      current: null,
+      next: null,
+      blocks: []
     },
     events: []
   };
@@ -240,7 +265,6 @@ function ensureCoreFiles() {
   if (!exists(PATHS.settings)) writeJsonYaml(PATHS.settings, defaultSettings());
   if (!exists(PATHS.manifest)) writeJsonYaml(PATHS.manifest, defaultManifestSkeleton());
   fs.mkdirSync(PATHS.dnaDir, { recursive: true });
-  fs.mkdirSync(PATHS.contextDir, { recursive: true });
 }
 
 function isPlainObject(value) {
@@ -262,11 +286,17 @@ function validateDnaModule(module, sourcePath) {
       `${source} uses unsupported schema_version ${module.schema_version || "missing"}; expected ${SUPPORTED_DNA_SCHEMA_VERSION}.`
     );
   }
-  if (!/^[a-z][a-z0-9_]*$/.test(module.dna_id || "")) {
-    throw new Error(`${source} must define a snake_case dna_id.`);
-  }
   if (!/^[A-Z]{4}$/.test(module.dna_code || "")) {
     throw new Error(`${source} must define an immutable four-letter uppercase dna_code.`);
+  }
+  if ("dna_id" in module) {
+    throw new Error(
+      `${source} must not define a second dna_id. The canonical _DNA-${module.dna_code} identity is authoritative.`
+    );
+  }
+  const expectedFileName = `_DNA-${module.dna_code}.yaml`;
+  if (path.basename(sourcePath) !== expectedFileName) {
+    throw new Error(`${source} must be named ${expectedFileName}.`);
   }
   if (!/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(module.dna_version || "")) {
     throw new Error(`${source} must define a semantic dna_version.`);
@@ -291,8 +321,13 @@ function validateDnaModule(module, sourcePath) {
     if (typeof node.title !== "string" || !node.title.trim()) {
       throw new Error(`${source} node ${id} must define title.`);
     }
-    if (typeof node.required !== "boolean") {
-      throw new Error(`${source} node ${id} must define required as a boolean.`);
+    if (typeof node.baseline !== "boolean") {
+      throw new Error(`${source} node ${id} must define baseline as a boolean.`);
+    }
+    if ("required" in node) {
+      throw new Error(
+        `${source} node ${id} uses the retired required flag. Use baseline for proportionate recommendation guidance.`
+      );
     }
     if ("expressed" in node) {
       throw new Error(
@@ -309,9 +344,20 @@ function validateDnaModule(module, sourcePath) {
     if (node.parent_id !== null && node.parent_id !== undefined && !/^\d{5}$/.test(node.parent_id)) {
       throw new Error(`${source} node ${id} has an invalid parent_id.`);
     }
+    if (node.type === "directory") {
+      if (typeof node.when_relevant !== "string" || !node.when_relevant.trim()) {
+        throw new Error(`${source} document group ${id} must define when_relevant.`);
+      }
+      if ("intent" in node) {
+        throw new Error(`${source} document group ${id} must use when_relevant rather than intent.`);
+      }
+    }
     if (node.type === "file") {
       if (typeof node.intent !== "string" || !node.intent.trim()) {
         throw new Error(`${source} file node ${id} must define intent.`);
+      }
+      if ("when_relevant" in node) {
+        throw new Error(`${source} file node ${id} must use intent rather than when_relevant.`);
       }
       const fileName = path.posix.basename(node.path);
       if (!fileName.startsWith(id) || !fileName.endsWith(".md")) {
@@ -364,18 +410,14 @@ function loadDnaModules() {
   }
 
   const modules = {};
-  const moduleCodes = new Set();
   for (const sourcePath of sourcePaths) {
     const module = readJsonYaml(sourcePath, null);
     validateDnaModule(module, sourcePath);
-    if (modules[module.dna_id]) {
-      throw new Error(`Duplicate DNA module id: ${module.dna_id}.`);
-    }
-    if (moduleCodes.has(module.dna_code)) {
+    const moduleId = canonicalModuleId(module);
+    if (modules[moduleId]) {
       throw new Error(`Duplicate DNA module code: ${module.dna_code}.`);
     }
-    moduleCodes.add(module.dna_code);
-    modules[module.dna_id] = {
+    modules[moduleId] = {
       ...module,
       source_path: relativePath(sourcePath)
     };
@@ -398,29 +440,29 @@ function validateState(state, modules, options = {}) {
     throw new Error("`selected_dna` must be an object.");
   }
 
-  for (const [dnaId, selection] of Object.entries(state.selected_dna)) {
-    const module = modules[dnaId];
+  for (const [moduleId, selection] of Object.entries(state.selected_dna)) {
+    const module = modules[moduleId];
     if (!module) {
-      throw new Error(`Selected DNA module is unavailable: ${dnaId}.`);
+      throw new Error(`Selected DNA module is unavailable: ${moduleId}.`);
     }
     if (
       !isPlainObject(selection) ||
       (!options.allowVersionMismatch && selection.version !== module.dna_version)
     ) {
       throw new Error(
-        `Selected DNA version mismatch for ${dnaId}: expected ${module.dna_version}, found ${selection?.version || "missing"}. Review and reselect the module before continuing.`
+        `Selected DNA version mismatch for ${moduleId}: expected ${module.dna_version}, found ${selection?.version || "missing"}. Review and reselect the module before continuing.`
       );
     }
     if (!Array.isArray(selection.expressed_entries)) {
-      throw new Error(`Selected DNA ${dnaId} must define expressed_entries as an array.`);
+      throw new Error(`Selected DNA ${moduleId} must define expressed_entries as an array.`);
     }
     const unique = new Set();
     for (const nodeId of selection.expressed_entries) {
       if (!module.nodes[nodeId]) {
-        throw new Error(`Selected DNA ${dnaId} references unknown node ${nodeId}.`);
+        throw new Error(`Selected DNA ${moduleId} references unknown node ${nodeId}.`);
       }
       if (unique.has(nodeId)) {
-        throw new Error(`Selected DNA ${dnaId} repeats expressed node ${nodeId}.`);
+        throw new Error(`Selected DNA ${moduleId} repeats expressed node ${nodeId}.`);
       }
       unique.add(nodeId);
     }
@@ -429,7 +471,7 @@ function validateState(state, modules, options = {}) {
       while (parentId) {
         if (!unique.has(parentId)) {
           throw new Error(
-            `Selected DNA ${dnaId} expresses ${nodeId} without parent ${parentId}.`
+            `Selected DNA ${moduleId} expresses ${nodeId} without parent ${parentId}.`
           );
         }
         parentId = module.nodes[parentId].parent_id;
@@ -479,14 +521,14 @@ function getDescendantFileNodes(module, parentId) {
   return results.sort((a, b) => a.id.localeCompare(b.id));
 }
 
-function expressionSet(state, dnaId) {
-  return new Set(state.selected_dna[dnaId]?.expressed_entries || []);
+function expressionSet(state, moduleId) {
+  return new Set(state.selected_dna[moduleId]?.expressed_entries || []);
 }
 
 function selectedModules(workspace) {
   return Object.keys(workspace.state.selected_dna)
     .sort()
-    .map((dnaId) => workspace.modules[dnaId]);
+    .map((moduleId) => workspace.modules[moduleId]);
 }
 
 function canonicalModuleId(module) {
@@ -517,7 +559,7 @@ function parseQualifiedNodeRef(value, modules) {
   }
   const module = moduleFromCode(modules, match[1]);
   if (!module) throw new Error(`Unknown DNA module code: ${match[1]}.`);
-  return { dnaId: module.dna_id, nodeId: match[2], module };
+  return { moduleId: canonicalModuleId(module), nodeId: match[2], module };
 }
 
 function moduleOutputRoot(module) {
@@ -549,51 +591,138 @@ function documentedRelativePath(module, node) {
 function routeGenerationTasks(workspace) {
   const tasks = [];
   for (const module of selectedModules(workspace)) {
-    const expressed = expressionSet(workspace.state, module.dna_id);
+    const moduleId = canonicalModuleId(module);
+    const expressed = expressionSet(workspace.state, moduleId);
     for (const node of Object.values(module.nodes)) {
       if (node.type !== "file" || !expressed.has(node.id)) continue;
       const outputPath = nodeOutputPath(module, node);
       if (exists(outputPath)) continue;
       tasks.push({
-        dna_id: module.dna_id,
+        module_id: moduleId,
         node_id: node.id,
         qualified_node_id: qualifiedNodeId(module, node.id),
         path: relativePath(outputPath),
-        priority: node.required ? 1 : 2
+        priority: node.baseline ? 1 : 2
       });
     }
   }
   return tasks.sort(
     (a, b) =>
       a.priority - b.priority ||
-      a.dna_id.localeCompare(b.dna_id) ||
+      a.module_id.localeCompare(b.module_id) ||
       a.node_id.localeCompare(b.node_id)
   );
 }
 
 function buildScaffoldContent(module, fileNode) {
+  const documentId = qualifiedNodeId(module, fileNode.id);
+  const firstBlockId = `${documentId}.01`;
   return [
     `# ${fileNode.title || fileNode.id}`,
     "",
     "Status: in_progress",
     `Last updated: ${nowIso()}`,
+    `DNA document: \`${documentId}\``,
+    `DNA module: \`${canonicalModuleId(module)}\` version \`${module.dna_version}\``,
     "",
-    "## Intent",
-    `- ${fileNode.intent || "Define this area clearly before implementation."}`,
+    "## Purpose",
+    `- ${fileNode.intent || "Define this document clearly before implementation."}`,
     "",
     "## Directional Context",
     "- North Star: `_my_brainwave_north_star.md`",
     "- Steering decisions: `_decisions_log.md`",
-    `- DNA document: \`${qualifiedNodeId(module, fileNode.id)}\``,
-    `- DNA module: \`${canonicalModuleId(module)}\` version \`${module.dna_version}\``,
     "",
-    "## Decisions and Rationale",
+    "## DNA Blocks",
     "",
-    "## Constraints",
+    `### ${firstBlockId} - Initial Direction`,
     "",
-    "## Open Questions",
+    "Status: not_started",
+    "Supersedes: none",
+    "",
+    "#### Context",
+    "",
+    "#### Direction",
+    "",
+    "#### Rationale",
+    "",
+    "#### Alternatives Considered",
+    "",
+    "#### Consequences",
+    "",
+    "#### Future Fit",
+    "",
+    "#### Verification",
+    "",
+    "## Document Open Questions",
     ""
   ].join("\n");
+}
+
+function parseDnaBlocks(module, fileNode, content) {
+  const documentId = qualifiedNodeId(module, fileNode.id);
+  const headingPattern =
+    /^###\s+`?(_DNA-[A-Z]{4}-\d{5}\.\d{2})`?\s+(?:-|—)\s+(.+?)\s*$/gm;
+  const matches = [...content.matchAll(headingPattern)];
+  const blocks = [];
+  const errors = [];
+  const seen = new Set();
+
+  for (let index = 0; index < matches.length; index += 1) {
+    const match = matches[index];
+    const id = match[1];
+    const title = match[2].trim();
+    const section = content.slice(
+      match.index,
+      matches[index + 1]?.index ?? content.length
+    );
+    const rawStatus = section.match(/^\s*Status:\s*([a-z_]+)\s*$/im)?.[1]?.toLowerCase();
+    const status = DNA_BLOCK_STATUSES.includes(rawStatus) ? rawStatus : "invalid";
+    const supersedes = section.match(/^\s*Supersedes:\s*(.+?)\s*$/im)?.[1]?.trim() || null;
+    const supersededBy =
+      section.match(/^\s*Superseded by:\s*(.+?)\s*$/im)?.[1]?.trim() || null;
+
+    if (!id.startsWith(`${documentId}.`)) {
+      errors.push(`${id} does not belong to ${documentId}.`);
+    }
+    if (seen.has(id)) errors.push(`${id} is duplicated.`);
+    seen.add(id);
+    if (status === "invalid") errors.push(`${id} has a missing or invalid Status.`);
+
+    if (status === "superseded") {
+      if (!supersededBy || !/^_DNA-[A-Z]{4}-\d{5}\.\d{2}$/.test(supersededBy)) {
+        errors.push(`${id} must identify its replacement with Superseded by.`);
+      }
+    } else {
+      if (!supersedes) errors.push(`${id} must define Supersedes: none or a block ID.`);
+      for (const heading of [
+        "Context",
+        "Direction",
+        "Rationale",
+        "Alternatives Considered",
+        "Consequences",
+        "Future Fit",
+        "Verification"
+      ]) {
+        const pattern = new RegExp(`^####\\s+${heading}\\s*$`, "im");
+        if (!pattern.test(section)) errors.push(`${id} is missing ${heading}.`);
+      }
+    }
+
+    blocks.push({
+      id,
+      slice: id.split(".").pop(),
+      title,
+      status,
+      supersedes,
+      superseded_by: supersededBy
+    });
+  }
+
+  if (content.trim() && matches.length === 0) {
+    errors.push(`${documentId} contains no DNA blocks.`);
+  }
+
+  return { blocks, errors };
 }
 
 function reconcileExpressedNodes(workspace, manifest, taskPlan) {
@@ -601,7 +730,7 @@ function reconcileExpressedNodes(workspace, manifest, taskPlan) {
   let createdCount = 0;
 
   for (const module of selectedModules(workspace)) {
-    const expressed = expressionSet(workspace.state, module.dna_id);
+    const expressed = expressionSet(workspace.state, canonicalModuleId(module));
     for (const node of Object.values(module.nodes).sort((a, b) => a.id.localeCompare(b.id))) {
       if (node.type !== "directory" || !expressed.has(node.id)) continue;
       fs.mkdirSync(nodeOutputPath(module, node), { recursive: true });
@@ -613,7 +742,7 @@ function reconcileExpressedNodes(workspace, manifest, taskPlan) {
       addEvent(manifest, "warning", "Cycle file limit reached; remaining scaffolds were deferred.");
       break;
     }
-    const module = workspace.modules[task.dna_id];
+    const module = workspace.modules[task.module_id];
     const node = module?.nodes[task.node_id];
     if (!node) continue;
     const outputPath = nodeOutputPath(module, node);
@@ -626,7 +755,8 @@ function reconcileExpressedNodes(workspace, manifest, taskPlan) {
 }
 
 function computeModuleProgress(module, state, trackedFiles) {
-  const expressed = expressionSet(state, module.dna_id);
+  const moduleId = canonicalModuleId(module);
+  const expressed = expressionSet(state, moduleId);
   const folders = {};
   const directories = Object.values(module.nodes)
     .filter((node) => node.type === "directory")
@@ -663,7 +793,7 @@ function computeModuleProgress(module, state, trackedFiles) {
     name: module.name,
     version: module.dna_version,
     documentation_label: module.documentation_label,
-    selected: Boolean(state.selected_dna[module.dna_id]),
+    selected: Boolean(state.selected_dna[moduleId]),
     available_files: fileNodes.length,
     expressed_files: expressedFiles.length,
     completed_files: completedFiles,
@@ -721,6 +851,7 @@ function buildManifest(workspace, command, taskPlan = [], prior = null) {
 
   const trackedFiles = {};
   const missingExpressedFiles = [];
+  const implementationBlocks = [];
   let totalNodes = 0;
   let totalDirectories = 0;
   let totalFiles = 0;
@@ -728,10 +859,11 @@ function buildManifest(workspace, command, taskPlan = [], prior = null) {
   let totalExpressedFiles = 0;
 
   for (const module of Object.values(workspace.modules).sort((a, b) =>
-    a.dna_id.localeCompare(b.dna_id)
+    canonicalModuleId(a).localeCompare(canonicalModuleId(b))
   )) {
-    const selection = workspace.state.selected_dna[module.dna_id] || null;
-    const expressed = expressionSet(workspace.state, module.dna_id);
+    const moduleId = canonicalModuleId(module);
+    const selection = workspace.state.selected_dna[moduleId] || null;
+    const expressed = expressionSet(workspace.state, moduleId);
     const moduleNodes = {};
     const nodes = Object.values(module.nodes).sort((a, b) => a.id.localeCompare(b.id));
     totalNodes += nodes.length;
@@ -743,23 +875,42 @@ function buildManifest(workspace, command, taskPlan = [], prior = null) {
       const isExpressed = expressed.has(node.id);
       let processingStatus = "container";
       let outputPath = null;
+      let blockCount = 0;
+      let contractErrors = [];
       if (node.type === "file") {
         outputPath = documentedRelativePath(module, node);
         const absolute = nodeOutputPath(module, node);
         const fileExists = exists(absolute);
         const content = fileExists ? readText(absolute) : "";
         processingStatus = fileExists ? fileStatusFromContent(content) : "not_started";
+        const parsedBlocks = fileExists
+          ? parseDnaBlocks(module, node, content)
+          : { blocks: [], errors: [] };
+        blockCount = parsedBlocks.blocks.length;
+        contractErrors = parsedBlocks.errors;
+        for (const block of parsedBlocks.blocks) {
+          implementationBlocks.push({
+            ...block,
+            module_id: moduleId,
+            module_name: module.name,
+            document_id: qualifiedNodeId(module, node.id),
+            document_title: node.title,
+            path: outputPath
+          });
+        }
         if (isExpressed || fileExists) {
           trackedFiles[outputPath] = {
-            dna_id: module.dna_id,
+            module_id: moduleId,
             dna_code: module.dna_code,
             dna_version: module.dna_version,
             node_id: node.id,
             qualified_node_id: qualifiedNodeId(module, node.id),
-            required: Boolean(node.required),
+            baseline: Boolean(node.baseline),
             expressed: isExpressed,
             exists: fileExists,
             processing_status: processingStatus,
+            block_count: blockCount,
+            contract_errors: contractErrors,
             word_count: fileExists ? wordCount(content) : 0,
             sha256: fileExists ? sha256(content) : null,
             updated_at: fileExists ? fs.statSync(absolute).mtime.toISOString() : null
@@ -777,13 +928,15 @@ function buildManifest(workspace, command, taskPlan = [], prior = null) {
         title: node.title || null,
         when_relevant: node.when_relevant || null,
         parent_id: node.parent_id || null,
-        required: Boolean(node.required),
+        baseline: Boolean(node.baseline),
         expressed: isExpressed,
-        processing_status: processingStatus
+        processing_status: processingStatus,
+        block_count: blockCount,
+        contract_errors: contractErrors
       };
     }
 
-    manifest.dna.modules[module.dna_id] = {
+    manifest.dna.modules[moduleId] = {
       source_path: module.source_path,
       dna_code: module.dna_code,
       canonical_id: canonicalModuleId(module),
@@ -823,80 +976,38 @@ function buildManifest(workspace, command, taskPlan = [], prior = null) {
   let expressedFilesAcrossModules = 0;
   let completedFilesAcrossModules = 0;
   for (const module of Object.values(workspace.modules).sort((a, b) =>
-    a.dna_id.localeCompare(b.dna_id)
+    canonicalModuleId(a).localeCompare(canonicalModuleId(b))
   )) {
+    const moduleId = canonicalModuleId(module);
     const progress = computeModuleProgress(module, workspace.state, trackedFiles);
-    manifest.progress.modules[module.dna_id] = progress;
+    manifest.progress.modules[moduleId] = progress;
     if (progress.selected) {
       expressedFilesAcrossModules += progress.expressed_files;
       completedFilesAcrossModules += progress.completed_files;
     }
   }
-  manifest.progress.global_completion_pct =
+  manifest.progress.documentation_completion_pct =
     expressedFilesAcrossModules === 0
       ? 0
       : Math.round((completedFilesAcrossModules / expressedFilesAcrossModules) * 100);
 
+  implementationBlocks.sort(
+    (a, b) =>
+      a.module_id.localeCompare(b.module_id) ||
+      a.document_id.localeCompare(b.document_id) ||
+      a.id.localeCompare(b.id)
+  );
+  manifest.implementation.blocks = implementationBlocks;
+  manifest.implementation.totals.blocks = implementationBlocks.length;
+  for (const block of implementationBlocks) {
+    manifest.implementation.totals[block.status] += 1;
+  }
+  manifest.implementation.current =
+    implementationBlocks.find((block) => block.status === "in_progress") || null;
+  manifest.implementation.next =
+    implementationBlocks.find((block) => block.status === "not_started") || null;
+
   return manifest;
-}
-
-function generateCondensedSummaryForDir(module, state, dirId, summaryCharBudget) {
-  const expressed = expressionSet(state, module.dna_id);
-  const files = getDescendantFileNodes(module, dirId).filter((node) => expressed.has(node.id));
-  if (files.length === 0) return null;
-
-  const parts = [
-    `# ${module.name}: ${module.nodes[dirId].title} State`,
-    "",
-    `Generated: ${nowIso()}`,
-    `DNA module: ${canonicalModuleId(module)} ${module.dna_version}`,
-    ""
-  ];
-  for (const fileNode of files) {
-    const absolute = nodeOutputPath(module, fileNode);
-    if (!exists(absolute)) continue;
-    const lines = readText(absolute).split("\n").map((line) => line.trim()).filter(Boolean);
-    const headline = lines.find((line) => line.startsWith("#")) || fileNode.title || fileNode.id;
-    const bodyLine = lines.find(
-      (line) =>
-        !line.startsWith("#") &&
-        !/^status:/i.test(line) &&
-        !/^last updated:/i.test(line) &&
-        !/^-\s*(north star|steering decisions|dna module):/i.test(line)
-    ) || "No detail captured yet.";
-    parts.push(`- ${fileNode.id}: ${headline.replace(/^#+\s*/, "")} -> ${bodyLine}`);
-  }
-  let summary = `${parts.join("\n")}\n`;
-  if (summary.length > summaryCharBudget) {
-    summary = `${summary.slice(0, summaryCharBudget)}\n...\n[truncated for context budget]\n`;
-  }
-  return summary;
-}
-
-function generateContextSummaries(workspace, manifest) {
-  const generated = [];
-  const summaryCharBudget = workspace.settings.engine?.summary_char_budget || 1400;
-  for (const module of selectedModules(workspace)) {
-    const moduleProgress = manifest.progress.modules[module.dna_id];
-    for (const [dirId, stats] of Object.entries(moduleProgress.folders)) {
-      if (stats.expressed_files === 0 || stats.completion_pct !== 100) continue;
-      const summary = generateCondensedSummaryForDir(
-        module,
-        workspace.state,
-        dirId,
-        summaryCharBudget
-      );
-      if (!summary) continue;
-      const outputPath = path.join(
-        PATHS.contextDir,
-        canonicalModuleId(module),
-        `${dirId}_state.md`
-      );
-      writeText(outputPath, summary);
-      generated.push(relativePath(outputPath));
-    }
-  }
-  manifest.context.summaries_generated = generated;
 }
 
 function injectManifestIntoDashboard(manifest) {
@@ -987,7 +1098,7 @@ function assertSelectedDna(state) {
 function expressedFileEntries(workspace) {
   const entries = [];
   for (const module of selectedModules(workspace)) {
-    const expressed = expressionSet(workspace.state, module.dna_id);
+    const expressed = expressionSet(workspace.state, canonicalModuleId(module));
     for (const node of Object.values(module.nodes)) {
       if (node.type === "file" && expressed.has(node.id)) {
         entries.push({ module, node });
@@ -996,7 +1107,8 @@ function expressedFileEntries(workspace) {
   }
   return entries.sort(
     (a, b) =>
-      a.module.dna_id.localeCompare(b.module.dna_id) || a.node.id.localeCompare(b.node.id)
+      canonicalModuleId(a.module).localeCompare(canonicalModuleId(b.module)) ||
+      a.node.id.localeCompare(b.node.id)
   );
 }
 
@@ -1005,6 +1117,17 @@ function incompleteExpressedFiles(workspace) {
     const absolute = nodeOutputPath(module, node);
     return !exists(absolute) || fileStatusFromContent(readText(absolute)) !== "complete";
   });
+}
+
+function expressedBlockContractErrors(workspace) {
+  const errors = [];
+  for (const { module, node } of expressedFileEntries(workspace)) {
+    const absolute = nodeOutputPath(module, node);
+    if (!exists(absolute)) continue;
+    const parsed = parseDnaBlocks(module, node, readText(absolute));
+    errors.push(...parsed.errors);
+  }
+  return errors;
 }
 
 function buildWorkspaceManifest(workspace, command, prior = null) {
@@ -1059,7 +1182,6 @@ async function runCycle(command) {
     routeGenerationTasks(workspace),
     manifest
   );
-  generateContextSummaries(workspace, refreshed);
   writeJsonYaml(PATHS.manifest, refreshed);
   injectManifestIntoDashboard(refreshed);
   console.log(`${CONSOLE_PREFIX} cycle complete at ${nowIso()}`);
@@ -1069,9 +1191,10 @@ function listDnaModules() {
   const workspace = loadWorkspace({ allowVersionMismatch: true });
   console.log("Available DNA modules:");
   for (const module of Object.values(workspace.modules).sort((a, b) =>
-    a.dna_id.localeCompare(b.dna_id)
+    canonicalModuleId(a).localeCompare(canonicalModuleId(b))
   )) {
-    const selection = workspace.state.selected_dna[module.dna_id];
+    const moduleId = canonicalModuleId(module);
+    const selection = workspace.state.selected_dna[moduleId];
     const selected = selection
       ? selection.version === module.dna_version
         ? "selected"
@@ -1098,16 +1221,16 @@ function selectDnaModules(moduleRefs) {
   const selectedModulesById = new Map();
   for (const moduleRef of moduleRefs) {
     const module = parseModuleRef(moduleRef, workspace.modules);
-    selectedModulesById.set(module.dna_id, module);
+    selectedModulesById.set(canonicalModuleId(module), module);
   }
   const uniqueIds = [...selectedModulesById.keys()].sort();
   if (uniqueIds.length === 0) throw new Error("Select at least one DNA module.");
 
   const selected = {};
-  for (const dnaId of uniqueIds) {
-    const module = selectedModulesById.get(dnaId);
-    const previous = workspace.state.selected_dna[dnaId];
-    selected[dnaId] = {
+  for (const moduleId of uniqueIds) {
+    const module = selectedModulesById.get(moduleId);
+    const previous = workspace.state.selected_dna[moduleId];
+    selected[moduleId] = {
       version: module.dna_version,
       expressed_entries:
         previous?.version === module.dna_version ? previous.expressed_entries : []
@@ -1118,8 +1241,7 @@ function selectDnaModules(moduleRefs) {
   const manifest = buildWorkspaceManifest(workspace, "select-dna");
   addEvent(manifest, "dna_selection", "DNA modules selected after user agreement.", {
     selected_dna: uniqueIds.map((dnaId) => ({
-      dna_id: dnaId,
-      canonical_id: canonicalModuleId(workspace.modules[dnaId]),
+      module_id: dnaId,
       version: workspace.modules[dnaId].dna_version
     }))
   });
@@ -1145,8 +1267,8 @@ function mutateExpression(nodeRefs, expressedValue) {
 
   const changed = [];
   for (const nodeRef of nodeRefs) {
-    const { dnaId, nodeId, module } = parseQualifiedNodeRef(nodeRef, workspace.modules);
-    const selection = workspace.state.selected_dna[dnaId];
+    const { moduleId, nodeId, module } = parseQualifiedNodeRef(nodeRef, workspace.modules);
+    const selection = workspace.state.selected_dna[moduleId];
     if (!selection || !module) {
       throw new Error(`DNA module is not selected: ${canonicalModuleId(module)}.`);
     }
@@ -1270,6 +1392,10 @@ function transitionStage(targetStage) {
           .join(", ")}.`
       );
     }
+    const contractErrors = expressedBlockContractErrors(workspace);
+    if (contractErrors.length > 0) {
+      throw new Error(`DNA block contract failed: ${contractErrors.join(" ")}`);
+    }
   }
 
   workspace.state.stage = targetStage;
@@ -1292,8 +1418,9 @@ function printStatus() {
   console.log(`${CONSOLE_PREFIX} available_dna: ${Object.keys(workspace.modules).length}`);
   console.log(`${CONSOLE_PREFIX} selected_dna: ${selected.join(", ") || "none"}`);
   console.log(
-    `${CONSOLE_PREFIX} global_completion_pct: ${manifest.progress.global_completion_pct}%`
+    `${CONSOLE_PREFIX} documentation_completion_pct: ${manifest.progress.documentation_completion_pct}%`
   );
+  console.log(`${CONSOLE_PREFIX} implementation_blocks: ${manifest.implementation.totals.blocks}`);
   console.log(`${CONSOLE_PREFIX} expressed_files: ${manifest.dna.totals.expressed_files}`);
   console.log(
     `${CONSOLE_PREFIX} missing_expressed_files: ${manifest.filesystem.missing_expressed_files.length}`
@@ -1337,15 +1464,16 @@ async function watchWorkspace() {
 function printHelp() {
   console.log("_brainwave runner commands:");
   console.log("  node _brainwave/_engine/brainwave_runner.js integrate  (from project root)");
-  console.log("  node _engine/brainwave_runner.js status");
-  console.log("  node _engine/brainwave_runner.js refresh");
-  console.log("  node _engine/brainwave_runner.js dna");
-  console.log("  node _engine/brainwave_runner.js select-dna <_DNA-CODE...>");
-  console.log("  node _engine/brainwave_runner.js transition <stage>");
-  console.log("  node _engine/brainwave_runner.js express <_DNA-CODE-00000...>");
-  console.log("  node _engine/brainwave_runner.js unexpress <_DNA-CODE-00000...>");
-  console.log("  node _engine/brainwave_runner.js run");
-  console.log("  node _engine/brainwave_runner.js watch");
+  console.log("  node _brainwave/_engine/brainwave_runner.js unintegrate  (from project root)");
+  console.log("  node _brainwave/_engine/brainwave_runner.js status");
+  console.log("  node _brainwave/_engine/brainwave_runner.js refresh");
+  console.log("  node _brainwave/_engine/brainwave_runner.js dna");
+  console.log("  node _brainwave/_engine/brainwave_runner.js select-dna <_DNA-CODE...>");
+  console.log("  node _brainwave/_engine/brainwave_runner.js transition <stage>");
+  console.log("  node _brainwave/_engine/brainwave_runner.js express <_DNA-CODE-00000...>");
+  console.log("  node _brainwave/_engine/brainwave_runner.js unexpress <_DNA-CODE-00000...>");
+  console.log("  node _brainwave/_engine/brainwave_runner.js run");
+  console.log("  node _brainwave/_engine/brainwave_runner.js watch");
 }
 
 async function main() {
@@ -1356,6 +1484,13 @@ async function main() {
     const changes = integrateProjectRoot(ROOT);
     console.log(
       `${CONSOLE_PREFIX} project integration ${changes.length > 0 ? `updated: ${changes.join(", ")}` : "already current"}`
+    );
+    return;
+  }
+  if (command === "unintegrate") {
+    const changes = removeProjectRootIntegration(ROOT);
+    console.log(
+      `${CONSOLE_PREFIX} project integration ${changes.length > 0 ? `removed from: ${changes.join(", ")}` : "already absent"}`
     );
     return;
   }

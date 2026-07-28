@@ -1,0 +1,19 @@
+{
+  "description": "_brainwave lifecycle context",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$(git rev-parse --show-toplevel)/_brainwave/_engine/adapters/codex.js\" session-start",
+            "timeout": 5,
+            "commandWindows": "powershell -NoProfile -Command \"$projectRoot = git rev-parse --show-toplevel; & node (Join-Path $projectRoot '_brainwave/_engine/adapters/codex.js') session-start\"",
+            "statusMessage": "Loading _brainwave context"
+          }
+        ]
+      }
+    ]
+  }
+}

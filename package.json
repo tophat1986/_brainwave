@@ -1,14 +1,35 @@
 {
   "name": "brainwave-framework",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "private": true,
-  "description": "Agent-guided, DNA-driven foundation framework",
+  "description": "Idea-to-documentation foundation for AI-built software",
+  "license": "MIT",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tophat1986/_brainwave.git"
+  },
+  "bugs": {
+    "url": "https://github.com/tophat1986/_brainwave/issues"
+  },
+  "homepage": "https://github.com/tophat1986/_brainwave#readme",
   "scripts": {
-    "brainwave:dna": "node _engine/brainwave_runner.js dna",
-    "brainwave:run": "node _engine/brainwave_runner.js run",
-    "brainwave:watch": "node _engine/brainwave_runner.js watch",
-    "brainwave:status": "node _engine/brainwave_runner.js status",
-    "brainwave:refresh": "node _engine/brainwave_runner.js refresh",
-    "test": "node --test _engine/*.test.js"
-  }
+    "brainwave:integrate": "node _brainwave/_engine/brainwave_runner.js integrate",
+    "brainwave:unintegrate": "node _brainwave/_engine/brainwave_runner.js unintegrate",
+    "brainwave:dna": "node _brainwave/_engine/brainwave_runner.js dna",
+    "brainwave:run": "node _brainwave/_engine/brainwave_runner.js run",
+    "brainwave:watch": "node _brainwave/_engine/brainwave_runner.js watch",
+    "brainwave:status": "node _brainwave/_engine/brainwave_runner.js status",
+    "brainwave:refresh": "node _brainwave/_engine/brainwave_runner.js refresh",
+    "test": "node --test _brainwave/_engine/*.test.js"
+  },
+  "keywords": [
+    "ai-agents",
+    "architecture",
+    "documentation",
+    "spec-driven-development"
+  ]
 }

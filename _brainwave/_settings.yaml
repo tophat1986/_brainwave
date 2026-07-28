@@ -17,7 +17,6 @@
     "verbosity_budget": ["lean", "standard", "exhaustive"]
   },
   "engine": {
-    "summary_char_budget": 1400,
     "max_files_per_cycle": 120
   }
 }

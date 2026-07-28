@@ -1,27 +1,27 @@
 {
-  "schema_version": "2.0.0",
-  "generated_at": "2026-07-24T21:46:11.242Z",
+  "schema_version": "3.0.0",
+  "generated_at": "2026-07-28T23:15:31.698Z",
   "workspace_root": ".",
   "seed": {
     "path": "_my_brainwave_seed.md",
-    "word_count": 46,
-    "current_sha256": "a9af75973506fd953a6a3acbf1aecae7330c16bd88c941ddf600f65dc398e794",
-    "locked_sha256": "a9af75973506fd953a6a3acbf1aecae7330c16bd88c941ddf600f65dc398e794",
-    "integrity": "unchanged",
-    "captured_at": "2026-02-25T14:13:43.919Z",
-    "last_ingested_at": "2026-07-24T21:46:11.242Z"
+    "word_count": 0,
+    "current_sha256": null,
+    "locked_sha256": null,
+    "integrity": "unlocked",
+    "captured_at": null,
+    "last_ingested_at": "2026-07-28T23:15:31.698Z"
   },
   "north_star": {
     "path": "_my_brainwave_north_star.md",
-    "status": "shaping",
-    "word_count": 42,
-    "sha256": "bda9b3a10f5579ec0aa27f4d8abf25dcda35859af718b2a07ebff85d538c17b9",
-    "updated_at": "2026-07-24T11:10:56.533Z"
+    "status": "missing",
+    "word_count": 0,
+    "sha256": null,
+    "updated_at": "2026-07-28T21:49:33.271Z"
   },
   "lifecycle": {
     "path": "_brainwave_state.yaml",
-    "stage": "shaping_north_star",
-    "stage_updated_at": "2026-07-23T15:19:41.874Z",
+    "stage": "awaiting_seed",
+    "stage_updated_at": null,
     "passive": false
   },
   "settings": {
@@ -34,7 +34,7 @@
   "engine": {
     "status": "ok",
     "last_command": "refresh",
-    "last_cycle_at": "2026-07-24T21:46:11.242Z",
+    "last_cycle_at": "2026-07-28T23:15:31.698Z",
     "task_router": {
       "pending_tasks": 0
     }
@@ -44,21 +44,21 @@
     "totals": {
       "available_modules": 2,
       "selected_modules": 0,
-      "nodes": 61,
+      "nodes": 63,
       "directories": 15,
-      "files": 46,
+      "files": 48,
       "expressed_nodes": 0,
       "expressed_files": 0
     },
     "modules": {
-      "brand_identity": {
-        "source_path": "_dna/brand_identity.yaml",
+      "_DNA-BRND": {
+        "source_path": "_dna/_DNA-BRND.yaml",
         "dna_code": "BRND",
         "canonical_id": "_DNA-BRND",
         "name": "Brand Identity DNA",
         "description": "A proportionate catalogue for defining the enduring brand identity of a product or organisation. It translates an agreed North Star into recognisable verbal and visual direction without redefining product strategy or expanding into campaigns, acquisition, or go-to-market planning.",
-        "version": "1.1.0",
-        "schema_version": "1.1.0",
+        "version": "1.3.0",
+        "schema_version": "3.0.0",
         "documentation_label": "brand identity documentation",
         "selected": false,
         "selected_version": null,
@@ -77,9 +77,11 @@
             "title": "Brand Direction",
             "when_relevant": "Use when the intended perception, character, or distinctive identity must be established. Derive this direction from the North Star without repeating its product purpose, audience definition, or success criteria.",
             "parent_id": null,
-            "required": true,
+            "baseline": true,
             "expressed": false,
-            "processing_status": "container"
+            "processing_status": "container",
+            "block_count": 0,
+            "contract_errors": []
           },
           "00101": {
             "id": "00101",
@@ -88,9 +90,11 @@
             "title": "Positioning and Perception",
             "when_relevant": null,
             "parent_id": "00100",
-            "required": true,
+            "baseline": true,
             "expressed": false,
-            "processing_status": "not_started"
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
           },
           "00102": {
             "id": "00102",
@@ -99,20 +103,24 @@
             "title": "Personality and Principles",
             "when_relevant": null,
             "parent_id": "00100",
-            "required": true,
+            "baseline": true,
             "expressed": false,
-            "processing_status": "not_started"
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
           },
           "00200": {
             "id": "00200",
             "qualified_id": "_DNA-BRND-00200",
             "type": "directory",
             "title": "Verbal Identity",
-            "when_relevant": "Use when the brand communicates through product copy, documentation, support, public content, or human conversation and needs a consistent verbal character. This area governs enduring expression, not campaign messaging or channel strategy.",
+            "when_relevant": "Use when the brand communicates through product copy, documentation, support, public content, or human conversation and needs a consistent verbal character. This document group governs enduring expression, not campaign messaging or channel strategy.",
             "parent_id": null,
-            "required": true,
+            "baseline": true,
             "expressed": false,
-            "processing_status": "container"
+            "processing_status": "container",
+            "block_count": 0,
+            "contract_errors": []
           },
           "00201": {
             "id": "00201",
@@ -121,9 +129,11 @@
             "title": "Voice and Tone",
             "when_relevant": null,
             "parent_id": "00200",
-            "required": true,
+            "baseline": true,
             "expressed": false,
-            "processing_status": "not_started"
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
           },
           "00202": {
             "id": "00202",
@@ -132,9 +142,11 @@
             "title": "Naming and Terminology",
             "when_relevant": null,
             "parent_id": "00200",
-            "required": false,
+            "baseline": false,
             "expressed": false,
-            "processing_status": "not_started"
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
           },
           "00300": {
             "id": "00300",
@@ -143,9 +155,11 @@
             "title": "Visual Identity",
             "when_relevant": "Use when the brand needs a coherent and recognisable visual language. Define brand primitives and usage intent here; product interface components and interaction behaviour remain the responsibility of the applicable software or experience DNA.",
             "parent_id": null,
-            "required": true,
+            "baseline": true,
             "expressed": false,
-            "processing_status": "container"
+            "processing_status": "container",
+            "block_count": 0,
+            "contract_errors": []
           },
           "00301": {
             "id": "00301",
@@ -154,9 +168,11 @@
             "title": "Colour System",
             "when_relevant": null,
             "parent_id": "00300",
-            "required": true,
+            "baseline": true,
             "expressed": false,
-            "processing_status": "not_started"
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
           },
           "00302": {
             "id": "00302",
@@ -165,9 +181,11 @@
             "title": "Typography System",
             "when_relevant": null,
             "parent_id": "00300",
-            "required": true,
+            "baseline": true,
             "expressed": false,
-            "processing_status": "not_started"
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
           },
           "00303": {
             "id": "00303",
@@ -176,9 +194,11 @@
             "title": "Logo System",
             "when_relevant": null,
             "parent_id": "00300",
-            "required": false,
+            "baseline": false,
             "expressed": false,
-            "processing_status": "not_started"
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
           },
           "00304": {
             "id": "00304",
@@ -187,9 +207,11 @@
             "title": "Imagery and Iconography",
             "when_relevant": null,
             "parent_id": "00300",
-            "required": false,
+            "baseline": false,
             "expressed": false,
-            "processing_status": "not_started"
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
           },
           "00400": {
             "id": "00400",
@@ -198,9 +220,11 @@
             "title": "Brand Application",
             "when_relevant": "Use when identity decisions must be applied consistently and accessibly across product, communication, and operational touchpoints. Reference the earlier identity decisions rather than duplicating them.",
             "parent_id": null,
-            "required": true,
+            "baseline": true,
             "expressed": false,
-            "processing_status": "container"
+            "processing_status": "container",
+            "block_count": 0,
+            "contract_errors": []
           },
           "00401": {
             "id": "00401",
@@ -209,9 +233,11 @@
             "title": "Accessibility and Inclusive Expression",
             "when_relevant": null,
             "parent_id": "00400",
-            "required": true,
+            "baseline": true,
             "expressed": false,
-            "processing_status": "not_started"
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
           },
           "00402": {
             "id": "00402",
@@ -220,9 +246,11 @@
             "title": "Application Guidance",
             "when_relevant": null,
             "parent_id": "00400",
-            "required": true,
+            "baseline": true,
             "expressed": false,
-            "processing_status": "not_started"
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
           },
           "00403": {
             "id": "00403",
@@ -231,27 +259,29 @@
             "title": "Asset Governance",
             "when_relevant": null,
             "parent_id": "00400",
-            "required": false,
+            "baseline": false,
             "expressed": false,
-            "processing_status": "not_started"
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
           }
         }
       },
-      "software_application": {
-        "source_path": "_dna/software_application.yaml",
+      "_DNA-SAPP": {
+        "source_path": "_dna/_DNA-SAPP.yaml",
         "dna_code": "SAPP",
         "canonical_id": "_DNA-SAPP",
         "name": "Software Application DNA",
         "description": "Architecture documentation for AI-built software products and digital services, with an emphasis on web applications.",
-        "version": "1.1.0",
-        "schema_version": "1.1.0",
+        "version": "1.3.0",
+        "schema_version": "3.0.0",
         "documentation_label": "software architecture documentation",
         "selected": false,
         "selected_version": null,
         "totals": {
-          "nodes": 46,
+          "nodes": 48,
           "directories": 11,
-          "files": 35,
+          "files": 37,
           "expressed_nodes": 0,
           "expressed_files": 0
         },
@@ -261,11 +291,13 @@
             "qualified_id": "_DNA-SAPP-00200",
             "type": "directory",
             "title": "Architecture",
-            "when_relevant": "Use when system boundaries, major components, domain responsibilities, or structural tradeoffs need to be made explicit.",
+            "when_relevant": "Establish a proportionate structural baseline for every software application, including its boundary, major components, responsibilities, and material dependencies.",
             "parent_id": null,
-            "required": true,
+            "baseline": true,
             "expressed": false,
-            "processing_status": "container"
+            "processing_status": "container",
+            "block_count": 0,
+            "contract_errors": []
           },
           "00201": {
             "id": "00201",
@@ -274,9 +306,11 @@
             "title": "System Context",
             "when_relevant": null,
             "parent_id": "00200",
-            "required": true,
+            "baseline": true,
             "expressed": false,
-            "processing_status": "not_started"
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
           },
           "00202": {
             "id": "00202",
@@ -285,9 +319,11 @@
             "title": "Component Model",
             "when_relevant": null,
             "parent_id": "00200",
-            "required": true,
+            "baseline": true,
             "expressed": false,
-            "processing_status": "not_started"
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
           },
           "00203": {
             "id": "00203",
@@ -296,20 +332,11 @@
             "title": "Domain Boundaries",
             "when_relevant": null,
             "parent_id": "00200",
-            "required": true,
+            "baseline": false,
             "expressed": false,
-            "processing_status": "not_started"
-          },
-          "00204": {
-            "id": "00204",
-            "qualified_id": "_DNA-SAPP-00204",
-            "type": "file",
-            "title": "Tradeoffs",
-            "when_relevant": null,
-            "parent_id": "00200",
-            "required": false,
-            "expressed": false,
-            "processing_status": "not_started"
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
           },
           "00300": {
             "id": "00300",
@@ -318,9 +345,11 @@
             "title": "Data Models",
             "when_relevant": "Use when the product stores persistent information or has meaningful entities, relationships, ownership, retention, or migration concerns.",
             "parent_id": null,
-            "required": false,
+            "baseline": false,
             "expressed": false,
-            "processing_status": "container"
+            "processing_status": "container",
+            "block_count": 0,
+            "contract_errors": []
           },
           "00301": {
             "id": "00301",
@@ -329,9 +358,11 @@
             "title": "Domain Entities",
             "when_relevant": null,
             "parent_id": "00300",
-            "required": false,
+            "baseline": false,
             "expressed": false,
-            "processing_status": "not_started"
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
           },
           "00302": {
             "id": "00302",
@@ -340,9 +371,11 @@
             "title": "Schema Strategy",
             "when_relevant": null,
             "parent_id": "00300",
-            "required": false,
+            "baseline": false,
             "expressed": false,
-            "processing_status": "not_started"
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
           },
           "00303": {
             "id": "00303",
@@ -351,9 +384,11 @@
             "title": "Data Retention",
             "when_relevant": null,
             "parent_id": "00300",
-            "required": false,
+            "baseline": false,
             "expressed": false,
-            "processing_status": "not_started"
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
           },
           "00400": {
             "id": "00400",
@@ -362,9 +397,11 @@
             "title": "Security",
             "when_relevant": "Use when identity, permissions, sensitive information, threats, privacy, or compliance obligations affect the design.",
             "parent_id": null,
-            "required": false,
+            "baseline": false,
             "expressed": false,
-            "processing_status": "container"
+            "processing_status": "container",
+            "block_count": 0,
+            "contract_errors": []
           },
           "00401": {
             "id": "00401",
@@ -373,9 +410,11 @@
             "title": "Threat Model",
             "when_relevant": null,
             "parent_id": "00400",
-            "required": false,
+            "baseline": false,
             "expressed": false,
-            "processing_status": "not_started"
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
           },
           "00402": {
             "id": "00402",
@@ -384,9 +423,11 @@
             "title": "Authentication and Authorization",
             "when_relevant": null,
             "parent_id": "00400",
-            "required": false,
+            "baseline": false,
             "expressed": false,
-            "processing_status": "not_started"
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
           },
           "00403": {
             "id": "00403",
@@ -395,9 +436,11 @@
             "title": "Secret Management",
             "when_relevant": null,
             "parent_id": "00400",
-            "required": false,
+            "baseline": false,
             "expressed": false,
-            "processing_status": "not_started"
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
           },
           "00404": {
             "id": "00404",
@@ -406,9 +449,24 @@
             "title": "Compliance Controls",
             "when_relevant": null,
             "parent_id": "00400",
-            "required": false,
+            "baseline": false,
             "expressed": false,
-            "processing_status": "not_started"
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
+          },
+          "00405": {
+            "id": "00405",
+            "qualified_id": "_DNA-SAPP-00405",
+            "type": "file",
+            "title": "Privacy and Data Protection",
+            "when_relevant": null,
+            "parent_id": "00400",
+            "baseline": false,
+            "expressed": false,
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
           },
           "00500": {
             "id": "00500",
@@ -417,9 +475,11 @@
             "title": "API Contracts",
             "when_relevant": "Use when modules, services, clients, partners, or external systems communicate through APIs, events, webhooks, or other contracts.",
             "parent_id": null,
-            "required": false,
+            "baseline": false,
             "expressed": false,
-            "processing_status": "container"
+            "processing_status": "container",
+            "block_count": 0,
+            "contract_errors": []
           },
           "00501": {
             "id": "00501",
@@ -428,9 +488,11 @@
             "title": "Service Map",
             "when_relevant": null,
             "parent_id": "00500",
-            "required": false,
+            "baseline": false,
             "expressed": false,
-            "processing_status": "not_started"
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
           },
           "00502": {
             "id": "00502",
@@ -439,9 +501,11 @@
             "title": "Endpoint Contracts",
             "when_relevant": null,
             "parent_id": "00500",
-            "required": false,
+            "baseline": false,
             "expressed": false,
-            "processing_status": "not_started"
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
           },
           "00503": {
             "id": "00503",
@@ -450,20 +514,24 @@
             "title": "Event Contracts",
             "when_relevant": null,
             "parent_id": "00500",
-            "required": false,
+            "baseline": false,
             "expressed": false,
-            "processing_status": "not_started"
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
           },
           "00600": {
             "id": "00600",
             "qualified_id": "_DNA-SAPP-00600",
             "type": "directory",
             "title": "UI UX",
-            "when_relevant": "Use when an interactive experience requires journeys, navigation, information architecture, or reusable visual rules.",
+            "when_relevant": "Use when an interactive experience requires journeys, navigation, information architecture, accessible interaction behaviour, or reusable visual rules.",
             "parent_id": null,
-            "required": false,
+            "baseline": false,
             "expressed": false,
-            "processing_status": "container"
+            "processing_status": "container",
+            "block_count": 0,
+            "contract_errors": []
           },
           "00601": {
             "id": "00601",
@@ -472,9 +540,11 @@
             "title": "User Journeys",
             "when_relevant": null,
             "parent_id": "00600",
-            "required": false,
+            "baseline": false,
             "expressed": false,
-            "processing_status": "not_started"
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
           },
           "00602": {
             "id": "00602",
@@ -483,9 +553,11 @@
             "title": "Information Architecture",
             "when_relevant": null,
             "parent_id": "00600",
-            "required": false,
+            "baseline": false,
             "expressed": false,
-            "processing_status": "not_started"
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
           },
           "00603": {
             "id": "00603",
@@ -494,9 +566,24 @@
             "title": "Design System Tokens",
             "when_relevant": null,
             "parent_id": "00600",
-            "required": false,
+            "baseline": false,
             "expressed": false,
-            "processing_status": "not_started"
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
+          },
+          "00604": {
+            "id": "00604",
+            "qualified_id": "_DNA-SAPP-00604",
+            "type": "file",
+            "title": "Interaction and Accessibility",
+            "when_relevant": null,
+            "parent_id": "00600",
+            "baseline": true,
+            "expressed": false,
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
           },
           "00700": {
             "id": "00700",
@@ -505,9 +592,11 @@
             "title": "Platform Ops",
             "when_relevant": "Use when environments, deployment, rollback, resilience, or operational ownership require deliberate design.",
             "parent_id": null,
-            "required": false,
+            "baseline": false,
             "expressed": false,
-            "processing_status": "container"
+            "processing_status": "container",
+            "block_count": 0,
+            "contract_errors": []
           },
           "00701": {
             "id": "00701",
@@ -516,9 +605,11 @@
             "title": "Environments",
             "when_relevant": null,
             "parent_id": "00700",
-            "required": false,
+            "baseline": false,
             "expressed": false,
-            "processing_status": "not_started"
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
           },
           "00702": {
             "id": "00702",
@@ -527,9 +618,11 @@
             "title": "Release Orchestration",
             "when_relevant": null,
             "parent_id": "00700",
-            "required": false,
+            "baseline": false,
             "expressed": false,
-            "processing_status": "not_started"
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
           },
           "00703": {
             "id": "00703",
@@ -538,9 +631,24 @@
             "title": "Resilience Patterns",
             "when_relevant": null,
             "parent_id": "00700",
-            "required": false,
+            "baseline": false,
             "expressed": false,
-            "processing_status": "not_started"
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
+          },
+          "00704": {
+            "id": "00704",
+            "qualified_id": "_DNA-SAPP-00704",
+            "type": "file",
+            "title": "Operational Readiness",
+            "when_relevant": null,
+            "parent_id": "00700",
+            "baseline": false,
+            "expressed": false,
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
           },
           "00800": {
             "id": "00800",
@@ -549,9 +657,11 @@
             "title": "Quality and Testing",
             "when_relevant": "Use when risk-based testing, acceptance criteria, regression protection, or incident learning need a defined strategy.",
             "parent_id": null,
-            "required": false,
+            "baseline": false,
             "expressed": false,
-            "processing_status": "container"
+            "processing_status": "container",
+            "block_count": 0,
+            "contract_errors": []
           },
           "00801": {
             "id": "00801",
@@ -560,9 +670,11 @@
             "title": "Quality Strategy",
             "when_relevant": null,
             "parent_id": "00800",
-            "required": false,
+            "baseline": false,
             "expressed": false,
-            "processing_status": "not_started"
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
           },
           "00802": {
             "id": "00802",
@@ -571,9 +683,11 @@
             "title": "Test Matrix",
             "when_relevant": null,
             "parent_id": "00800",
-            "required": false,
+            "baseline": false,
             "expressed": false,
-            "processing_status": "not_started"
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
           },
           "00803": {
             "id": "00803",
@@ -582,9 +696,11 @@
             "title": "Incident Learning",
             "when_relevant": null,
             "parent_id": "00800",
-            "required": false,
+            "baseline": false,
             "expressed": false,
-            "processing_status": "not_started"
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
           },
           "00900": {
             "id": "00900",
@@ -593,9 +709,11 @@
             "title": "Delivery Governance",
             "when_relevant": "Use when implementation needs phases, dependency sequencing, delivery ownership, or an explicit risk register.",
             "parent_id": null,
-            "required": false,
+            "baseline": false,
             "expressed": false,
-            "processing_status": "container"
+            "processing_status": "container",
+            "block_count": 0,
+            "contract_errors": []
           },
           "00901": {
             "id": "00901",
@@ -604,9 +722,11 @@
             "title": "Delivery Phases",
             "when_relevant": null,
             "parent_id": "00900",
-            "required": false,
+            "baseline": false,
             "expressed": false,
-            "processing_status": "not_started"
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
           },
           "00902": {
             "id": "00902",
@@ -615,9 +735,11 @@
             "title": "Dependency Map",
             "when_relevant": null,
             "parent_id": "00900",
-            "required": false,
+            "baseline": false,
             "expressed": false,
-            "processing_status": "not_started"
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
           },
           "00903": {
             "id": "00903",
@@ -626,9 +748,11 @@
             "title": "Risk Register",
             "when_relevant": null,
             "parent_id": "00900",
-            "required": false,
+            "baseline": false,
             "expressed": false,
-            "processing_status": "not_started"
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
           },
           "01000": {
             "id": "01000",
@@ -637,9 +761,11 @@
             "title": "Observability",
             "when_relevant": "Use when logs, metrics, traces, service objectives, alerts, or operational dashboards are important to safe operation.",
             "parent_id": null,
-            "required": false,
+            "baseline": false,
             "expressed": false,
-            "processing_status": "container"
+            "processing_status": "container",
+            "block_count": 0,
+            "contract_errors": []
           },
           "01001": {
             "id": "01001",
@@ -648,9 +774,11 @@
             "title": "Telemetry Strategy",
             "when_relevant": null,
             "parent_id": "01000",
-            "required": false,
+            "baseline": false,
             "expressed": false,
-            "processing_status": "not_started"
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
           },
           "01002": {
             "id": "01002",
@@ -659,9 +787,11 @@
             "title": "Service Level Objectives",
             "when_relevant": null,
             "parent_id": "01000",
-            "required": false,
+            "baseline": false,
             "expressed": false,
-            "processing_status": "not_started"
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
           },
           "01003": {
             "id": "01003",
@@ -670,31 +800,37 @@
             "title": "Operational Dashboards",
             "when_relevant": null,
             "parent_id": "01000",
-            "required": false,
+            "baseline": false,
             "expressed": false,
-            "processing_status": "not_started"
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
           },
           "01100": {
             "id": "01100",
             "qualified_id": "_DNA-SAPP-01100",
             "type": "directory",
             "title": "Scalability and FinOps",
-            "when_relevant": "Use when growth, performance, capacity, infrastructure cost, or unit economics could materially shape the design.",
+            "when_relevant": "Use when growth, performance, capacity, or infrastructure cost could materially shape the design.",
             "parent_id": null,
-            "required": false,
+            "baseline": false,
             "expressed": false,
-            "processing_status": "container"
+            "processing_status": "container",
+            "block_count": 0,
+            "contract_errors": []
           },
           "01101": {
             "id": "01101",
             "qualified_id": "_DNA-SAPP-01101",
             "type": "file",
-            "title": "Scalability Model",
+            "title": "Performance and Scalability Model",
             "when_relevant": null,
             "parent_id": "01100",
-            "required": false,
+            "baseline": false,
             "expressed": false,
-            "processing_status": "not_started"
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
           },
           "01102": {
             "id": "01102",
@@ -703,9 +839,11 @@
             "title": "Cost Controls",
             "when_relevant": null,
             "parent_id": "01100",
-            "required": false,
+            "baseline": false,
             "expressed": false,
-            "processing_status": "not_started"
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
           },
           "01103": {
             "id": "01103",
@@ -714,9 +852,11 @@
             "title": "Capacity Plan",
             "when_relevant": null,
             "parent_id": "01100",
-            "required": false,
+            "baseline": false,
             "expressed": false,
-            "processing_status": "not_started"
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
           },
           "01200": {
             "id": "01200",
@@ -725,9 +865,11 @@
             "title": "Risk and Continuity",
             "when_relevant": "Use when continuity, backup, disaster recovery, audit evidence, or operational fallback requirements need to be planned.",
             "parent_id": null,
-            "required": false,
+            "baseline": false,
             "expressed": false,
-            "processing_status": "container"
+            "processing_status": "container",
+            "block_count": 0,
+            "contract_errors": []
           },
           "01201": {
             "id": "01201",
@@ -736,9 +878,11 @@
             "title": "Business Continuity",
             "when_relevant": null,
             "parent_id": "01200",
-            "required": false,
+            "baseline": false,
             "expressed": false,
-            "processing_status": "not_started"
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
           },
           "01202": {
             "id": "01202",
@@ -747,9 +891,11 @@
             "title": "Disaster Recovery",
             "when_relevant": null,
             "parent_id": "01200",
-            "required": false,
+            "baseline": false,
             "expressed": false,
-            "processing_status": "not_started"
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
           },
           "01203": {
             "id": "01203",
@@ -758,9 +904,11 @@
             "title": "Audit Readiness",
             "when_relevant": null,
             "parent_id": "01200",
-            "required": false,
+            "baseline": false,
             "expressed": false,
-            "processing_status": "not_started"
+            "processing_status": "not_started",
+            "block_count": 0,
+            "contract_errors": []
           }
         }
       }
@@ -771,11 +919,11 @@
     "missing_expressed_files": []
   },
   "progress": {
-    "global_completion_pct": 0,
+    "documentation_completion_pct": 0,
     "modules": {
-      "brand_identity": {
+      "_DNA-BRND": {
         "name": "Brand Identity DNA",
-        "version": "1.1.0",
+        "version": "1.3.0",
         "documentation_label": "brand identity documentation",
         "selected": false,
         "available_files": 11,
@@ -817,12 +965,12 @@
           }
         }
       },
-      "software_application": {
+      "_DNA-SAPP": {
         "name": "Software Application DNA",
-        "version": "1.1.0",
+        "version": "1.3.0",
         "documentation_label": "software architecture documentation",
         "selected": false,
-        "available_files": 35,
+        "available_files": 37,
         "expressed_files": 0,
         "completed_files": 0,
         "completion_pct": 0,
@@ -830,7 +978,7 @@
           "00200": {
             "title": "Architecture",
             "path": "_documentation/_DNA-SAPP/00200_architecture",
-            "available_files": 4,
+            "available_files": 3,
             "expressed_files": 0,
             "completed_files": 0,
             "completion_pct": 0
@@ -846,7 +994,7 @@
           "00400": {
             "title": "Security",
             "path": "_documentation/_DNA-SAPP/00400_security",
-            "available_files": 4,
+            "available_files": 5,
             "expressed_files": 0,
             "completed_files": 0,
             "completion_pct": 0
@@ -862,7 +1010,7 @@
           "00600": {
             "title": "UI UX",
             "path": "_documentation/_DNA-SAPP/00600_ui_ux",
-            "available_files": 3,
+            "available_files": 4,
             "expressed_files": 0,
             "completed_files": 0,
             "completion_pct": 0
@@ -870,7 +1018,7 @@
           "00700": {
             "title": "Platform Ops",
             "path": "_documentation/_DNA-SAPP/00700_platform_ops",
-            "available_files": 3,
+            "available_files": 4,
             "expressed_files": 0,
             "completed_files": 0,
             "completion_pct": 0
@@ -919,8 +1067,21 @@
       }
     }
   },
-  "context": {
-    "summaries_generated": []
+  "implementation": {
+    "totals": {
+      "blocks": 0,
+      "not_started": 0,
+      "in_progress": 0,
+      "implemented": 0,
+      "verified": 0,
+      "blocked": 0,
+      "superseded": 0,
+      "not_applicable": 0,
+      "invalid": 0
+    },
+    "current": null,
+    "next": null,
+    "blocks": []
   },
   "events": []
 }
