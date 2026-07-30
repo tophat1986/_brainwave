@@ -20,6 +20,7 @@ const SOURCE_RUNTIME = path.join(SOURCE_ROOT, "_engine", "runtime", "brainwave_r
 const CURSOR_ADAPTER = path.join(SOURCE_ADAPTERS, "cursor.js");
 const CLAUDE_ADAPTER = path.join(SOURCE_ADAPTERS, "claude.js");
 const CODEX_ADAPTER = path.join(SOURCE_ADAPTERS, "codex.js");
+const { buildSessionContext } = require(SOURCE_RUNTIME);
 
 function hash(content) {
   return crypto.createHash("sha256").update(content).digest("hex");
@@ -216,6 +217,43 @@ test("uses canonical _brainwave terminology in source and console output", (t) =
   assert.equal(decisionsLog.includes(invalidDocumentationTerm), false);
 });
 
+test("keeps user-facing lifecycle terminology aligned across surfaces", () => {
+  const sources = {
+    readme: fs.readFileSync(path.join(SOURCE_PROJECT_ROOT, "README.md"), "utf8"),
+    agents: fs.readFileSync(path.join(SOURCE_ROOT, "AGENTS.md"), "utf8"),
+    handbook: fs.readFileSync(path.join(SOURCE_ROOT, "_brainwave_handbook.md"), "utf8"),
+    dashboard: fs
+      .readFileSync(path.join(SOURCE_ROOT, "_dashboard.html"), "utf8")
+      .replace(/<script id="brainwave-state"[\s\S]*?<\/script>/, ""),
+    runtime: fs.readFileSync(SOURCE_RUNTIME, "utf8")
+  };
+  const canonicalStages = [
+    "Capture the idea",
+    "Agree the direction",
+    "Choose DNA modules",
+    "Scope DNA documents",
+    "Build DNA documentation",
+    "Review the foundation",
+    "Ready for implementation"
+  ];
+  const retiredLabels = [
+    "Choose documentation areas",
+    "Agree document scope",
+    "Build documentation",
+    "Documentation plan",
+    "_brainwave documentation"
+  ];
+
+  for (const [surface, content] of Object.entries(sources)) {
+    for (const stage of canonicalStages) {
+      assert.equal(content.includes(stage), true, `${surface} is missing "${stage}"`);
+    }
+    for (const retired of retiredLabels) {
+      assert.equal(content.includes(retired), false, `${surface} retains "${retired}"`);
+    }
+  }
+});
+
 test("template root registers thin adapters for Cursor, Claude Code, and Codex", () => {
   const cursor = JSON.parse(fs.readFileSync(SOURCE_CURSOR_CONFIG, "utf8"));
   const claude = JSON.parse(fs.readFileSync(SOURCE_CLAUDE_CONFIG, "utf8"));
@@ -231,6 +269,208 @@ test("template root registers thin adapters for Cursor, Claude Code, and Codex",
   for (const adapter of [CURSOR_ADAPTER, CLAUDE_ADAPTER, CODEX_ADAPTER, SOURCE_RUNTIME]) {
     assert.equal(fs.existsSync(adapter), true);
   }
+});
+
+test("session context adapts user orientation to guidance mode", () => {
+  const baseRuntime = {
+    root: SOURCE_ROOT,
+    cwd: SOURCE_PROJECT_ROOT,
+    state: { stage: "shaping_north_star" },
+    seed: "A concept.",
+    northStar: "# North Star\n\nStatus: shaping\n"
+  };
+  const configured = {
+    configured: true,
+    onboarding_status: "complete",
+    technical_proficiency: "intermediate",
+    ideation_mode: "thought_partner",
+    verbosity_budget: "standard",
+    allowed_values: {
+      guidance_mode: ["guided", "concise"],
+      technical_proficiency: ["beginner", "intermediate", "architect"],
+      ideation_mode: ["thought_partner", "fast_execution"],
+      verbosity_budget: ["lean", "standard", "exhaustive"]
+    }
+  };
+
+  const guided = buildSessionContext({
+    ...baseRuntime,
+    settings: { ...configured, guidance_mode: "guided" }
+  });
+  const concise = buildSessionContext({
+    ...baseRuntime,
+    settings: { ...configured, guidance_mode: "concise" }
+  });
+  const legacy = buildSessionContext({
+    ...baseRuntime,
+    settings: configured
+  });
+
+  assert.match(guided, /Guidance mode is `guided`/);
+  assert.match(guided, /exact user-facing label is "Agree the direction"/);
+  assert.match(guided, /compact seven-step journey/);
+  assert.match(guided, /`_brainwave\/_dashboard\.html`/);
+  assert.match(concise, /Guidance mode is `concise`/);
+  assert.doesNotMatch(concise, /compact seven-step journey/);
+  assert.match(legacy, /Guidance mode is `concise`/);
+});
+
+test("incomplete profile context asks the guidance question first", () => {
+  const context = buildSessionContext({
+    root: SOURCE_ROOT,
+    cwd: SOURCE_PROJECT_ROOT,
+    state: { stage: "awaiting_seed" },
+    settings: {
+      configured: false,
+      onboarding_status: "pending",
+      guidance_mode: null,
+      allowed_values: { guidance_mode: ["guided", "concise"] }
+    },
+    seed: "",
+    northStar: ""
+  });
+
+  assert.match(context, /first time with _brainwave before the other three/);
+  assert.match(context, /native structured-choice UI/);
+  assert.match(context, /"Yes — guide me" to `guided`/);
+  assert.match(context, /Offer two equal seed routes/);
+  assert.match(context, /preserve the user's supplied wording and natural structure/);
+});
+
+test("prepared seed context requires exact confirmation before locking", () => {
+  const context = buildSessionContext({
+    root: SOURCE_ROOT,
+    cwd: SOURCE_PROJECT_ROOT,
+    state: { stage: "awaiting_seed" },
+    settings: {
+      schema_version: "1.1.0",
+      configured: true,
+      onboarding_status: "complete",
+      guidance_mode: "concise",
+      technical_proficiency: "intermediate",
+      ideation_mode: "thought_partner",
+      verbosity_budget: "standard",
+      allowed_values: {
+        guidance_mode: ["guided", "concise"],
+        technical_proficiency: ["beginner", "intermediate", "architect"],
+        ideation_mode: ["thought_partner", "fast_execution"],
+        verbosity_budget: ["lean", "standard", "exhaustive"]
+      }
+    },
+    seed: "A prepared concept.",
+    northStar: ""
+  });
+
+  assert.match(context, /prepared concept already exists/);
+  assert.match(context, /Do not rewrite or restructure it/);
+  assert.match(context, /used exactly as written/);
+  assert.match(context, /locks its hash/);
+});
+
+test("selecting DNA context explains modules in plain language", () => {
+  const context = buildSessionContext({
+    root: SOURCE_ROOT,
+    cwd: SOURCE_PROJECT_ROOT,
+    state: { stage: "selecting_dna" },
+    settings: {
+      configured: true,
+      onboarding_status: "complete",
+      guidance_mode: "concise",
+      technical_proficiency: "intermediate",
+      ideation_mode: "thought_partner",
+      verbosity_budget: "standard",
+      allowed_values: {
+        guidance_mode: ["guided", "concise"],
+        technical_proficiency: ["beginner", "intermediate", "architect"],
+        ideation_mode: ["thought_partner", "fast_execution"],
+        verbosity_budget: ["lean", "standard", "exhaustive"]
+      }
+    },
+    seed: "A concept.",
+    northStar: "# North Star\n\nStatus: agreed\n"
+  });
+
+  assert.match(context, /curated catalogues of possible documentation for relevant domains/);
+  assert.match(context, /exact user-facing label is "Choose DNA modules"/);
+});
+
+test("session context uses canonical DNA stage labels and artifacts", () => {
+  const settings = {
+    configured: true,
+    onboarding_status: "complete",
+    guidance_mode: "concise",
+    technical_proficiency: "intermediate",
+    ideation_mode: "thought_partner",
+    verbosity_budget: "standard",
+    allowed_values: {
+      guidance_mode: ["guided", "concise"],
+      technical_proficiency: ["beginner", "intermediate", "architect"],
+      ideation_mode: ["thought_partner", "fast_execution"],
+      verbosity_budget: ["lean", "standard", "exhaustive"]
+    }
+  };
+  const baseRuntime = {
+    root: SOURCE_ROOT,
+    cwd: SOURCE_PROJECT_ROOT,
+    settings,
+    seed: "A concept.",
+    northStar: "# North Star\n\nStatus: agreed\n"
+  };
+
+  const scoping = buildSessionContext({
+    ...baseRuntime,
+    state: { stage: "scoping_brainwave_documentation" }
+  });
+  const building = buildSessionContext({
+    ...baseRuntime,
+    state: { stage: "building_brainwave_documentation" }
+  });
+
+  assert.match(scoping, /exact user-facing label is "Scope DNA documents"/);
+  assert.match(scoping, /proportionate DNA documents from the selected DNA modules/);
+  assert.match(building, /exact user-facing label is "Build DNA documentation"/);
+  assert.match(building, /scoped DNA documentation and its traceable DNA blocks/);
+});
+
+test("new settings require guidance mode while legacy configured settings remain valid", (t) => {
+  const legacyWorkspace = createWorkspace(t, {
+    selected: false,
+    stage: "shaping_north_star"
+  });
+  const legacyResult = runEngine(
+    legacyWorkspace.root,
+    "transition",
+    "selecting_dna"
+  );
+  assert.equal(legacyResult.status, 0);
+
+  const newWorkspace = createWorkspace(t, {
+    selected: false,
+    stage: "shaping_north_star"
+  });
+  const settingsPath = path.join(newWorkspace.root, "_settings.yaml");
+  const settings = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
+  settings.schema_version = "1.1.0";
+  settings.guidance_mode = null;
+  settings.allowed_values.guidance_mode = ["guided", "concise"];
+  writeJson(settingsPath, settings);
+
+  const incompleteResult = runEngine(
+    newWorkspace.root,
+    "transition",
+    "selecting_dna"
+  );
+  assert.equal(incompleteResult.status, 1);
+  assert.match(incompleteResult.stderr, /Profile pre-check failed/);
+
+  settings.guidance_mode = "guided";
+  writeJson(settingsPath, settings);
+  const guidedResult = runEngine(
+    newWorkspace.root,
+    "transition",
+    "selecting_dna"
+  );
+  assert.equal(guidedResult.status, 0);
 });
 
 test("rejects a seed changed after capture", (t) => {
@@ -326,15 +566,55 @@ test("tracks implementation through DNA block identities without a second log", 
   assert.equal(runEngine(root, "run").status, 0);
   const scaffold = fs
     .readFileSync(documentPath, "utf8")
-    .replace("Status: not_started", "Status: in_progress");
+    .replace("Status: not_started", "Status: in_progress")
+    .replace("#### Direction\n\n", "#### Direction\n\nKeep the system boundary explicit.\n\n");
   fs.writeFileSync(documentPath, scaffold, "utf8");
+  fs.writeFileSync(
+    path.join(root, "_decisions_log.md"),
+    [
+      "# _brainwave Decisions Log",
+      "",
+      "- timestamp: 2026-07-30",
+      "- trigger: Scope review",
+      "- decision: Keep the first release local and dependency-free.",
+      "- rationale: Preserve a lightweight adoption path.",
+      "- alternatives_considered: A hosted dashboard.",
+      "- impact_on_dna: No DNA module selection change.",
+      "- approved_by: Product owner",
+      ""
+    ].join("\n"),
+    "utf8"
+  );
   assert.equal(runEngine(root, "refresh").status, 0);
 
   const manifest = JSON.parse(fs.readFileSync(path.join(root, "_manifest.yaml"), "utf8"));
+  const documentKey =
+    "_documentation/_DNA-SAPP/00200_architecture/_DNA-SAPP-00201_system_context.md";
+  assert.equal(manifest.framework.name, "_brainwave");
+  assert.equal(manifest.framework.version, "0.1.0");
   assert.equal(manifest.implementation.totals.blocks, 1);
   assert.equal(manifest.implementation.totals.in_progress, 1);
   assert.equal(manifest.implementation.current.id, "_DNA-SAPP-00201.01");
   assert.equal(manifest.implementation.current.path.endsWith("_system_context.md"), true);
+  assert.equal(
+    manifest.implementation.current.details.direction,
+    "Keep the system boundary explicit."
+  );
+  assert.equal(
+    manifest.presentation.content.seed.markdown,
+    "A deliberately distinctive immutable seed.\n"
+  );
+  assert.match(manifest.presentation.content.north_star.markdown, /Current direction/);
+  assert.match(manifest.presentation.documents[documentKey].markdown, /system boundary explicit/);
+  assert.equal(manifest.presentation.decisions.length, 1);
+  assert.equal(
+    manifest.presentation.decisions[0].decision,
+    "Keep the first release local and dependency-free."
+  );
+  assert.equal(
+    manifest.dna.modules["_DNA-SAPP"].nodes["00201"].intent,
+    "Capture system boundaries."
+  );
 });
 
 test("requires the minimum DNA block contract before documentation review", (t) => {
@@ -376,7 +656,7 @@ test("allows review when every complete document follows the DNA block contract"
   assert.equal(result.status, 0);
 });
 
-test("session hook is silent when _brainwave documentation is complete", (t) => {
+test("session hook is silent when DNA documentation is complete", (t) => {
   const { root } = createWorkspace(t, {
     stage: "brainwave_documentation_complete",
     expressed: true,
@@ -429,7 +709,7 @@ test("rejects skipped lifecycle stages", (t) => {
   assert.match(result.stderr, /Invalid stage transition/);
 });
 
-test("records approved DNA selection and qualified expression only in project state", (t) => {
+test("records approved DNA module selection and qualified expression only in project state", (t) => {
   const { root } = createWorkspace(t, {
     stage: "selecting_dna",
     selected: false,
@@ -494,7 +774,7 @@ test("supports colliding local node IDs across selected DNA modules", (t) => {
   );
 });
 
-test("allows up to 99 documents in one document group", (t) => {
+test("allows up to 99 documents in one DNA document group", (t) => {
   const { root } = createWorkspace(t, { expressed: true });
   const dnaPath = path.join(root, "_dna", "_DNA-SAPP.yaml");
   const statePath = path.join(root, "_brainwave_state.yaml");
@@ -653,7 +933,7 @@ test("keeps group relevance and document intent as separate DNA concerns", (t) =
   const { root } = createWorkspace(t, { selected: false });
   const dnaPath = path.join(root, "_dna", "_DNA-SAPP.yaml");
   const dna = JSON.parse(fs.readFileSync(dnaPath, "utf8"));
-  dna.nodes["00201"].when_relevant = "This belongs on its document group.";
+  dna.nodes["00201"].when_relevant = "This belongs on its DNA document group.";
   writeJson(dnaPath, dna);
 
   const result = runEngine(root, "dna");
@@ -899,10 +1179,29 @@ test("ships a clean template and installs into an empty repository", (t) => {
     fs.existsSync(path.join(SOURCE_ROOT, "_templates", "my_brainwave_seed_template.md")),
     true
   );
+  const sourceSettings = JSON.parse(
+    fs.readFileSync(path.join(SOURCE_ROOT, "_settings.yaml"), "utf8")
+  );
+  assert.equal(sourceSettings.schema_version, "1.1.0");
+  assert.equal(sourceSettings.guidance_mode, null);
+  assert.deepEqual(sourceSettings.allowed_values.guidance_mode, ["guided", "concise"]);
+  assert.match(sourceSettings.onboarding_questions[0], /first time using _brainwave/);
+  const seedTemplate = fs.readFileSync(
+    path.join(SOURCE_ROOT, "_templates", "my_brainwave_seed_template.md"),
+    "utf8"
+  );
+  assert.doesNotMatch(seedTemplate, /^## /m);
+  assert.match(seedTemplate, /Preserve the user's supplied wording and meaning/);
   const sourcePackage = JSON.parse(
     fs.readFileSync(path.join(SOURCE_PROJECT_ROOT, "package.json"), "utf8")
   );
   assert.equal(sourcePackage.license, "MIT");
+  const sourceReadme = fs.readFileSync(
+    path.join(SOURCE_PROJECT_ROOT, "README.md"),
+    "utf8"
+  );
+  assert.match(sourceReadme, /Use a prepared file/);
+  assert.match(sourceReadme, /seed file exactly as written/);
   assert.match(
     fs.readFileSync(path.join(SOURCE_PROJECT_ROOT, "LICENSE"), "utf8"),
     /^MIT License/

@@ -13,6 +13,8 @@ const ROOT = path.resolve(__dirname, "..");
 const PATHS = Object.freeze({
   seed: path.join(ROOT, "_my_brainwave_seed.md"),
   northStar: path.join(ROOT, "_my_brainwave_north_star.md"),
+  decisions: path.join(ROOT, "_decisions_log.md"),
+  handbook: path.join(ROOT, "_brainwave_handbook.md"),
   state: path.join(ROOT, "_brainwave_state.yaml"),
   settings: path.join(ROOT, "_settings.yaml"),
   dnaDir: path.join(ROOT, "_dna"),
@@ -23,6 +25,7 @@ const PATHS = Object.freeze({
 
 const SUPPORTED_DNA_SCHEMA_VERSION = "3.0.0";
 const SUPPORTED_STATE_SCHEMA_VERSION = "3.0.0";
+const BRAINWAVE_VERSION = "0.1.0";
 const CONSOLE_PREFIX = "[_brainwave]";
 const INTERNAL_WRITE_GUARD_MS = 2500;
 const internalWrites = new Map();
@@ -143,20 +146,92 @@ function northStarStatusFromContent(content) {
   return content.match(/^\s*status:\s*(shaping|agreed)\s*$/im)?.[1]?.toLowerCase() || "missing";
 }
 
+function firstMeaningfulTitle(...contents) {
+  const genericTitles = new Set([
+    "_brainwave",
+    "my _brainwave seed",
+    "my _brainwave north star",
+    "north star"
+  ]);
+  for (const content of contents) {
+    const title = content.match(/^#\s+(.+?)\s*$/m)?.[1]?.trim();
+    if (title && !genericTitles.has(title.toLowerCase())) return title;
+  }
+  return null;
+}
+
+function parseDecisionEntries(content) {
+  const allowedFields = new Set([
+    "timestamp",
+    "trigger",
+    "decision",
+    "rationale",
+    "alternatives_considered",
+    "impact_on_dna",
+    "approved_by"
+  ]);
+  const entries = [];
+  let current = null;
+  let currentField = null;
+
+  const pushCurrent = () => {
+    if (
+      current &&
+      Object.values(current).some((value) => String(value || "").trim().length > 0)
+    ) {
+      entries.push(current);
+    }
+  };
+
+  for (const line of content.split(/\r?\n/)) {
+    const fieldMatch = line.match(/^-\s+([a-z_]+):\s*(.*?)\s*$/i);
+    if (fieldMatch && allowedFields.has(fieldMatch[1].toLowerCase())) {
+      const field = fieldMatch[1].toLowerCase();
+      if (field === "timestamp" && current) pushCurrent();
+      if (!current || field === "timestamp") current = {};
+      current[field] = fieldMatch[2].trim();
+      currentField = field;
+      continue;
+    }
+    if (current && currentField && /^\s{2,}\S/.test(line)) {
+      current[currentField] = `${current[currentField]} ${line.trim()}`.trim();
+    }
+  }
+  pushCurrent();
+  return entries;
+}
+
+function blockSectionMarkdown(section, heading) {
+  const marker = `#### ${heading}`;
+  const markerIndex = section.indexOf(marker);
+  if (markerIndex === -1) return "";
+  const body = section.slice(markerIndex + marker.length).replace(/^\s*\r?\n/, "");
+  const nextHeadingIndex = body.search(/^#{2,4}\s+/m);
+  return body.slice(0, nextHeadingIndex === -1 ? body.length : nextHeadingIndex).trim();
+}
+
 function defaultSettings() {
   return {
-    schema_version: "1.0.0",
+    schema_version: "1.1.0",
     configured: false,
     onboarding_status: "pending",
+    guidance_mode: null,
     technical_proficiency: null,
     ideation_mode: "thought_partner",
     verbosity_budget: "standard",
     profile_last_updated: null,
     onboarding_questions: [
+      "Is this your first time using _brainwave? (yes — guide me / no — keep it concise)",
       "What is your technical proficiency? (beginner/intermediate/architect)",
       "How should I operate? (thought_partner/fast_execution)",
       "How much detail do you prefer? (lean/standard/exhaustive)"
     ],
+    allowed_values: {
+      guidance_mode: ["guided", "concise"],
+      technical_proficiency: ["beginner", "intermediate", "architect"],
+      ideation_mode: ["thought_partner", "fast_execution"],
+      verbosity_budget: ["lean", "standard", "exhaustive"]
+    },
     engine: {
       max_files_per_cycle: 120
     }
@@ -182,6 +257,10 @@ function defaultManifestSkeleton() {
     schema_version: "3.0.0",
     generated_at: nowIso(),
     workspace_root: ".",
+    framework: {
+      name: "_brainwave",
+      version: BRAINWAVE_VERSION
+    },
     seed: {
       path: "_my_brainwave_seed.md",
       word_count: 0,
@@ -207,6 +286,7 @@ function defaultManifestSkeleton() {
     settings: {
       path: "_settings.yaml",
       loaded: false,
+      guidance_mode: null,
       technical_proficiency: null,
       ideation_mode: null,
       verbosity_budget: null
@@ -253,6 +333,29 @@ function defaultManifestSkeleton() {
       current: null,
       next: null,
       blocks: []
+    },
+    presentation: {
+      project_title: null,
+      content: {
+        seed: { title: "_brainwave Seed", path: "_my_brainwave_seed.md", markdown: "" },
+        north_star: {
+          title: "North Star",
+          path: "_my_brainwave_north_star.md",
+          markdown: ""
+        },
+        decisions: {
+          title: "Decision history",
+          path: "_decisions_log.md",
+          markdown: ""
+        },
+        handbook: {
+          title: "_brainwave Handbook",
+          path: "_brainwave_handbook.md",
+          markdown: ""
+        }
+      },
+      decisions: [],
+      documents: {}
     },
     events: []
   };
@@ -346,10 +449,10 @@ function validateDnaModule(module, sourcePath) {
     }
     if (node.type === "directory") {
       if (typeof node.when_relevant !== "string" || !node.when_relevant.trim()) {
-        throw new Error(`${source} document group ${id} must define when_relevant.`);
+        throw new Error(`${source} DNA document group ${id} must define when_relevant.`);
       }
       if ("intent" in node) {
-        throw new Error(`${source} document group ${id} must use when_relevant rather than intent.`);
+        throw new Error(`${source} DNA document group ${id} must use when_relevant rather than intent.`);
       }
     }
     if (node.type === "file") {
@@ -492,6 +595,8 @@ function loadWorkspace(options = {}) {
     state,
     seedText: readText(PATHS.seed),
     northStarText: readText(PATHS.northStar),
+    decisionsText: readText(PATHS.decisions),
+    handbookText: readText(PATHS.handbook),
     previousManifest: readJsonYaml(PATHS.manifest, defaultManifestSkeleton())
   };
 }
@@ -714,7 +819,18 @@ function parseDnaBlocks(module, fileNode, content) {
       title,
       status,
       supersedes,
-      superseded_by: supersededBy
+      superseded_by: supersededBy,
+      details: {
+        context: blockSectionMarkdown(section, "Context"),
+        direction: blockSectionMarkdown(section, "Direction"),
+        rationale: blockSectionMarkdown(section, "Rationale"),
+        alternatives_considered: blockSectionMarkdown(section, "Alternatives Considered"),
+        consequences: blockSectionMarkdown(section, "Consequences"),
+        future_fit: blockSectionMarkdown(section, "Future Fit"),
+        verification: blockSectionMarkdown(section, "Verification"),
+        former_direction:
+          section.match(/^\s*Former direction:\s*(.+?)\s*$/im)?.[1]?.trim() || ""
+      }
     });
   }
 
@@ -819,9 +935,20 @@ function buildManifest(workspace, command, taskPlan = [], prior = null) {
   manifest.engine.task_router.pending_tasks = taskPlan.length;
 
   manifest.settings.loaded = true;
+  manifest.settings.guidance_mode = workspace.settings.guidance_mode ?? null;
   manifest.settings.technical_proficiency = workspace.settings.technical_proficiency ?? null;
   manifest.settings.ideation_mode = workspace.settings.ideation_mode ?? null;
   manifest.settings.verbosity_budget = workspace.settings.verbosity_budget ?? null;
+
+  manifest.presentation.project_title = firstMeaningfulTitle(
+    workspace.northStarText,
+    workspace.seedText
+  );
+  manifest.presentation.content.seed.markdown = workspace.seedText;
+  manifest.presentation.content.north_star.markdown = workspace.northStarText;
+  manifest.presentation.content.decisions.markdown = workspace.decisionsText;
+  manifest.presentation.content.handbook.markdown = workspace.handbookText;
+  manifest.presentation.decisions = parseDecisionEntries(workspace.decisionsText);
 
   const currentSeedHash = workspace.seedText.trim() ? sha256(workspace.seedText) : null;
   const lockedSeedHash = workspace.state.seed?.locked_sha256 || null;
@@ -916,6 +1043,16 @@ function buildManifest(workspace, command, taskPlan = [], prior = null) {
             updated_at: fileExists ? fs.statSync(absolute).mtime.toISOString() : null
           };
         }
+        if (fileExists) {
+          manifest.presentation.documents[outputPath] = {
+            id: qualifiedNodeId(module, node.id),
+            title: node.title,
+            module_id: moduleId,
+            module_name: module.name,
+            processing_status: processingStatus,
+            markdown: content
+          };
+        }
         if (isExpressed) {
           totalExpressedFiles += 1;
           if (!fileExists) missingExpressedFiles.push(outputPath);
@@ -927,6 +1064,7 @@ function buildManifest(workspace, command, taskPlan = [], prior = null) {
         type: node.type,
         title: node.title || null,
         when_relevant: node.when_relevant || null,
+        intent: node.intent || null,
         parent_id: node.parent_id || null,
         baseline: Boolean(node.baseline),
         expressed: isExpressed,
@@ -1045,11 +1183,21 @@ function hasAllowedSetting(settings, key) {
   return Array.isArray(allowed) && allowed.length > 0 ? allowed.includes(value) : Boolean(value);
 }
 
+function settingsRequireGuidanceMode(settings) {
+  const match = String(settings.schema_version || "").match(/^(\d+)\.(\d+)/);
+  if (!match) return false;
+  const major = Number(match[1]);
+  const minor = Number(match[2]);
+  return major > 1 || (major === 1 && minor >= 1);
+}
+
 function isSettingsConfigured(settings) {
   return Boolean(
     settings &&
       settings.configured === true &&
       (!settings.onboarding_status || settings.onboarding_status === "complete") &&
+      (!settingsRequireGuidanceMode(settings) ||
+        hasAllowedSetting(settings, "guidance_mode")) &&
       hasAllowedSetting(settings, "technical_proficiency") &&
       hasAllowedSetting(settings, "ideation_mode") &&
       hasAllowedSetting(settings, "verbosity_budget")
@@ -1059,7 +1207,7 @@ function isSettingsConfigured(settings) {
 function assertSettingsReady(settings) {
   if (!isSettingsConfigured(settings)) {
     throw new Error(
-      "Profile pre-check failed: `_settings.yaml` is incomplete. Complete onboarding before progressing _brainwave documentation."
+      "Profile pre-check failed: `_settings.yaml` is incomplete. Complete onboarding before progressing DNA documentation."
     );
   }
 }
@@ -1164,7 +1312,7 @@ async function runCycle(command) {
   const taskPlan = routeGenerationTasks(workspace);
   const manifest = buildManifest(workspace, command, taskPlan, workspace.previousManifest);
   if (taskPlan.length > 0) {
-    addEvent(manifest, "routing", "Expressed _brainwave documentation scaffolds are pending.", {
+    addEvent(manifest, "routing", "Scoped DNA document scaffolds are pending.", {
       pending_tasks: taskPlan.length
     });
   }
@@ -1214,7 +1362,7 @@ function selectDnaModules(moduleRefs) {
   assertNorthStarAgreed(workspace.northStarText);
   if (workspace.state.stage !== "selecting_dna") {
     throw new Error(
-      `DNA selection is available only during \`selecting_dna\`, not \`${workspace.state.stage}\`.`
+      `DNA module selection is available only during \`selecting_dna\`, not \`${workspace.state.stage}\`.`
     );
   }
 
@@ -1312,8 +1460,8 @@ function mutateExpression(nodeRefs, expressedValue) {
     manifest,
     "scope",
     expressedValue
-      ? "_brainwave documentation nodes expressed after user-approved scoping."
-      : "_brainwave documentation nodes removed from scope after user approval.",
+      ? "DNA documents added to scope after user approval."
+      : "DNA documents removed from scope after user approval.",
     { node_refs: [...new Set(changed)].sort() }
   );
   writeJsonYaml(PATHS.manifest, manifest);
@@ -1379,7 +1527,7 @@ function transitionStage(targetStage) {
     ].includes(targetStage) &&
     expressedFileEntries(workspace).length === 0
   ) {
-    throw new Error("No _brainwave documentation files are expressed.");
+    throw new Error("No DNA documents are in scope.");
   }
   if (
     ["reviewing_brainwave_documentation", "brainwave_documentation_complete"].includes(targetStage)
@@ -1387,7 +1535,7 @@ function transitionStage(targetStage) {
     const incomplete = incompleteExpressedFiles(workspace);
     if (incomplete.length > 0) {
       throw new Error(
-        `_brainwave documentation is incomplete: ${incomplete
+        `DNA documentation is incomplete: ${incomplete
           .map(({ module, node }) => qualifiedNodeId(module, node.id))
           .join(", ")}.`
       );
@@ -1449,7 +1597,7 @@ async function watchWorkspace() {
         if (state.stage === "brainwave_documentation_complete") {
           watcher.close();
           console.log(
-            `${CONSOLE_PREFIX} _brainwave documentation is complete; watch mode is now passive.`
+            `${CONSOLE_PREFIX} DNA documentation is complete; watch mode is now passive.`
           );
           return;
         }

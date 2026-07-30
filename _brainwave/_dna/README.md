@@ -8,7 +8,7 @@ _brainwave uses one identity from module to implementation:
 
 ```text
 _DNA-SAPP                 module
-_DNA-SAPP-00300           document group
+_DNA-SAPP-00300           DNA document group
 _DNA-SAPP-00302           document
 _DNA-SAPP-00302.01        DNA block within that document
 ```
@@ -27,11 +27,11 @@ Each module is JSON-compatible YAML with:
 - `name` — human-readable name
 - `description` — purpose and boundaries
 - `documentation_label` — name for the generated output
-- `nodes` — document groups and documents available for expression
+- `nodes` — DNA document groups and DNA documents available for scoping
 
-Every node has a module-local five-digit `id`, `type`, module-relative `path`, `title`, `parent_id`, and `baseline` boolean. A document group explains `when_relevant`; a document explains its `intent`.
+Every node has a module-local five-digit `id`, `type`, module-relative `path`, `title`, `parent_id`, and `baseline` boolean. A DNA document group explains `when_relevant`; a DNA document explains its `intent`.
 
-`baseline: true` means the agent should normally recommend the node when its module, or its parent document group, is relevant. `baseline: false` means the node should be recommended only when its specific intent is material. Baseline is proportionate scoping guidance, not engine-forced expression: explicit user-approved scope remains authoritative.
+`baseline: true` means the agent should normally recommend the node when its module, or its parent DNA document group, is relevant. `baseline: false` means the node should be recommended only when its specific intent is material. Baseline is proportionate scoping guidance, not engine-forced expression: explicit user-approved scope remains authoritative.
 
 ## Minimum DNA Block Contract
 
@@ -82,7 +82,7 @@ Git preserves the full history; the current document preserves only enough linea
 
 ## Boundary
 
-Module definitions remain unchanged during a _brainwave. Selected module versions and expressed document IDs belong in `_brainwave_state.yaml`; generated files belong beneath `_documentation/_DNA-CODE/`.
+Module definitions remain unchanged during a _brainwave. Selected module versions and scoped DNA document IDs belong in `_brainwave_state.yaml`; generated files belong beneath `_documentation/_DNA-CODE/`.
 
 Modules must not contain scripts, prompt overrides, lifecycle rules, `expressed` flags, absolute paths, or paths escaping their output directory.
 

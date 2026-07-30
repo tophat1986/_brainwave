@@ -4,6 +4,15 @@ const fs = require("fs");
 const path = require("path");
 
 const COMPLETE_STAGE = "brainwave_documentation_complete";
+const STAGE_DISPLAY_LABELS = {
+  awaiting_seed: "Capture the idea",
+  shaping_north_star: "Agree the direction",
+  selecting_dna: "Choose DNA modules",
+  scoping_brainwave_documentation: "Scope DNA documents",
+  building_brainwave_documentation: "Build DNA documentation",
+  reviewing_brainwave_documentation: "Review the foundation",
+  brainwave_documentation_complete: "Ready for implementation"
+};
 
 function readStdin() {
   try {
@@ -66,10 +75,20 @@ function hasAllowedValue(settings, key) {
     : Boolean(value);
 }
 
+function settingsRequireGuidanceMode(settings) {
+  const match = String(settings.schema_version || "").match(/^(\d+)\.(\d+)/);
+  if (!match) return false;
+  const major = Number(match[1]);
+  const minor = Number(match[2]);
+  return major > 1 || (major === 1 && minor >= 1);
+}
+
 function settingsAreConfigured(settings) {
   return Boolean(
     settings.configured === true &&
       (!settings.onboarding_status || settings.onboarding_status === "complete") &&
+      (!settingsRequireGuidanceMode(settings) ||
+        hasAllowedValue(settings, "guidance_mode")) &&
       hasAllowedValue(settings, "technical_proficiency") &&
       hasAllowedValue(settings, "ideation_mode") &&
       hasAllowedValue(settings, "verbosity_budget")
@@ -101,20 +120,43 @@ function buildSessionContext(runtime) {
   if (stage === COMPLETE_STAGE) return null;
 
   const at = (artifact) => `\`${artifactPath(runtime.root, runtime.cwd, artifact)}\``;
+  const settingsConfigured = settingsAreConfigured(runtime.settings);
+  const guidanceMode = hasAllowedValue(runtime.settings, "guidance_mode")
+    ? runtime.settings.guidance_mode
+    : "concise";
+  const displayStage = STAGE_DISPLAY_LABELS[stage] || stage;
   const lines = [
-    `_brainwave is active at stage \`${stage}\`. Follow ${at("AGENTS.md")} and ${at("_brainwave_handbook.md")}.`,
-    "State the current stage in plain language in the first assistant reply."
+    `_brainwave is active at stage \`${stage}\`. The exact user-facing label is "${displayStage}". Follow ${at("AGENTS.md")} and ${at("_brainwave_handbook.md")}.`,
+    `Use "${displayStage}" when stating the current step in the first assistant reply; keep the lifecycle ID internal.`
   ];
 
-  if (!settingsAreConfigured(runtime.settings)) {
+  if (!settingsConfigured) {
     lines.push(
-      `The profile is incomplete. Ask the three concise profile questions and update ${at("_settings.yaml")} after the user answers. Do not infer profile values from keywords.`
+      `The profile is incomplete. Ask whether this is the user's first time with _brainwave before the other three concise profile questions. Map "Yes — guide me" to \`guided\` and "No — keep it concise" to \`concise\`, prefer the host's native structured-choice UI when available, and update ${at("_settings.yaml")} after the user answers. Do not infer profile values from keywords.`
+    );
+  } else if (guidanceMode === "guided") {
+    lines.push(
+      `Guidance mode is \`guided\`. At the first orientation, status requests, and lifecycle approval points, show the compact seven-step journey defined in ${at("AGENTS.md")}; state the exact next action and explain the next unfamiliar term in one concise sentence. Mention ${at("_brainwave_handbook.md")} and ${at("_dashboard.html")} once near the start. Do not repeat the journey during routine shaping questions.`
+    );
+  } else {
+    lines.push(
+      "Guidance mode is `concise`. State the current step and immediate next action without the full journey block; explain a term only when needed for the decision."
     );
   }
 
-  if (stage === "awaiting_seed" || !runtime.seed.trim()) {
+  if (stage === "awaiting_seed") {
+    if (runtime.seed.trim()) {
+      lines.push(
+        `A prepared concept already exists in ${at("_my_brainwave_seed.md")}. Do not rewrite or restructure it. Ask the user to confirm that it should be used exactly as written, then transition to \`shaping_north_star\`, which locks its hash.`
+      );
+    } else {
+      lines.push(
+        `Offer two equal seed routes, preferably with the host's native structured-choice UI: discuss the concept naturally in chat, or use a prepared concept by pasting it for verbatim capture or saving it directly in ${at("_my_brainwave_seed.md")}. Capture only explicitly approved content, preserve the user's supplied wording and natural structure, and do not infer missing content or fit template headings. If materially paraphrasing or restructuring, show the exact proposed seed for approval before writing it.`
+      );
+    }
+  } else if (!runtime.seed.trim()) {
     lines.push(
-      `Discuss the idea naturally. Capture ${at("_my_brainwave_seed.md")} only after explicit instruction; it then becomes immutable.`
+      `The seed is unexpectedly missing. Restore the approved content in ${at("_my_brainwave_seed.md")} before continuing.`
     );
   } else if (stage === "shaping_north_star") {
     lines.push(
@@ -122,15 +164,15 @@ function buildSessionContext(runtime) {
     );
   } else if (stage === "selecting_dna") {
     lines.push(
-      `Recommend modules from ${at("_dna/")} using semantic judgment. Explain the recommendation and obtain explicit agreement before recording selection.`
+      `Explain that DNA modules are curated catalogues of possible documentation for relevant domains. Recommend modules from ${at("_dna/")} using semantic judgment and obtain explicit agreement before recording selection.`
     );
   } else if (stage === "scoping_brainwave_documentation") {
     lines.push(
-      `Propose only proportionate entries from the selected modules and obtain explicit agreement before recording scope in ${at("_brainwave_state.yaml")}.`
+      `Propose only proportionate DNA documents from the selected DNA modules and obtain explicit agreement before recording DNA document scope in ${at("_brainwave_state.yaml")}.`
     );
   } else if (stage === "building_brainwave_documentation") {
     lines.push(
-      "Complete only the agreed documentation in coherent, dependency-aware slices using the North Star as direction."
+      "Build only the scoped DNA documentation and its traceable DNA blocks in coherent, dependency-aware slices using the North Star as direction."
     );
   } else if (stage === "reviewing_brainwave_documentation") {
     lines.push(

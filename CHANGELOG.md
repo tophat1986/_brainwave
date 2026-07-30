@@ -13,3 +13,4 @@ Notable changes will be recorded here.
 - MIT licence.
 - Clarified DNA scoping with a `baseline` contract and refined Software Application DNA coverage and boundaries.
 - Removed the redundant `_context/` summary cache; DNA identities, source documents, the manifest, and dashboard provide navigation without a second representation.
+- Added guided and concise onboarding modes, milestone journey signposting, plain-language DNA orientation, prepared-file seed input, and stronger seed-fidelity rules.

@@ -6,36 +6,64 @@ _brainwave turns an original idea into an agreed North Star and a proportionate 
 
 `_brainwave_state.yaml` owns one authoritative stage:
 
-1. `awaiting_seed` — discuss and capture the immutable _brainwave Seed.
-2. `shaping_north_star` — develop and explicitly agree the living North Star.
-3. `selecting_dna` — recommend relevant DNA modules from meaning and context, then record the agreed selection.
-4. `scoping_brainwave_documentation` — agree the proportionate documents needed from those modules.
-5. `building_brainwave_documentation` — create and complete the agreed documentation.
-6. `reviewing_brainwave_documentation` — check gaps, conflicts, cross-module consistency, and downstream readiness.
-7. `brainwave_documentation_complete` — remain passive unless the user explicitly reopens _brainwave.
+1. `awaiting_seed` — **Capture the idea:** discuss and preserve the immutable _brainwave Seed.
+2. `shaping_north_star` — **Agree the direction:** develop and explicitly agree the living North Star.
+3. `selecting_dna` — **Choose DNA modules:** recommend relevant domains and record the agreed modules.
+4. `scoping_brainwave_documentation` — **Scope DNA documents:** agree the proportionate documents needed from those modules.
+5. `building_brainwave_documentation` — **Build DNA documentation:** complete the scoped documents and their traceable DNA blocks.
+6. `reviewing_brainwave_documentation` — **Review the foundation:** check gaps, conflicts, cross-module consistency, and downstream readiness.
+7. `brainwave_documentation_complete` — **Ready for implementation:** remain passive unless the user explicitly reopens _brainwave.
 
-A completed _brainwave returns to `shaping_north_star` when direction changes, `selecting_dna` when the relevant domains change, or `scoping_brainwave_documentation` when only documentation scope changes.
+A completed _brainwave returns to `shaping_north_star` when direction changes, `selecting_dna` when the relevant domains change, or `scoping_brainwave_documentation` when only DNA document scope changes.
+
+## Guidance Modes
+
+During onboarding, _brainwave asks whether to use:
+
+- `guided` — concise stage signposting, a seven-step journey at orientation and approval points, plain-language explanations of unfamiliar terms, and early links to this handbook and `_dashboard.html`
+- `concise` — the current step and immediate next action, with more explanation only when needed or requested
+
+Guidance mode controls explanation of the process. The separate detail setting controls the depth of working output and documentation. Guided mode does not make every response longer, and the journey is not repeated during routine shaping questions.
+
+The user-facing journey is:
+
+1. Capture the idea.
+2. Agree the direction.
+3. Choose DNA modules.
+4. Scope DNA documents.
+5. Build DNA documentation.
+6. Review the foundation.
+7. Ready for implementation.
+
+## Providing the Seed
+
+The user can choose either route:
+
+- **Discuss the concept:** develop it with the agent, then explicitly approve what is captured.
+- **Use a prepared concept:** paste it into chat for verbatim capture, or save it directly in `_my_brainwave_seed.md`.
+
+For the direct-file route, save the concept and tell the agent: `build concept using the seed file exactly as written`. Saving the file does not lock it. The engine locks its hash only after confirmation and transition to `shaping_north_star`.
 
 ## Core Terms
 
-- **_brainwave Seed:** The immutable verbatim concept. It preserves where the idea began and is never a working-notes document.
+- **_brainwave Seed:** The user's explicitly approved concept, preserved in its supplied wording and natural shape. It becomes immutable after capture and is never a working-notes document.
 - **North Star:** The living current direction derived from the seed. It may evolve without altering the original seed.
 - **DNA module:** A versioned, data-only catalogue of possible documentation for one domain.
-- **Document group:** A coherent folder of related DNA documents.
+- **DNA document group:** A coherent folder of related DNA documents.
 - **DNA document:** One expressed document such as system context, schema strategy, or voice and tone.
-- **Baseline:** A module or document the agent should normally recommend when its module or parent document group is relevant. It guides proportionate scoping but never overrides explicit user agreement.
+- **Baseline:** A DNA module or DNA document the agent should normally recommend when its module or parent DNA document group is relevant. It guides proportionate scoping but never overrides explicit user agreement.
 - **DNA block:** One coherent direction, obligation, or verifiable rule inside a document. It is also the smallest implementation-traceability unit.
 - **Expressed:** Agreed as relevant and recorded in the current _brainwave scope.
-- **_brainwave documentation:** The full generated set across all selected DNA modules.
+- **DNA documentation:** The full generated set across all selected DNA modules.
 - **Architecture Decision Record (ADR):** One consequential architecture decision with context, alternatives, direction, and consequences. An ADR may be a DNA document, but system context, data models, user journeys, operational strategies, and brand guidance are not automatically ADRs.
-- **Steering decision:** A recorded reason for changing North Star direction, DNA selection, or documentation scope.
+- **Steering decision:** A recorded reason for changing North Star direction, DNA module selection, or DNA document scope.
 - **Handover:** Temporary continuation state between working sessions. It is operational context, not a DNA module, DNA block, or architecture decision.
 
 The canonical identity tree is:
 
 ```text
 _DNA-SAPP                 module
-_DNA-SAPP-00300           document group
+_DNA-SAPP-00300           DNA document group
 _DNA-SAPP-00302           document
 _DNA-SAPP-00302.01        block
 ```
@@ -97,15 +125,15 @@ In another IDE or agent environment, begin by telling the agent to read the root
 
 It shows:
 
-- the current lifecycle stage
-- seed integrity and North Star status
-- installed and selected DNA modules
-- expressed documentation grouped vertically by module and document group
-- the current and next DNA implementation blocks
-- a colour- and text-distinguished implementation grid whose blocks link to their owning documents
-- recent lifecycle, selection, scope, and reconciliation events
+- a seven-stage vertical journey, with completed stages collapsed and the current stage in focus
+- in-dashboard previews of the seed, North Star, decisions, handbook, and expressed documents
+- the installed DNA Library, including each module's full DNA document catalogue before a concept is selected
+- document and DNA-block progress using canonical IDs and expandable block-level detail
+- a quiet project-state view for technical provenance without placing it in the main journey
 
-The dashboard is derived, not authoritative. `_dna/` owns module definitions, `_brainwave_state.yaml` owns selection, and DNA documents own block status. `_manifest.yaml` supplies the embedded dashboard snapshot.
+The interface is intentionally presentation-led: icons, state, sequence, and visual placeholders do most of the explanatory work. Source links remain available inside previews for users who want to work directly with the files.
+
+The dashboard is derived, not authoritative. `_dna/` owns module definitions, `_brainwave_state.yaml` owns selection, the decisions log owns material rationale, and DNA documents own block status. `_manifest.yaml` supplies the embedded dashboard snapshot.
 
 Refresh it from the project root:
 
@@ -115,23 +143,24 @@ node _brainwave/_engine/brainwave_runner.js refresh
 
 ## Bundled DNA
 
-- **Software Application DNA** produces software architecture documentation for applications and digital services.
-- **Brand Identity DNA** produces enduring verbal and visual identity guidance without expanding into campaigns, acquisition, or go-to-market planning.
+- **`_DNA-SAPP` — Software Application DNA** produces software architecture documentation for applications and digital services.
+- **`_DNA-BRND` — Brand Identity DNA** produces enduring verbal and visual identity guidance without expanding into campaigns, acquisition, or go-to-market planning.
 
 The agent may recommend either or both. Counts and document names are read directly from the module files and dashboard, so this handbook does not duplicate their catalogues.
 
 ## Working Agreement
 
+- Preserve the user's wording and natural structure when capturing the seed. Do not expand it to fill a template or infer missing content; obtain approval before any material paraphrase or restructuring.
 - Preserve `_my_brainwave_seed.md` exactly after capture.
 - Read `_my_brainwave_north_star.md` first for current direction.
 - Ask one to three focused questions at a time while shaping direction.
 - Do not require exhaustive answers; resolve or explicitly mark only materially important gaps.
-- Let the AI agent recommend modules and documents using semantic judgment. The engine validates and scaffolds; it does not interpret the idea.
-- Use each document group's `when_relevant` as the domain gate, its baseline documents as the normal starting point, and each file's `intent` to decide which optional documents are material.
-- Obtain explicit user agreement before recording DNA selection or expression.
+- Let the AI agent recommend DNA modules and DNA documents using semantic judgment. The engine validates and scaffolds; it does not interpret the idea.
+- Use each DNA document group's `when_relevant` as the domain gate, its baseline documents as the normal starting point, and each file's `intent` to decide which optional documents are material.
+- Obtain explicit user agreement before recording DNA module selection or DNA document scope.
 - Keep DNA definitions unchanged during a project. Project selection belongs in `_brainwave_state.yaml`.
 - Record a decision in its owning DNA block or ADR, not in the seed or a duplicate ledger.
-- After documentation completion, update only the statuses of blocks affected by downstream work. Do not reopen the lifecycle unless direction, domain selection, or documentation scope changes.
+- After DNA documentation is complete, update only the statuses of blocks affected by downstream work. Do not reopen the lifecycle unless direction, DNA module selection, or DNA document scope changes.
 - Create a local README only for non-obvious purpose, boundaries, invariants, relationships, working rules, or known traps—not to list visible files.
 
 ## Framework and Project Ownership
@@ -159,6 +188,6 @@ Until an automated updater exists, update framework-owned files only and run `in
 
 ## When _brainwave Is Complete
 
-`brainwave_documentation_complete` means the initial documentation foundation has been accepted. It does not mean the resulting product or brand has been implemented.
+`brainwave_documentation_complete` means the initial DNA documentation foundation has been accepted. It does not mean the resulting product or brand has been implemented.
 
 At this stage, _brainwave stops announcing or initiating its workflow during ordinary development. The relevant DNA blocks remain lightweight traceability anchors: downstream agents update a block from `not_started` through `implemented` and `verified`, or mark it `blocked`, `not_applicable`, or `superseded` when appropriate.

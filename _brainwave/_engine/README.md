@@ -10,10 +10,10 @@ Tool-neutral session policy lives in `runtime/`. Thin adapters in `adapters/` tr
 
 - Validate the fixed _brainwave lifecycle.
 - Lock and verify the immutable _brainwave Seed.
-- Require an explicitly agreed North Star before DNA selection.
+- Require an explicitly agreed North Star before DNA module selection.
 - Discover and validate versioned, data-only modules in `_dna/`.
 - Validate project-owned module selection and expressed entries.
-- Scaffold only approved documents beneath `_documentation/_DNA-CODE/`.
+- Scaffold only scoped DNA documents beneath `_documentation/_DNA-CODE/`.
 - Track explicit document status, hashes, module progress, and completion.
 - Parse DNA blocks as the single implementation-traceability identity and status source.
 - Refresh `_manifest.yaml` and `_dashboard.html`.

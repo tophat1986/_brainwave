@@ -2,14 +2,45 @@
 
 _brainwave turns an original idea into an agreed North Star and a proportionate foundation of domain documentation before AI agents begin building.
 
-It is designed first for AI-built software products and currently bundles:
+## Why _brainwave?
 
-- **Software Application DNA** for software architecture documentation.
-- **Brand Identity DNA** for enduring verbal and visual identity guidance.
+AI agents can turn a prompt into a working application remarkably quickly, but they naturally favour the immediate request and shortest plausible path. The first generated structure then becomes the precedent for everything that follows—even when maintainability, security, performance, scale, and clean architectural boundaries were never properly considered. _brainwave adds a deliberate foundation stage between “I have an idea” and “build it,” so the important decisions are made before an accidental first draft becomes the architecture.
 
-The AI agent interprets meaning, asks material questions, and recommends relevant DNA. The dependency-free Node.js engine protects the immutable seed, lifecycle, approved scope, canonical identities, versions, scaffolding, and derived dashboard.
+## How it works
 
-Read the [_brainwave handbook](./_brainwave/_brainwave_handbook.md) for the lifecycle and terminology. Open `_brainwave/_dashboard.html` for the visual state, DNA catalogue, and implementation map.
+_brainwave calls its documentation system **DNA**. A **DNA module** is a versioned catalogue for one domain, containing possible **DNA documents**. Each document records its directions as traceable **DNA blocks**. A project uses only the modules and documents it genuinely needs.
+
+The idea moves through seven stages:
+
+1. **Capture the idea** — preserve the original concept as the immutable _brainwave Seed.
+2. **Agree the direction** — shape and approve the living North Star.
+3. **Choose DNA modules** — select the documentation domains relevant to the concept.
+4. **Scope DNA documents** — agree which documents are genuinely needed.
+5. **Build DNA documentation** — write the selected documents and their traceable DNA blocks.
+6. **Review the foundation** — resolve gaps, conflicts, and readiness concerns.
+7. **Ready for implementation** — give the agreed foundation to the agents that will build the project.
+
+The AI agent provides the judgment: it interprets the concept, asks material questions, and develops the foundation with the user. The local engine preserves the process, identities, versions, and agreed scope. Once the foundation is accepted, _brainwave becomes passive while the North Star and DNA documentation continue guiding implementation.
+
+## Bundled DNA modules
+
+Two DNA modules are included. Their persistent IDs carry through to their documents and blocks.
+
+- **`_DNA-SAPP` — Software Application DNA**
+  Architecture guidance for applications and digital services, including data, security, APIs, interfaces, operations, quality, scale, and continuity.
+
+- **`_DNA-BRND` — Brand Identity DNA**
+  Enduring verbal and visual identity guidance, including direction, voice, terminology, visual foundations, accessibility, and application.
+
+DNA modules are menus, not checklists. The agent recommends only the documents that are material to the project. More domains can be added through future modules.
+
+## Which model should I use?
+
+Use the smartest, most capable model available while shaping the North Star and developing the DNA documentation. This stage carries the most ambiguity and requires the strongest reasoning, so it is the wrong place to optimise for cost.
+
+Once the foundation is agreed, implementation can often move to a more cost-effective capable model because the agent is following documented decisions rather than repeatedly guessing at intent.
+
+Read the [_brainwave handbook](./_brainwave/_brainwave_handbook.md) for the complete lifecycle and terminology. Open `_brainwave/_dashboard.html` for the guided journey, document previews, DNA library, and block progress.
 
 > _brainwave is currently a `0.x` release candidate. Battle-test it on a non-critical project before relying on it as the sole record of architectural decisions.
 
@@ -35,19 +66,30 @@ my-project/
 
 Build the implementation in `app/`, `src/`, or another sibling of `_brainwave/`. Keep both in one repository so direction, documentation, implementation, and history travel together.
 
-## Start a New Project
+## Get Started
+
+Choose the route that matches where you are starting.
+
+### Option 1 — Create a Repository from the Template
+
+Recommended when you have not created your project repository yet.
 
 1. Use GitHub's **Use this template** action to create the project repository. This is the recommended route because it starts with its own Git history and remote.
 2. Confirm Node.js 20 or newer is installed.
 3. Open an AI-agent chat from the repository root. If the agent does not discover project instructions automatically, ask it to read `AGENTS.md` first.
-4. Send one explicit chat instruction:
+4. Choose either seed route:
+   - **Discuss or paste in chat:** send:
 
-   > Use _brainwave to capture the following idea as the immutable seed, then `build concept`: `<your idea>`
+     > Use _brainwave to capture the following idea as the immutable seed, then `build concept`: `<your idea>`
+
+   - **Use a prepared file:** paste the concept into `_brainwave/_my_brainwave_seed.md`, save it, then send:
+
+     > `build concept` using the seed file exactly as written.
 
 5. Shape and explicitly agree the North Star.
-6. Review the recommended DNA modules and proportionate documentation scope.
-7. Let the engine scaffold the agreed documents beneath `_brainwave/_documentation/_DNA-CODE/`.
-8. Complete and review those documents before accepting `brainwave_documentation_complete`.
+6. Choose the relevant DNA modules and scope only the DNA documents the project needs.
+7. Let the engine scaffold the scoped DNA documents beneath `_brainwave/_documentation/_DNA-CODE/`, then build their content and traceable DNA blocks.
+8. Review the foundation before accepting `brainwave_documentation_complete`.
 
 If you intentionally clone this repository instead, replace its `origin` with the new project's remote before beginning product work. A normal clone retains the upstream _brainwave remote.
 
@@ -55,12 +97,64 @@ The shipped state is deliberately clean: `awaiting_seed`, an empty seed, and no 
 
 The root `README.md` and `package.json` initially provide _brainwave onboarding and development tooling; they are not application runtime requirements. An application may keep its own package beneath `app/`, or merge and replace root metadata as the project takes ownership. If the product replaces this README, retain a short signpost to `_brainwave/_brainwave_handbook.md`.
 
-## Add to an Existing Project
+### Option 2 — Install into a Repository You Already Created
+
+Use this route after creating a Git repository for your new project and opening it with your AI agent. The repository may be completely empty. If you have not created one yet, use the template route above.
+
+#### Copy-and-paste setup prompt
+
+Copy this prompt into your AI agent:
+
+```text
+Install `_brainwave` into this repository from:
+
+https://github.com/tophat1986/_brainwave
+
+Before changing anything:
+
+- Confirm the current folder is a Git repository.
+- Confirm Node.js 20 or newer is installed.
+- If `_brainwave/` already exists, stop and tell me. Do not overwrite it.
+- If the source repository is unavailable, stop and report the problem.
+
+Acquire the source in a temporary location outside this repository. Inspect
+the downloaded source before running anything. If its installation structure
+conflicts with these instructions, stop and report the discrepancy.
+
+Copy the complete source `_brainwave/` directory into this repository's root.
+Do not copy the source repository's `.git` directory or its other root files,
+and do not change this repository's Git remote.
+
+From this repository's root, run:
+
+node _brainwave/_engine/brainwave_runner.js integrate
+node _brainwave/_engine/brainwave_runner.js status
+
+The `integrate` command should preserve existing content while merging or
+creating:
+
+- AGENTS.md
+- CLAUDE.md
+- .cursor/hooks.json
+- .claude/settings.json
+- .codex/hooks.json
+
+Confirm that the lifecycle is `awaiting_seed`. Do not begin `build concept`.
+
+Finally, report every file created or changed.
+```
+
+#### What the installation does
+
+Installation first places the complete framework payload in `_brainwave/`. The `integrate` command then safely merges the root agent bridges and Cursor, Claude, and Codex session-hook registrations without replacing existing project guidance.
+
+#### Manual installation
 
 Confirm Node.js 20 or newer is installed. Copy only this repository's `_brainwave/` directory into `<project-root>/_brainwave/`, then run from the existing project root:
 
 ```text
 node _brainwave/_engine/brainwave_runner.js integrate
+node _brainwave/_engine/brainwave_runner.js status
 ```
 
 The command merges managed bridges into `AGENTS.md` and `CLAUDE.md`, and registers session adapters in:
@@ -125,6 +219,10 @@ npm test
 ```
 
 The test suite includes lifecycle, seed-integrity, DNA-contract, multi-agent adapter, project-integration, implementation-map, and clean-install checks.
+
+## Built from Direct Experience
+
+_brainwave’s founder built [WhatHotel](https://whathotel.io/) and [what.gift](https://what.gift/) using the system as it evolved. Those products also helped build _brainwave: direct experience creating and iterating both systems with successive generations of AI agents exposed the same recurring behaviour—even as models became more capable, they remained eager to please and prone to committing to the shortest plausible implementation. Those lessons shaped _brainwave’s persistent North Star, staged documentation, and traceable DNA system.
 
 ## License
 

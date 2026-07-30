@@ -24,33 +24,54 @@ When the user explicitly asks to maintain, review, test, package, or release the
 
 ## Core Artifacts
 
-- `_my_brainwave_seed.md` is immutable after capture. Never refine it, append working notes, or place decisions in it.
+- `_my_brainwave_seed.md` preserves the user's approved concept in its supplied wording and natural shape, then becomes immutable. Do not expand it for completeness, fit it to template headings, append working notes, or place decisions in it.
 - `_my_brainwave_north_star.md` is the living current direction. Read it before the seed in routine work.
 - `_dna/` contains versioned, immutable DNA-module definitions. It does not contain project selection state.
 - `_brainwave_state.yaml` owns lifecycle, selected DNA-module versions, and expressed entries.
-- `_documentation/_DNA-CODE/` contains generated _brainwave documentation, separated by its registered four-letter module code.
-- `_decisions_log.md` records only steering rationale that changes North Star direction, DNA selection, or documentation scope.
+- `_documentation/_DNA-CODE/` contains generated DNA documentation, separated by its registered four-letter module code.
+- `_decisions_log.md` records only steering rationale that changes North Star direction, DNA module selection, or DNA document scope.
 - `_manifest.yaml` and `_dashboard.html` are derived state and summaries.
 - `_brainwave_handbook.md` is the concise user guide and terminology authority.
 
+## User Orientation
+
+Use `_settings.yaml` `guidance_mode` to control process guidance, independently of the documentation detail level:
+
+- For settings schema `1.1` or newer, if `guidance_mode` is unset, ask first: **Is this your first time using _brainwave?** Offer `Yes — guide me` (`guided`) and `No — keep it concise` (`concise`). Prefer the host's native structured-choice UI when available; otherwise ask plainly. Do not infer the answer.
+- In `guided` mode, at the first orientation, a status request, and lifecycle approval points, show a compact seven-step journey. Mark completed steps with `✓`, the current step with `→`, and future steps with `○`. Use the user-facing labels exactly: Capture the idea; Agree the direction; Choose DNA modules; Scope DNA documents; Build DNA documentation; Review the foundation; Ready for implementation.
+- In `guided` mode, state the exact next action, explain the next unfamiliar _brainwave term in one concise sentence, and mention `_brainwave_handbook.md` and `_dashboard.html` once near the start.
+- In `concise` mode, state the current step and immediate next action without the full journey block. Explain a term only when needed for the decision.
+- Do not repeat the journey block during routine shaping questions. Guided mode means clearer signposting, not longer general answers.
+- For legacy settings without `guidance_mode`, use `concise`.
+
+## Seed Input Routes
+
+At `awaiting_seed`, offer the user two equal routes once:
+
+- **Discuss the concept:** develop it naturally in chat, then capture only the explicitly approved seed.
+- **Use a prepared concept:** paste it into chat for verbatim capture, or save it directly in `_my_brainwave_seed.md`.
+
+Prefer the host's native structured-choice UI when available. If the user saves the file directly, ask them to confirm that `_my_brainwave_seed.md` should be used exactly as written. Do not rewrite or restructure it. Only then transition to `shaping_north_star`, which locks its hash.
+
 ## Decision Logging
 
-Before materially changing an agreed North Star, recording DNA selection or expression, or creating or removing generated documentation, append the approved rationale to `_decisions_log.md` using its local template. Do not log routine answers, implementation progress, file inventories, or handover state.
+Before materially changing an agreed North Star, recording DNA module selection or DNA document scope, or creating or removing generated DNA documentation, append the approved rationale to `_decisions_log.md` using its local template. Do not log routine answers, implementation progress, file inventories, or handover state.
 
 ## Trigger: `build concept`
 
 When the user says `build concept`:
 
 1. Read `_brainwave_state.yaml` and `_settings.yaml`.
-2. If the stage is `awaiting_seed`, discuss the idea and capture `_my_brainwave_seed.md` only after explicit user instruction. Transition to `shaping_north_star`; this locks the seed hash.
-3. If profile settings are incomplete, ask:
+2. If profile settings are incomplete, ask the guidance question first, then:
    - Technical proficiency: `beginner`, `intermediate`, or `architect`
    - Working mode: `thought_partner` or `fast_execution`
    - Detail level: `lean`, `standard`, or `exhaustive`
-4. Write profile answers to `_settings.yaml` automatically and set:
+3. Write profile answers to `_settings.yaml` automatically and set:
+   - `guidance_mode: guided` or `guidance_mode: concise`
    - `configured: true`
    - `onboarding_status: complete`
    - `profile_last_updated: <ISO timestamp>`
+4. If the stage is `awaiting_seed`, follow the Seed Input Routes. For conversational capture, preserve the user's supplied wording and natural structure. Do not complete the optional template as a schema or infer missing content. If materially paraphrasing or restructuring, show the exact proposed seed and obtain approval before writing it. For a directly saved seed, obtain confirmation to use the file exactly as written. Transition to `shaping_north_star`; this locks the seed hash.
 5. During `shaping_north_star`, ask one to three targeted questions at a time. Establish:
    - why the idea should exist
    - who it is for
@@ -61,15 +82,15 @@ When the user says `build concept`:
    - which material questions remain
 6. Keep `_my_brainwave_north_star.md` at `Status: shaping` until the user explicitly agrees it.
 7. After agreement, set `Status: agreed` and transition to `selecting_dna`.
-8. Recommend one or more DNA modules using semantic judgment, the conversation's meaning, and each module's declared purpose. Do not use keyword matching. Explain the recommendation and obtain explicit user agreement.
+8. Explain that DNA modules are curated catalogues of possible documentation for relevant domains, then recommend one or more modules using semantic judgment, the conversation's meaning, and each module's declared purpose. Do not use keyword matching. Explain the recommendation and obtain explicit user agreement.
 9. Record the approved selection with `select-dna`, log its rationale, and transition to `scoping_brainwave_documentation`.
-10. Propose only relevant entries within the selected modules. Use each document group's `when_relevant` as the domain gate, treat `baseline: true` children as the normal recommendation once that group is relevant, and use each file's `intent` to decide whether optional children are material. Explicit user-approved scope remains authoritative.
-11. Log the approved scope and rationale, express entries using canonical references such as `_DNA-SAPP-00201`, and transition to `building_brainwave_documentation`.
-12. Run the engine to scaffold only the already-expressed entries.
+10. Propose only relevant DNA documents within the selected modules. Use each DNA document group's `when_relevant` as the domain gate, treat `baseline: true` children as the normal recommendation once that group is relevant, and use each file's `intent` to decide whether optional children are material. Explicit user-approved scope remains authoritative.
+11. Log the approved DNA document scope and rationale, express entries using canonical references such as `_DNA-SAPP-00201`, and transition to `building_brainwave_documentation`.
+12. Run the engine to scaffold only the scoped DNA documents.
 
-## _brainwave Documentation
+## DNA Documentation
 
-Use **_brainwave documentation** for the full generated set across selected DNA modules. Use each module's own label for its output:
+Use **DNA documentation** for the full generated set across selected DNA modules. Use each module's own label for its output:
 
 - Software Application DNA produces **software architecture documentation**.
 - Brand Identity DNA produces **brand identity documentation**.
@@ -110,14 +131,14 @@ Transition to `brainwave_documentation_complete` only after explicit user accept
 - Module outputs are namespaced beneath `_documentation/_DNA-CODE/`.
 - Document-group directory style: `00100_topic`
 - DNA document style: `_DNA-CODE-00101_snake_case.md`
-- A document's first three numeric digits identify its document group.
+- A DNA document's first three numeric digits identify its DNA document group.
 - Product-root `AGENTS.md`, `CLAUDE.md`, `.cursor/hooks.json`, `.claude/settings.json`, and `.codex/hooks.json` are discovery bridges only. Tool-neutral session policy lives in `_engine/runtime/`, platform adapters live in `_engine/adapters/`, and bridge installation and removal live in `_engine/project_integration.js`.
 
 If direction changes after completion:
 
 - Return to `shaping_north_star` when the North Star changes materially.
 - Return to `selecting_dna` when the relevant domains change.
-- Return to `scoping_brainwave_documentation` when the North Star and module selection remain valid but documentation scope changes.
+- Return to `scoping_brainwave_documentation` when the North Star and DNA module selection remain valid but DNA document scope changes.
 
 During normal downstream implementation after completion, remain passive but update the status of directly affected DNA blocks: `not_started`, `in_progress`, `implemented`, `verified`, `blocked`, `not_applicable`, or `superseded`. Do not create a second implementation ID or duplicate implementation log. Run `refresh` only when the dashboard needs an updated derived view.
 
