@@ -48,6 +48,7 @@ For the direct-file route, save the concept and tell the agent: `build concept u
 
 - **_brainwave Seed:** The user's explicitly approved concept, preserved in its supplied wording and natural shape. It becomes immutable after capture and is never a working-notes document.
 - **North Star:** The living current direction derived from the seed. It may evolve without altering the original seed.
+- **DNA Library:** The installed collection of DNA modules available to the project.
 - **DNA module:** A versioned, data-only catalogue of possible documentation for one domain.
 - **DNA document group:** A coherent folder of related DNA documents.
 - **DNA document:** One expressed document such as system context, schema strategy, or voice and tone.

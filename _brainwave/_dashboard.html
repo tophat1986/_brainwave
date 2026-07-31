@@ -6,6 +6,7 @@
   <meta name="color-scheme" content="light">
   <title>_brainwave</title>
   <style>
+    /* Foundation */
     :root {
       color-scheme: light;
       --ink: #0f172a;
@@ -34,11 +35,13 @@
       --radius-hub: 2rem;
       --radius-card: 1.65rem;
       --journey-rail-x: 1.48rem;
+      --journey-node-center: 39px;
+      --journey-connector-end: -52px;
       --sidecar-title: 24px;
       --sidecar-section: 14px;
       --sidecar-body: 12px;
       --sidecar-meta: 10px;
-      --sidecar-id: 9px;
+      --sidecar-id: 11px;
     }
 
     * { box-sizing: border-box; }
@@ -98,6 +101,7 @@
 
     [hidden] { display: none !important; }
 
+    /* App shell */
     .shell {
       width: min(1080px, calc(100% - 32px));
       margin: 0 auto;
@@ -232,19 +236,112 @@
       box-shadow: 0 14px 30px rgba(15, 23, 42, 0.1);
     }
 
-    .icon-button[data-tone="state"] .glyph {
-      width: 10px;
-      height: 10px;
-      border: 2px solid rgba(34, 211, 238, 0.74);
-      border-radius: 50%;
-      box-shadow: 0 0 0 4px rgba(207, 250, 254, 0.82);
+    .ui-icon {
+      position: relative;
+      display: block;
+      width: 16px;
+      height: 16px;
+      flex: 0 0 auto;
+      color: currentColor;
     }
 
-    .glyph {
-      display: block;
-      font-size: 17px;
-      font-weight: 500;
-      line-height: 1;
+    .ui-icon.search::before {
+      position: absolute;
+      top: 1px;
+      left: 1px;
+      width: 9px;
+      height: 9px;
+      border: 1.6px solid currentColor;
+      border-radius: 50%;
+      content: "";
+    }
+
+    .ui-icon.search::after {
+      position: absolute;
+      right: 1px;
+      bottom: 2px;
+      width: 6px;
+      height: 1.6px;
+      border-radius: 999px;
+      background: currentColor;
+      content: "";
+      transform: rotate(45deg);
+      transform-origin: right center;
+    }
+
+    .ui-icon.history::before {
+      position: absolute;
+      inset: 1px;
+      border: 1.5px solid currentColor;
+      border-radius: 50%;
+      content: "";
+    }
+
+    .ui-icon.history::after {
+      position: absolute;
+      top: 4px;
+      left: 7px;
+      width: 4px;
+      height: 4px;
+      border-bottom: 1.5px solid currentColor;
+      border-left: 1.5px solid currentColor;
+      content: "";
+    }
+
+    .ui-icon.book::before {
+      position: absolute;
+      inset: 2px 1px 1px;
+      border: 1.5px solid currentColor;
+      border-radius: 2px;
+      content: "";
+    }
+
+    .ui-icon.book::after {
+      position: absolute;
+      top: 2px;
+      bottom: 1px;
+      left: 50%;
+      border-left: 1.5px solid currentColor;
+      content: "";
+    }
+
+    .ui-icon.state::before {
+      position: absolute;
+      inset: 1px 2px;
+      border: 1.5px solid currentColor;
+      border-radius: 2px;
+      content: "";
+    }
+
+    .ui-icon.state::after {
+      position: absolute;
+      top: 5px;
+      left: 5px;
+      width: 6px;
+      height: 1px;
+      background: currentColor;
+      box-shadow: 0 3px currentColor, 0 6px currentColor;
+      content: "";
+    }
+
+    .ui-icon.refresh::before {
+      position: absolute;
+      inset: 1px;
+      border: 1.5px solid currentColor;
+      border-right-color: transparent;
+      border-radius: 50%;
+      content: "";
+    }
+
+    .ui-icon.refresh::after {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 5px;
+      height: 5px;
+      border-top: 1.5px solid currentColor;
+      border-right: 1.5px solid currentColor;
+      content: "";
     }
 
     .tip {
@@ -315,21 +412,24 @@
       text-align: right;
     }
 
+    /* Journey */
     .journey {
       position: relative;
       display: grid;
       gap: 13px;
     }
 
-    .journey::before {
+    .stage:not(:last-child)::before {
       position: absolute;
-      top: 28px;
-      bottom: 28px;
+      top: var(--journey-node-center);
+      bottom: var(--journey-connector-end);
       left: var(--journey-rail-x);
       width: 1px;
-      background: linear-gradient(180deg, rgba(6, 182, 212, 0.55), rgba(148, 163, 184, 0.42) 48%, rgba(203, 213, 225, 0.56));
+      background: rgba(148, 163, 184, 0.42);
       content: "";
     }
+
+    .stage.complete:not(:last-child)::before { background: rgba(6, 182, 212, 0.55); }
 
     .stage {
       position: relative;
@@ -467,11 +567,13 @@
     .stage-actions {
       display: flex;
       align-items: center;
+      justify-content: flex-end;
       gap: 9px;
     }
 
     .stage-count {
       min-width: 25px;
+      max-width: 240px;
       padding: 4px 8px;
       border-radius: 999px;
       background: var(--slate-soft);
@@ -479,6 +581,7 @@
       font-size: 10px;
       font-weight: 700;
       text-align: center;
+      white-space: nowrap;
     }
 
     .preview-button {
@@ -535,7 +638,7 @@
 
     .artifact-card {
       display: grid;
-      grid-template-columns: auto 1fr auto;
+      grid-template-columns: 42px minmax(0, 1fr) auto;
       gap: 14px;
       align-items: center;
       width: 100%;
@@ -570,15 +673,65 @@
       border-radius: 15px;
     }
 
-    .artifact-title { font-size: 13px; font-weight: 650; }
+    .artifact-copy { min-width: 0; }
+
+    .artifact-title,
+    .artifact-note { display: block; }
+
+    .artifact-title {
+      font-size: 13px;
+      font-weight: 650;
+      overflow-wrap: anywhere;
+    }
+
     .artifact-note {
-      max-width: 520px;
       margin-top: 2px;
-      overflow: hidden;
       color: var(--muted);
       font-size: 11px;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      line-height: 1.55;
+      overflow-wrap: anywhere;
+      white-space: normal;
+    }
+
+    .artifact-symbol {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      color: #0e7490;
+    }
+
+    .artifact-symbol.idea { gap: 3px; }
+
+    .artifact-symbol.idea i {
+      display: block;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 7px rgba(34, 211, 238, 0.28);
+    }
+
+    .artifact-symbol.direction::before {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      width: 8px;
+      height: 8px;
+      border-top: 1.7px solid currentColor;
+      border-right: 1.7px solid currentColor;
+      content: "";
+    }
+
+    .artifact-symbol.direction::after {
+      width: 16px;
+      height: 1.7px;
+      border-radius: 999px;
+      background: currentColor;
+      content: "";
+      transform: rotate(-45deg);
     }
 
     .first-step {
@@ -648,6 +801,7 @@
       font-size: 12px;
     }
 
+    /* DNA modules and documents */
     .module-mini-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -656,9 +810,12 @@
 
     .module-mini {
       position: relative;
-      min-height: 116px;
+      display: flex;
+      flex-direction: column;
+      min-height: 152px;
       padding: 14px;
       border-radius: 1.2rem;
+      overflow: hidden;
       text-align: left;
     }
 
@@ -674,6 +831,7 @@
     }
 
     .module-mini[data-tone="brand"] .module-mark,
+    .module-detail-head[data-tone="brand"] .module-mark,
     .library-card[data-tone="brand"] .module-mark {
       border-color: rgba(251, 191, 36, 0.48);
       background: linear-gradient(145deg, rgba(255, 251, 235, 0.98), #fff);
@@ -681,6 +839,7 @@
     }
 
     .module-mini[data-tone="software"] .module-mark,
+    .module-detail-head[data-tone="software"] .module-mark,
     .library-card[data-tone="software"] .module-mark {
       border-color: rgba(103, 232, 249, 0.62);
       background: linear-gradient(145deg, rgba(236, 254, 255, 0.98), #fff);
@@ -690,8 +849,10 @@
     .module-mini-title {
       margin-top: 13px;
       overflow: hidden;
+      min-height: 18px;
       font-size: 12px;
       font-weight: 650;
+      line-height: 1.35;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
@@ -699,7 +860,72 @@
     .module-mini-state {
       margin-top: 2px;
       color: var(--faint);
-      font-size: 10px;
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .module-mini-status {
+      display: grid;
+      gap: 7px;
+      margin-top: auto;
+      padding-top: 12px;
+    }
+
+    .module-mini-summary {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      color: var(--faint);
+      font-size: 11px;
+      font-weight: 750;
+      line-height: 1.2;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    .module-strand {
+      display: grid;
+      grid-template-columns: repeat(var(--strand-count), minmax(0, 1fr));
+      gap: 4px;
+      min-height: 8px;
+    }
+
+    .strand-cell {
+      height: 8px;
+      border: 1px solid rgba(203, 213, 225, 0.88);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.62);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.36);
+    }
+
+    .strand-cell.scoped {
+      border-color: rgba(148, 163, 184, 0.5);
+      background: rgba(226, 232, 240, 0.82);
+    }
+
+    .strand-cell.drafting {
+      border-color: rgba(103, 232, 249, 0.72);
+      background: rgba(207, 250, 254, 0.92);
+    }
+
+    .strand-cell.complete {
+      border-color: rgba(110, 231, 183, 0.76);
+      background: rgba(167, 243, 208, 0.95);
+    }
+
+    .strand-cell.issue {
+      border-color: rgba(251, 113, 133, 0.74);
+      background: rgba(255, 228, 230, 0.96);
+    }
+
+    .module-mini[data-tone="brand"] .strand-cell.drafting {
+      border-color: rgba(251, 191, 36, 0.68);
+      background: rgba(254, 243, 199, 0.94);
+    }
+
+    .module-mini[data-tone="brand"] .strand-cell.complete {
+      border-color: rgba(245, 158, 11, 0.56);
+      background: rgba(253, 230, 138, 0.88);
     }
 
     .module-selected {
@@ -722,7 +948,28 @@
       cursor: default;
     }
 
-    .module-add > span { font-size: 24px; line-height: 1; }
+    .plus-icon {
+      position: relative;
+      display: block;
+      width: 20px;
+      height: 20px;
+      flex: 0 0 auto;
+    }
+
+    .plus-icon::before,
+    .plus-icon::after {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      border-radius: 999px;
+      background: currentColor;
+      content: "";
+      transform: translate(-50%, -50%);
+    }
+
+    .plus-icon::before { width: 16px; height: 1.5px; }
+    .plus-icon::after { width: 1.5px; height: 16px; }
+
     .module-add > small {
       max-width: 120px;
       font-size: 9px;
@@ -816,46 +1063,53 @@
 
     .implementation-document {
       display: grid;
-      grid-template-columns: minmax(160px, 0.7fr) minmax(0, 1.7fr);
-      gap: 16px;
-      align-items: start;
+      gap: 10px;
       padding-top: 13px;
       border-top: 1px solid var(--line-soft);
     }
 
+    .document-heading {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 16px;
+      align-items: baseline;
+    }
+
     .document-id {
       color: var(--muted);
-      font: 10px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace;
+      font: 11px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace;
       overflow-wrap: anywhere;
+      text-align: right;
     }
 
     .document-title {
-      margin-top: 3px;
       color: var(--ink-soft);
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 650;
     }
 
     .blocks {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 8px;
     }
 
     .dna-block,
     .skeleton-block {
-      min-height: 88px;
-      border-radius: 18px;
+      min-height: 64px;
+      border-radius: 16px;
     }
 
     .dna-block {
       position: relative;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      padding: 10px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: center;
+      padding: 10px 12px;
       border: 1px solid rgba(203, 213, 225, 0.88);
-      background: rgba(248, 250, 252, 0.86);
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.84);
       color: var(--ink-soft);
       text-align: left;
       cursor: pointer;
@@ -868,18 +1122,18 @@
     }
 
     .dna-block.in_progress {
-      border-color: rgba(34, 211, 238, 0.72);
-      background: linear-gradient(145deg, rgba(236, 254, 255, 0.94), rgba(207, 250, 254, 0.66));
+      border-color: rgba(148, 163, 184, 0.9);
+      background: rgba(255, 255, 255, 0.92);
     }
 
     .dna-block.implemented {
-      border-color: rgba(125, 211, 252, 0.72);
-      background: var(--sky-soft);
+      border-color: rgba(100, 116, 139, 0.58);
+      background: rgba(248, 250, 252, 0.96);
     }
 
     .dna-block.verified {
-      border-color: rgba(110, 231, 183, 0.74);
-      background: var(--emerald-soft);
+      border-color: rgba(15, 23, 42, 0.24);
+      background: rgba(248, 250, 252, 0.98);
     }
 
     .dna-block.blocked,
@@ -898,19 +1152,62 @@
       background: transparent;
     }
 
-    .block-top {
-      display: flex;
-      justify-content: space-between;
+    .block-copy {
+      display: grid;
       gap: 6px;
-      font: 700 10px/1.2 ui-monospace, SFMono-Regular, Consolas, monospace;
+      min-width: 0;
     }
 
-    .block-state { font-family: "Segoe UI", sans-serif; }
+    .block-slice {
+      color: var(--muted);
+      font: 750 10px/1.2 ui-monospace, SFMono-Regular, Consolas, monospace;
+    }
+
+    .block-progress-ring {
+      position: relative;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: conic-gradient(var(--ring-color, var(--ink-soft)) calc(var(--block-progress, 0) * 1%), rgba(226, 232, 240, 0.92) 0);
+      color: var(--ink-soft);
+      font: 800 12px/1 "Segoe UI", sans-serif;
+    }
+
+    .block-progress-ring::before {
+      position: absolute;
+      inset: 5px;
+      border-radius: 50%;
+      background: #fff;
+      content: "";
+    }
+
+    .block-progress-ring > span {
+      position: relative;
+      z-index: 1;
+    }
+
+    .dna-block.superseded .block-progress-ring::after {
+      position: absolute;
+      z-index: 2;
+      width: 18px;
+      height: 1.5px;
+      border-radius: 999px;
+      background: currentColor;
+      content: "";
+      transform: rotate(-35deg);
+    }
+
+    .block-progress-ring.complete { --ring-color: var(--ink-soft); }
+    .block-progress-ring.working { --ring-color: #64748b; }
+    .block-progress-ring.issue { --ring-color: var(--rose); color: var(--rose); }
+    .block-progress-ring.muted { --ring-color: #94a3b8; color: var(--faint); }
 
     .block-title {
-      margin-top: 12px;
       overflow: hidden;
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 650;
       line-height: 1.3;
       display: -webkit-box;
@@ -1089,7 +1386,9 @@
       padding: 20px;
     }
 
-    .library-add > span { font-size: 34px; line-height: 1; }
+    .library-add .plus-icon { width: 28px; height: 28px; }
+    .library-add .plus-icon::before { width: 22px; }
+    .library-add .plus-icon::after { height: 22px; }
     .library-add > small {
       max-width: 150px;
       font-size: 10px;
@@ -1146,6 +1445,7 @@
       pointer-events: auto;
     }
 
+    /* Inspector and document reader */
     .inspector {
       position: fixed;
       top: 20px;
@@ -1153,7 +1453,7 @@
       bottom: 20px;
       z-index: 70;
       display: flex;
-      width: min(480px, calc(100vw - 40px));
+      width: min(680px, calc(100vw - 40px));
       flex-direction: column;
       overflow: hidden;
       border: 1px solid rgba(255, 255, 255, 0.72);
@@ -1250,6 +1550,7 @@
     .inspector-body {
       min-height: 0;
       flex: 1;
+      overflow-x: hidden;
       overflow-y: auto;
       padding: 22px;
       scrollbar-color: rgba(148, 163, 184, 0.34) transparent;
@@ -1282,7 +1583,13 @@
 
     .source-link:hover { color: var(--ink); }
 
-    .reader { color: #334155; font-size: 13px; line-height: 1.72; }
+    .reader {
+      min-width: 0;
+      color: #334155;
+      font-size: 13px;
+      line-height: 1.72;
+      overflow-wrap: anywhere;
+    }
     .reader > :first-child { margin-top: 0; }
     .reader > :last-child { margin-bottom: 0; }
     .reader h1,
@@ -1340,6 +1647,7 @@
       border: 1px solid var(--line-soft);
       text-align: left;
       vertical-align: top;
+      overflow-wrap: anywhere;
     }
     .reader th { background: rgba(241, 245, 249, 0.82); color: var(--ink); }
 
@@ -1350,16 +1658,17 @@
       color: var(--faint);
     }
 
-    .empty-reader .empty-symbol {
+    .empty-reader .empty-icon {
       display: grid;
       place-items: center;
-      width: 72px;
-      height: 72px;
+      width: 52px;
+      height: 52px;
       border: 1px dashed rgba(148, 163, 184, 0.56);
-      border-radius: 26px;
+      border-radius: 18px;
       background: rgba(248, 250, 252, 0.72);
-      font-size: 24px;
     }
+
+    .empty-reader .empty-icon .ui-icon { width: 18px; height: 18px; }
 
     .empty-lines {
       display: grid;
@@ -1368,8 +1677,141 @@
       margin-top: 18px;
     }
 
+    .empty-reader.compact .empty-lines { margin-top: 0; }
+
     .empty-lines .skeleton-line:nth-child(2) { width: 78%; }
     .empty-lines .skeleton-line:nth-child(3) { width: 58%; }
+
+    .search-panel {
+      display: grid;
+      gap: 16px;
+    }
+
+    .search-field {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 11px;
+      align-items: center;
+      min-height: 48px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      color: var(--muted);
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+      transition: border-color 150ms ease, box-shadow 150ms ease;
+    }
+
+    .search-field:focus-within {
+      border-color: rgba(34, 211, 238, 0.72);
+      box-shadow: 0 0 0 4px rgba(207, 250, 254, 0.5), 0 14px 30px rgba(15, 23, 42, 0.08);
+    }
+
+    .search-input {
+      min-width: 0;
+      width: 100%;
+      padding: 13px 0;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--ink);
+      font: 13px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace;
+    }
+
+    .search-input::placeholder { color: var(--faint); }
+    .search-input::-webkit-search-cancel-button { cursor: pointer; }
+
+    .search-results {
+      display: grid;
+      gap: 7px;
+    }
+
+    .search-result {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: center;
+      width: 100%;
+      padding: 11px 12px;
+      border: 1px solid var(--line-soft);
+      border-radius: 12px;
+      background: rgba(248, 250, 252, 0.72);
+      color: inherit;
+      text-align: left;
+      cursor: pointer;
+      transition: border-color 150ms ease, background 150ms ease, transform 150ms ease;
+    }
+
+    .search-result:hover,
+    .search-result:focus-visible {
+      border-color: rgba(103, 232, 249, 0.82);
+      background: #fff;
+      transform: translateY(-1px);
+    }
+
+    .search-result-main { min-width: 0; }
+
+    .search-result-title {
+      display: block;
+      overflow: hidden;
+      color: var(--ink-soft);
+      font-size: 12px;
+      font-weight: 650;
+      line-height: 1.4;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .search-result-id {
+      display: block;
+      margin-top: 3px;
+      overflow: hidden;
+      color: var(--faint);
+      font: var(--sidecar-id)/1.35 ui-monospace, SFMono-Regular, Consolas, monospace;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .search-result-tags {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .search-result-kind,
+    .search-result-module {
+      padding: 4px 7px;
+      border-radius: 999px;
+      background: var(--slate-soft);
+      color: var(--muted);
+      font-size: 9px;
+      font-weight: 750;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .search-result-module[data-tone="brand"] {
+      background: var(--amber-soft);
+      color: #a16207;
+    }
+
+    .search-result-module[data-tone="software"] {
+      background: var(--cyan-soft);
+      color: #0e7490;
+    }
+
+    .search-empty {
+      display: grid;
+      place-items: center;
+      min-height: 220px;
+      color: var(--faint);
+      font-size: 12px;
+    }
+
+    .search-empty .ui-icon { width: 22px; height: 22px; }
 
     .state-grid {
       display: grid;
@@ -1428,6 +1870,7 @@
       width: 66px;
       height: 52px;
       border-radius: 19px;
+      font-size: 11px;
     }
 
     .module-detail-description {
@@ -1493,7 +1936,37 @@
       font: var(--sidecar-id)/1.35 ui-monospace, SFMono-Regular, Consolas, monospace;
       white-space: nowrap;
     }
-    .module-doc > span:last-child { color: var(--faint); font-size: 9px; }
+    .module-doc-indicator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
+      color: var(--faint);
+    }
+
+    .ui-icon.flag { width: 13px; height: 14px; }
+
+    .ui-icon.flag::before {
+      position: absolute;
+      top: 1px;
+      bottom: 0;
+      left: 2px;
+      border-left: 1.5px solid currentColor;
+      content: "";
+    }
+
+    .ui-icon.flag::after {
+      position: absolute;
+      top: 1px;
+      left: 3px;
+      width: 8px;
+      height: 6px;
+      border: 1.5px solid currentColor;
+      border-left: 0;
+      border-radius: 0 2px 2px 0;
+      content: "";
+    }
 
     .document-identity {
       display: inline-flex;
@@ -1503,7 +1976,7 @@
       border-radius: 999px;
       background: rgba(248, 250, 252, 0.78);
       color: var(--faint);
-      font: 9px/1.3 ui-monospace, SFMono-Regular, Consolas, monospace;
+      font: var(--sidecar-id)/1.3 ui-monospace, SFMono-Regular, Consolas, monospace;
     }
 
     .block-identity {
@@ -1515,7 +1988,7 @@
       border-radius: 999px;
       background: var(--slate-soft);
       color: var(--ink-soft);
-      font: 10px/1.3 ui-monospace, SFMono-Regular, Consolas, monospace;
+      font: var(--sidecar-id)/1.3 ui-monospace, SFMono-Regular, Consolas, monospace;
     }
 
     .status-dot {
@@ -1533,6 +2006,7 @@
     .block-sections { display: grid; gap: 10px; }
     .block-section .reader { margin-top: 8px; font-size: 13px; }
 
+    /* Responsive adjustments */
     @media (max-width: 820px) {
       .hub {
         grid-template-columns: 1fr auto;
@@ -1548,13 +2022,17 @@
     }
 
     @media (max-width: 620px) {
-      :root { --journey-rail-x: 1.1rem; }
+      :root {
+        --journey-rail-x: 1.1rem;
+        --journey-node-center: 38px;
+        --journey-connector-end: -51px;
+      }
       .shell { width: min(100% - 20px, 1080px); padding-top: 10px; }
       .hub { top: 10px; gap: 12px; min-height: 76px; padding: 13px; border-radius: 1.55rem; }
       .hub::before { border-radius: 1.55rem 1.55rem 0 0; }
       .brand { padding-left: 8px; }
-      .utilities { gap: 5px; }
-      .icon-button { width: 33px; height: 33px; }
+      .utilities { gap: 4px; }
+      .icon-button { width: 31px; height: 31px; }
       main { margin-top: 38px; }
       .view-heading { display: block; margin-left: 58px; }
       #library-view .view-heading { margin-left: 0; }
@@ -1568,17 +2046,17 @@
       .library-grid { margin-left: 0; }
       .module-mini-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .module-add { grid-column: 1 / -1; min-height: 64px; }
-      .blocks { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .blocks { grid-template-columns: 1fr; }
       .dna-block,
-      .skeleton-block { min-height: 78px; }
+      .skeleton-block { min-height: 62px; }
       .inspector {
-        inset: auto 8px 8px;
-        width: auto;
-        max-height: 88dvh;
+        inset: 8px 8px 8px auto;
+        width: calc(100vw - 16px);
+        max-height: none;
         border-radius: 1.75rem;
-        transform: translateY(calc(100% + 20px));
+        transform: translateX(calc(100% + 20px));
       }
-      .inspector.open { transform: translateY(0); }
+      .inspector.open { transform: translateX(0); }
       .tip { display: none; }
       .page-footer {
         align-items: flex-start;
@@ -1591,8 +2069,9 @@
 
     @media (max-width: 420px) {
       .brand-mark { font-size: 14px; }
+      .brand { padding-left: 0; }
       .stage-subtitle { max-width: 190px; }
-      .blocks { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .blocks { grid-template-columns: 1fr; }
       .review-card { grid-template-columns: 1fr; }
       .module-doc > span:first-child {
         grid-template-columns: 1fr;
@@ -1624,17 +2103,20 @@
       </div>
 
       <nav class="utilities" aria-label="Dashboard tools">
+        <button class="icon-button" type="button" data-action="search" aria-label="Search dashboard">
+          <span class="ui-icon search" aria-hidden="true"></span><span class="tip">Search</span>
+        </button>
         <button class="icon-button" type="button" data-action="decisions" aria-label="Decision history">
-          <span class="glyph" aria-hidden="true">◷</span><span class="tip">Decisions</span>
+          <span class="ui-icon history" aria-hidden="true"></span><span class="tip">Decisions</span>
         </button>
         <button class="icon-button" type="button" data-action="handbook" aria-label="Open handbook">
-          <span class="glyph" aria-hidden="true">?</span><span class="tip">Handbook</span>
+          <span class="ui-icon book" aria-hidden="true"></span><span class="tip">Handbook</span>
         </button>
-        <button class="icon-button" type="button" data-action="state" data-tone="state" aria-label="Project state">
-          <span class="glyph" aria-hidden="true"></span><span class="tip">State</span>
+        <button class="icon-button" type="button" data-action="state" aria-label="Project state">
+          <span class="ui-icon state" aria-hidden="true"></span><span class="tip">State</span>
         </button>
         <button class="icon-button" type="button" data-action="refresh" aria-label="Reload dashboard snapshot">
-          <span class="glyph" aria-hidden="true">↻</span><span class="tip">Reload</span>
+          <span class="ui-icon refresh" aria-hidden="true"></span><span class="tip">Reload</span>
         </button>
       </nav>
     </header>
@@ -1686,9 +2168,10 @@
     <footer class="inspector-foot" id="inspector-foot"></footer>
   </aside>
 
-  <script id="brainwave-state" type="application/json">{"schema_version":"3.0.0","generated_at":"2026-07-30T14:19:02.503Z","workspace_root":".","framework":{"name":"_brainwave","version":"0.1.0"},"seed":{"path":"_my_brainwave_seed.md","word_count":0,"current_sha256":null,"locked_sha256":null,"integrity":"unlocked","captured_at":null,"last_ingested_at":"2026-07-30T14:19:02.504Z"},"north_star":{"path":"_my_brainwave_north_star.md","status":"missing","word_count":0,"sha256":null,"updated_at":"2026-07-30T10:03:41.831Z"},"lifecycle":{"path":"_brainwave_state.yaml","stage":"awaiting_seed","stage_updated_at":null,"passive":false},"settings":{"path":"_settings.yaml","loaded":true,"guidance_mode":null,"technical_proficiency":null,"ideation_mode":"thought_partner","verbosity_budget":"standard"},"engine":{"status":"ok","last_command":"refresh","last_cycle_at":"2026-07-30T14:19:02.503Z","task_router":{"pending_tasks":0}},"dna":{"directory":"_dna","totals":{"available_modules":2,"selected_modules":0,"nodes":63,"directories":15,"files":48,"expressed_nodes":0,"expressed_files":0},"modules":{"_DNA-BRND":{"source_path":"_dna/_DNA-BRND.yaml","dna_code":"BRND","canonical_id":"_DNA-BRND","name":"Brand Identity DNA","description":"A proportionate catalogue for defining the enduring brand identity of a product or organisation. It translates an agreed North Star into recognisable verbal and visual direction without redefining product strategy or expanding into campaigns, acquisition, or go-to-market planning.","version":"1.3.0","schema_version":"3.0.0","documentation_label":"brand identity documentation","selected":false,"selected_version":null,"totals":{"nodes":15,"directories":4,"files":11,"expressed_nodes":0,"expressed_files":0},"nodes":{"00100":{"id":"00100","qualified_id":"_DNA-BRND-00100","type":"directory","title":"Brand Direction","when_relevant":"Use when the intended perception, character, or distinctive identity must be established. Derive this direction from the North Star without repeating its product purpose, audience definition, or success criteria.","intent":null,"parent_id":null,"baseline":true,"expressed":false,"processing_status":"container","block_count":0,"contract_errors":[]},"00101":{"id":"00101","qualified_id":"_DNA-BRND-00101","type":"file","title":"Positioning and Perception","when_relevant":null,"intent":"Define the distinctive position the brand should occupy, the qualities people should associate with it, and perceptions it should deliberately avoid. Translate the agreed North Star rather than redefining product or market strategy.","parent_id":"00100","baseline":true,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00102":{"id":"00102","qualified_id":"_DNA-BRND-00102","type":"file","title":"Personality and Principles","when_relevant":null,"intent":"Define a small set of characteristic traits and decision principles that make the brand's behaviour and expression recognisable and consistent.","parent_id":"00100","baseline":true,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00200":{"id":"00200","qualified_id":"_DNA-BRND-00200","type":"directory","title":"Verbal Identity","when_relevant":"Use when the brand communicates through product copy, documentation, support, public content, or human conversation and needs a consistent verbal character. This DNA document group governs enduring expression, not campaign messaging or channel strategy.","intent":null,"parent_id":null,"baseline":true,"expressed":false,"processing_status":"container","block_count":0,"contract_errors":[]},"00201":{"id":"00201","qualified_id":"_DNA-BRND-00201","type":"file","title":"Voice and Tone","when_relevant":null,"intent":"Define the stable brand voice, how tone adapts by context and emotional stakes, and clear examples of language that fits or conflicts with the identity.","parent_id":"00200","baseline":true,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00202":{"id":"00202","qualified_id":"_DNA-BRND-00202","type":"file","title":"Naming and Terminology","when_relevant":null,"intent":"Establish durable naming conventions, preferred vocabulary, prohibited or misleading terms, and rules for naming product concepts or features where consistency matters.","parent_id":"00200","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00300":{"id":"00300","qualified_id":"_DNA-BRND-00300","type":"directory","title":"Visual Identity","when_relevant":"Use when the brand needs a coherent and recognisable visual language. Define brand primitives and usage intent here; product interface components and interaction behaviour remain the responsibility of the applicable software or experience DNA.","intent":null,"parent_id":null,"baseline":true,"expressed":false,"processing_status":"container","block_count":0,"contract_errors":[]},"00301":{"id":"00301","qualified_id":"_DNA-BRND-00301","type":"file","title":"Colour System","when_relevant":null,"intent":"Define the primary, supporting, neutral, and semantic colour roles; their intended emotional effect; approved combinations; and constraints needed for consistent, accessible use.","parent_id":"00300","baseline":true,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00302":{"id":"00302","qualified_id":"_DNA-BRND-00302","type":"file","title":"Typography System","when_relevant":null,"intent":"Define typeface direction, hierarchy, roles, weights, fallback expectations, and readability principles as brand primitives rather than implementation-specific interface components.","parent_id":"00300","baseline":true,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00303":{"id":"00303","qualified_id":"_DNA-BRND-00303","type":"file","title":"Logo System","when_relevant":null,"intent":"Define the logo concept or approved marks, variants, clear space, minimum sizes, backgrounds, and misuse constraints when a distinct logo system is needed.","parent_id":"00300","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00304":{"id":"00304","qualified_id":"_DNA-BRND-00304","type":"file","title":"Imagery and Iconography","when_relevant":null,"intent":"Define the art direction, image-selection principles, illustration character, and iconographic style needed to keep non-typographic visual expression coherent.","parent_id":"00300","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00400":{"id":"00400","qualified_id":"_DNA-BRND-00400","type":"directory","title":"Brand Application","when_relevant":"Use when identity decisions must be applied consistently and accessibly across product, communication, and operational touchpoints. Reference the earlier identity decisions rather than duplicating them.","intent":null,"parent_id":null,"baseline":true,"expressed":false,"processing_status":"container","block_count":0,"contract_errors":[]},"00401":{"id":"00401","qualified_id":"_DNA-BRND-00401","type":"file","title":"Accessibility and Inclusive Expression","when_relevant":null,"intent":"Define accessibility constraints for colour, typography, imagery, motion, and language, together with inclusive-expression principles that the brand must preserve across applications.","parent_id":"00400","baseline":true,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00402":{"id":"00402","qualified_id":"_DNA-BRND-00402","type":"file","title":"Application Guidance","when_relevant":null,"intent":"Define how brand primitives should translate across product interfaces, websites, documents, support, and other relevant touchpoints while leaving component behaviour and technical implementation to their owning systems.","parent_id":"00400","baseline":true,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00403":{"id":"00403","qualified_id":"_DNA-BRND-00403","type":"file","title":"Asset Governance","when_relevant":null,"intent":"Define source-of-truth locations, ownership, approval expectations, versioning, and controlled evolution for brand assets when multiple contributors or delivery surfaces make governance necessary.","parent_id":"00400","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]}}},"_DNA-SAPP":{"source_path":"_dna/_DNA-SAPP.yaml","dna_code":"SAPP","canonical_id":"_DNA-SAPP","name":"Software Application DNA","description":"Architecture documentation for AI-built software products and digital services, with an emphasis on web applications.","version":"1.3.0","schema_version":"3.0.0","documentation_label":"software architecture documentation","selected":false,"selected_version":null,"totals":{"nodes":48,"directories":11,"files":37,"expressed_nodes":0,"expressed_files":0},"nodes":{"00200":{"id":"00200","qualified_id":"_DNA-SAPP-00200","type":"directory","title":"Architecture","when_relevant":"Establish a proportionate structural baseline for every software application, including its boundary, major components, responsibilities, and material dependencies.","intent":null,"parent_id":null,"baseline":true,"expressed":false,"processing_status":"container","block_count":0,"contract_errors":[]},"00201":{"id":"00201","qualified_id":"_DNA-SAPP-00201","type":"file","title":"System Context","when_relevant":null,"intent":"Define the system boundary, principal actors, external systems, trust relationships, and material dependencies at a level proportionate to the product.","parent_id":"00200","baseline":true,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00202":{"id":"00202","qualified_id":"_DNA-SAPP-00202","type":"file","title":"Component Model","when_relevant":null,"intent":"Define major runtime or logical components, their responsibilities, dependencies, and interaction boundaries without duplicating detailed interface contracts.","parent_id":"00200","baseline":true,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00203":{"id":"00203","qualified_id":"_DNA-SAPP-00203","type":"file","title":"Domain Boundaries","when_relevant":null,"intent":"Use when multiple business domains, invariants, data owners, or responsibility boundaries need explicit separation.","parent_id":"00200","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00300":{"id":"00300","qualified_id":"_DNA-SAPP-00300","type":"directory","title":"Data Models","when_relevant":"Use when the product stores persistent information or has meaningful entities, relationships, ownership, retention, or migration concerns.","intent":null,"parent_id":null,"baseline":false,"expressed":false,"processing_status":"container","block_count":0,"contract_errors":[]},"00301":{"id":"00301","qualified_id":"_DNA-SAPP-00301","type":"file","title":"Domain Entities","when_relevant":null,"intent":"Define core entities, relationships, invariant ownership, and lifecycles without prescribing storage schemas.","parent_id":"00300","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00302":{"id":"00302","qualified_id":"_DNA-SAPP-00302","type":"file","title":"Schema Strategy","when_relevant":null,"intent":"Define storage models, schema ownership and evolution, consistency choices, and migration safety without assuming a particular database style.","parent_id":"00300","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00303":{"id":"00303","qualified_id":"_DNA-SAPP-00303","type":"file","title":"Data Retention","when_relevant":null,"intent":"Define operational data lifecycle rules for retention, deletion, archival, legal holds, and backup expiry; privacy purposes and rights remain owned by Privacy and Data Protection.","parent_id":"00300","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00400":{"id":"00400","qualified_id":"_DNA-SAPP-00400","type":"directory","title":"Security","when_relevant":"Use when identity, permissions, sensitive information, threats, privacy, or compliance obligations affect the design.","intent":null,"parent_id":null,"baseline":false,"expressed":false,"processing_status":"container","block_count":0,"contract_errors":[]},"00401":{"id":"00401","qualified_id":"_DNA-SAPP-00401","type":"file","title":"Threat Model","when_relevant":null,"intent":"Identify protected assets, actors, trust boundaries, attack surfaces, abuse cases, and proportionate mitigations.","parent_id":"00400","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00402":{"id":"00402","qualified_id":"_DNA-SAPP-00402","type":"file","title":"Authentication and Authorization","when_relevant":null,"intent":"Define identity sources, authentication lifecycle, authorization model, and permission boundaries.","parent_id":"00400","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00403":{"id":"00403","qualified_id":"_DNA-SAPP-00403","type":"file","title":"Secret Management","when_relevant":null,"intent":"Define secret ownership, storage, access, rotation, revocation, and exposure response.","parent_id":"00400","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00404":{"id":"00404","qualified_id":"_DNA-SAPP-00404","type":"file","title":"Compliance Controls","when_relevant":null,"intent":"Define applicable obligations and the technical or operational controls that satisfy them; evidence readiness remains owned by Audit Readiness.","parent_id":"00400","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00405":{"id":"00405","qualified_id":"_DNA-SAPP-00405","type":"file","title":"Privacy and Data Protection","when_relevant":null,"intent":"Use when personal, sensitive, or regulated data requires explicit decisions about classification, minimisation, permitted processing and sharing, rights handling, deletion, residency, or privacy boundaries.","parent_id":"00400","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00500":{"id":"00500","qualified_id":"_DNA-SAPP-00500","type":"directory","title":"API Contracts","when_relevant":"Use when modules, services, clients, partners, or external systems communicate through APIs, events, webhooks, or other contracts.","intent":null,"parent_id":null,"baseline":false,"expressed":false,"processing_status":"container","block_count":0,"contract_errors":[]},"00501":{"id":"00501","qualified_id":"_DNA-SAPP-00501","type":"file","title":"Service Map","when_relevant":null,"intent":"Use when several services, interfaces, owners, or trust zones need a map of responsibilities, dependencies, and contract boundaries.","parent_id":"00500","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00502":{"id":"00502","qualified_id":"_DNA-SAPP-00502","type":"file","title":"Endpoint Contracts","when_relevant":null,"intent":"Define request and response schemas, errors, compatibility, versioning, idempotency, and externally observable endpoint behaviour.","parent_id":"00500","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00503":{"id":"00503","qualified_id":"_DNA-SAPP-00503","type":"file","title":"Event Contracts","when_relevant":null,"intent":"Define event payloads, ownership, delivery guarantees, ordering, compatibility, evolution, and replay behaviour.","parent_id":"00500","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00600":{"id":"00600","qualified_id":"_DNA-SAPP-00600","type":"directory","title":"UI UX","when_relevant":"Use when an interactive experience requires journeys, navigation, information architecture, accessible interaction behaviour, or reusable visual rules.","intent":null,"parent_id":null,"baseline":false,"expressed":false,"processing_status":"container","block_count":0,"contract_errors":[]},"00601":{"id":"00601","qualified_id":"_DNA-SAPP-00601","type":"file","title":"User Journeys","when_relevant":null,"intent":"Map critical user goals, end-to-end flows, alternate paths, failure states, and recovery journeys.","parent_id":"00600","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00602":{"id":"00602","qualified_id":"_DNA-SAPP-00602","type":"file","title":"Information Architecture","when_relevant":null,"intent":"Define content, feature and route hierarchy, navigation, labelling, findability, and orientation across the experience.","parent_id":"00600","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00603":{"id":"00603","qualified_id":"_DNA-SAPP-00603","type":"file","title":"Design System Tokens","when_relevant":null,"intent":"Translate any selected brand primitives into implementation-ready product tokens and define software-owned consistency rules without duplicating brand identity guidance.","parent_id":"00600","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00604":{"id":"00604","qualified_id":"_DNA-SAPP-00604","type":"file","title":"Interaction and Accessibility","when_relevant":null,"intent":"Define software-owned interaction behaviour, interface states, input, keyboard and focus rules, semantic accessibility, error recovery, and adaptive or reduced-motion behaviour without duplicating brand expression.","parent_id":"00600","baseline":true,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00700":{"id":"00700","qualified_id":"_DNA-SAPP-00700","type":"directory","title":"Platform Ops","when_relevant":"Use when environments, deployment, rollback, resilience, or operational ownership require deliberate design.","intent":null,"parent_id":null,"baseline":false,"expressed":false,"processing_status":"container","block_count":0,"contract_errors":[]},"00701":{"id":"00701","qualified_id":"_DNA-SAPP-00701","type":"file","title":"Environments","when_relevant":null,"intent":"Define environment and runtime topology, promotion boundaries, configuration separation, data handling, and proportionate parity expectations.","parent_id":"00700","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00702":{"id":"00702","qualified_id":"_DNA-SAPP-00702","type":"file","title":"Release Orchestration","when_relevant":null,"intent":"Define build and deployment flow, promotion and rollout strategy, compatibility sequencing, rollback, and release ownership.","parent_id":"00700","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00703":{"id":"00703","qualified_id":"_DNA-SAPP-00703","type":"file","title":"Resilience Patterns","when_relevant":null,"intent":"Define routine runtime failure handling, dependency resilience, graceful degradation, failover, and recovery patterns without duplicating disaster recovery.","parent_id":"00700","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00704":{"id":"00704","qualified_id":"_DNA-SAPP-00704","type":"file","title":"Operational Readiness","when_relevant":null,"intent":"Use when service ownership, incident response and escalation, runbook responsibilities, maintenance, support handoffs, or launch-readiness criteria require explicit agreement.","parent_id":"00700","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00800":{"id":"00800","qualified_id":"_DNA-SAPP-00800","type":"directory","title":"Quality and Testing","when_relevant":"Use when risk-based testing, acceptance criteria, regression protection, or incident learning need a defined strategy.","intent":null,"parent_id":null,"baseline":false,"expressed":false,"processing_status":"container","block_count":0,"contract_errors":[]},"00801":{"id":"00801","qualified_id":"_DNA-SAPP-00801","type":"file","title":"Quality Strategy","when_relevant":null,"intent":"Define material quality attributes, risk posture, test levels, ownership, acceptance criteria, and release gates.","parent_id":"00800","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00802":{"id":"00802","qualified_id":"_DNA-SAPP-00802","type":"file","title":"Test Matrix","when_relevant":null,"intent":"Map critical risks, requirements, and quality attributes to verification methods, environments, and regression coverage.","parent_id":"00800","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00803":{"id":"00803","qualified_id":"_DNA-SAPP-00803","type":"file","title":"Incident Learning","when_relevant":null,"intent":"Define how production incidents are reviewed, systemic causes are identified, and corrective actions are verified and fed back into design and testing.","parent_id":"00800","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00900":{"id":"00900","qualified_id":"_DNA-SAPP-00900","type":"directory","title":"Delivery Governance","when_relevant":"Use when implementation needs phases, dependency sequencing, delivery ownership, or an explicit risk register.","intent":null,"parent_id":null,"baseline":false,"expressed":false,"processing_status":"container","block_count":0,"contract_errors":[]},"00901":{"id":"00901","qualified_id":"_DNA-SAPP-00901","type":"file","title":"Delivery Phases","when_relevant":null,"intent":"Define milestone boundaries, architectural increments, sequencing rationale, and exit conditions without becoming a live task plan.","parent_id":"00900","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00902":{"id":"00902","qualified_id":"_DNA-SAPP-00902","type":"file","title":"Dependency Map","when_relevant":null,"intent":"Identify cross-team, system, vendor, and decision dependencies that constrain sequencing or ownership.","parent_id":"00900","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00903":{"id":"00903","qualified_id":"_DNA-SAPP-00903","type":"file","title":"Risk Register","when_relevant":null,"intent":"Identify material delivery risks that shape scope or sequencing, with owners and mitigations; do not duplicate a live issue tracker.","parent_id":"00900","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"01000":{"id":"01000","qualified_id":"_DNA-SAPP-01000","type":"directory","title":"Observability","when_relevant":"Use when logs, metrics, traces, service objectives, alerts, or operational dashboards are important to safe operation.","intent":null,"parent_id":null,"baseline":false,"expressed":false,"processing_status":"container","block_count":0,"contract_errors":[]},"01001":{"id":"01001","qualified_id":"_DNA-SAPP-01001","type":"file","title":"Telemetry Strategy","when_relevant":null,"intent":"Define logs, metrics, and traces, including signal ownership, sampling, retention, and controls preventing secret or personal-data leakage.","parent_id":"01000","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"01002":{"id":"01002","qualified_id":"_DNA-SAPP-01002","type":"file","title":"Service Level Objectives","when_relevant":null,"intent":"Use when reliability commitments justify measurable service objectives, indicators, error budgets, and actionable alerting.","parent_id":"01000","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"01003":{"id":"01003","qualified_id":"_DNA-SAPP-01003","type":"file","title":"Operational Dashboards","when_relevant":null,"intent":"Define operational views, audiences, signals, thresholds, and the decision or response each dashboard must support.","parent_id":"01000","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"01100":{"id":"01100","qualified_id":"_DNA-SAPP-01100","type":"directory","title":"Scalability and FinOps","when_relevant":"Use when growth, performance, capacity, or infrastructure cost could materially shape the design.","intent":null,"parent_id":null,"baseline":false,"expressed":false,"processing_status":"container","block_count":0,"contract_errors":[]},"01101":{"id":"01101","qualified_id":"_DNA-SAPP-01101","type":"file","title":"Performance and Scalability Model","when_relevant":null,"intent":"Define workload and growth assumptions, material latency or throughput expectations, likely bottlenecks, performance budgets, and scaling paths.","parent_id":"01100","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"01102":{"id":"01102","qualified_id":"_DNA-SAPP-01102","type":"file","title":"Cost Controls","when_relevant":null,"intent":"Define infrastructure cost drivers, allocation expectations, budgets, measurement, and engineering guardrails.","parent_id":"01100","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"01103":{"id":"01103","qualified_id":"_DNA-SAPP-01103","type":"file","title":"Capacity Plan","when_relevant":null,"intent":"Use when forecast demand, measured capacity, provisioning lead time, or expansion thresholds materially affect design or operations.","parent_id":"01100","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"01200":{"id":"01200","qualified_id":"_DNA-SAPP-01200","type":"directory","title":"Risk and Continuity","when_relevant":"Use when continuity, backup, disaster recovery, audit evidence, or operational fallback requirements need to be planned.","intent":null,"parent_id":null,"baseline":false,"expressed":false,"processing_status":"container","block_count":0,"contract_errors":[]},"01201":{"id":"01201","qualified_id":"_DNA-SAPP-01201","type":"file","title":"Business Continuity","when_relevant":null,"intent":"Define continuity expectations, essential capabilities, fallback operations, ownership, and return-to-normal criteria during major disruption.","parent_id":"01200","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"01202":{"id":"01202","qualified_id":"_DNA-SAPP-01202","type":"file","title":"Disaster Recovery","when_relevant":null,"intent":"Define backup and restoration strategy, recovery-point and recovery-time objectives, recovery from major service or site loss, and exercised recovery runbooks.","parent_id":"01200","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"01203":{"id":"01203","qualified_id":"_DNA-SAPP-01203","type":"file","title":"Audit Readiness","when_relevant":null,"intent":"Use when contractual, regulatory, or internal assurance requires maintained audit trails, evidence availability, ownership, retention, and review cadence.","parent_id":"01200","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]}}}}},"filesystem":{"tracked_files":{},"missing_expressed_files":[]},"progress":{"documentation_completion_pct":0,"modules":{"_DNA-BRND":{"name":"Brand Identity DNA","version":"1.3.0","documentation_label":"brand identity documentation","selected":false,"available_files":11,"expressed_files":0,"completed_files":0,"completion_pct":0,"folders":{"00100":{"title":"Brand Direction","path":"_documentation/_DNA-BRND/00100_brand_direction","available_files":2,"expressed_files":0,"completed_files":0,"completion_pct":0},"00200":{"title":"Verbal Identity","path":"_documentation/_DNA-BRND/00200_verbal_identity","available_files":2,"expressed_files":0,"completed_files":0,"completion_pct":0},"00300":{"title":"Visual Identity","path":"_documentation/_DNA-BRND/00300_visual_identity","available_files":4,"expressed_files":0,"completed_files":0,"completion_pct":0},"00400":{"title":"Brand Application","path":"_documentation/_DNA-BRND/00400_brand_application","available_files":3,"expressed_files":0,"completed_files":0,"completion_pct":0}}},"_DNA-SAPP":{"name":"Software Application DNA","version":"1.3.0","documentation_label":"software architecture documentation","selected":false,"available_files":37,"expressed_files":0,"completed_files":0,"completion_pct":0,"folders":{"00200":{"title":"Architecture","path":"_documentation/_DNA-SAPP/00200_architecture","available_files":3,"expressed_files":0,"completed_files":0,"completion_pct":0},"00300":{"title":"Data Models","path":"_documentation/_DNA-SAPP/00300_data_models","available_files":3,"expressed_files":0,"completed_files":0,"completion_pct":0},"00400":{"title":"Security","path":"_documentation/_DNA-SAPP/00400_security","available_files":5,"expressed_files":0,"completed_files":0,"completion_pct":0},"00500":{"title":"API Contracts","path":"_documentation/_DNA-SAPP/00500_api_contracts","available_files":3,"expressed_files":0,"completed_files":0,"completion_pct":0},"00600":{"title":"UI UX","path":"_documentation/_DNA-SAPP/00600_ui_ux","available_files":4,"expressed_files":0,"completed_files":0,"completion_pct":0},"00700":{"title":"Platform Ops","path":"_documentation/_DNA-SAPP/00700_platform_ops","available_files":4,"expressed_files":0,"completed_files":0,"completion_pct":0},"00800":{"title":"Quality and Testing","path":"_documentation/_DNA-SAPP/00800_quality_testing","available_files":3,"expressed_files":0,"completed_files":0,"completion_pct":0},"00900":{"title":"Delivery Governance","path":"_documentation/_DNA-SAPP/00900_delivery_governance","available_files":3,"expressed_files":0,"completed_files":0,"completion_pct":0},"01000":{"title":"Observability","path":"_documentation/_DNA-SAPP/01000_observability","available_files":3,"expressed_files":0,"completed_files":0,"completion_pct":0},"01100":{"title":"Scalability and FinOps","path":"_documentation/_DNA-SAPP/01100_scalability_finops","available_files":3,"expressed_files":0,"completed_files":0,"completion_pct":0},"01200":{"title":"Risk and Continuity","path":"_documentation/_DNA-SAPP/01200_risk_continuity","available_files":3,"expressed_files":0,"completed_files":0,"completion_pct":0}}}}},"implementation":{"totals":{"blocks":0,"not_started":0,"in_progress":0,"implemented":0,"verified":0,"blocked":0,"superseded":0,"not_applicable":0,"invalid":0},"current":null,"next":null,"blocks":[]},"presentation":{"project_title":null,"content":{"seed":{"title":"_brainwave Seed","path":"_my_brainwave_seed.md","markdown":""},"north_star":{"title":"North Star","path":"_my_brainwave_north_star.md","markdown":""},"decisions":{"title":"Decision history","path":"_decisions_log.md","markdown":"# _brainwave Decisions Log\n\nPurpose: preserve only material rationale for North Star direction, DNA module selection, and DNA document scope. Domain decisions belong in the relevant generated document or ADR; operational continuation belongs in a handover.\n\n## Entry Template\n\n- timestamp:\n- trigger:\n- decision:\n- rationale:\n- alternatives_considered:\n- impact_on_dna:\n- approved_by:\n"},"handbook":{"title":"_brainwave Handbook","path":"_brainwave_handbook.md","markdown":"# _brainwave Handbook\n\n_brainwave turns an original idea into an agreed North Star and a proportionate set of domain documentation before downstream work begins. It is active while the idea and documentation are shaped, then becomes passive once that foundation is accepted.\n\n## Lifecycle\n\n`_brainwave_state.yaml` owns one authoritative stage:\n\n1. `awaiting_seed` — **Capture the idea:** discuss and preserve the immutable _brainwave Seed.\n2. `shaping_north_star` — **Agree the direction:** develop and explicitly agree the living North Star.\n3. `selecting_dna` — **Choose DNA modules:** recommend relevant domains and record the agreed modules.\n4. `scoping_brainwave_documentation` — **Scope DNA documents:** agree the proportionate documents needed from those modules.\n5. `building_brainwave_documentation` — **Build DNA documentation:** complete the scoped documents and their traceable DNA blocks.\n6. `reviewing_brainwave_documentation` — **Review the foundation:** check gaps, conflicts, cross-module consistency, and downstream readiness.\n7. `brainwave_documentation_complete` — **Ready for implementation:** remain passive unless the user explicitly reopens _brainwave.\n\nA completed _brainwave returns to `shaping_north_star` when direction changes, `selecting_dna` when the relevant domains change, or `scoping_brainwave_documentation` when only DNA document scope changes.\n\n## Guidance Modes\n\nDuring onboarding, _brainwave asks whether to use:\n\n- `guided` — concise stage signposting, a seven-step journey at orientation and approval points, plain-language explanations of unfamiliar terms, and early links to this handbook and `_dashboard.html`\n- `concise` — the current step and immediate next action, with more explanation only when needed or requested\n\nGuidance mode controls explanation of the process. The separate detail setting controls the depth of working output and documentation. Guided mode does not make every response longer, and the journey is not repeated during routine shaping questions.\n\nThe user-facing journey is:\n\n1. Capture the idea.\n2. Agree the direction.\n3. Choose DNA modules.\n4. Scope DNA documents.\n5. Build DNA documentation.\n6. Review the foundation.\n7. Ready for implementation.\n\n## Providing the Seed\n\nThe user can choose either route:\n\n- **Discuss the concept:** develop it with the agent, then explicitly approve what is captured.\n- **Use a prepared concept:** paste it into chat for verbatim capture, or save it directly in `_my_brainwave_seed.md`.\n\nFor the direct-file route, save the concept and tell the agent: `build concept using the seed file exactly as written`. Saving the file does not lock it. The engine locks its hash only after confirmation and transition to `shaping_north_star`.\n\n## Core Terms\n\n- **_brainwave Seed:** The user's explicitly approved concept, preserved in its supplied wording and natural shape. It becomes immutable after capture and is never a working-notes document.\n- **North Star:** The living current direction derived from the seed. It may evolve without altering the original seed.\n- **DNA module:** A versioned, data-only catalogue of possible documentation for one domain.\n- **DNA document group:** A coherent folder of related DNA documents.\n- **DNA document:** One expressed document such as system context, schema strategy, or voice and tone.\n- **Baseline:** A DNA module or DNA document the agent should normally recommend when its module or parent DNA document group is relevant. It guides proportionate scoping but never overrides explicit user agreement.\n- **DNA block:** One coherent direction, obligation, or verifiable rule inside a document. It is also the smallest implementation-traceability unit.\n- **Expressed:** Agreed as relevant and recorded in the current _brainwave scope.\n- **DNA documentation:** The full generated set across all selected DNA modules.\n- **Architecture Decision Record (ADR):** One consequential architecture decision with context, alternatives, direction, and consequences. An ADR may be a DNA document, but system context, data models, user journeys, operational strategies, and brand guidance are not automatically ADRs.\n- **Steering decision:** A recorded reason for changing North Star direction, DNA module selection, or DNA document scope.\n- **Handover:** Temporary continuation state between working sessions. It is operational context, not a DNA module, DNA block, or architecture decision.\n\nThe canonical identity tree is:\n\n```text\n_DNA-SAPP                 module\n_DNA-SAPP-00300           DNA document group\n_DNA-SAPP-00302           document\n_DNA-SAPP-00302.01        block\n```\n\nThe minimum DNA block contract, implementation statuses, and supersession rules live in `_dna/README.md`.\n\n## Project Placement\n\nThe supported layout is one repository and AI workspace:\n\n```text\nproject-root/\n|-- AGENTS.md\n|-- CLAUDE.md\n|-- .cursor/hooks.json\n|-- .claude/settings.json\n|-- .codex/hooks.json\n|-- _brainwave/\n`-- app/\n```\n\nThe implementation may use another folder name. Keep it in the same repository as `_brainwave` so direction, documentation, implementation, and Git history travel together.\n\nFor a new project, use GitHub's **Use this template** action on the complete release repository. A normal clone retains the upstream _brainwave remote and must be repointed before product work. The root README and package metadata begin as framework onboarding and tooling; the project may replace them while retaining a signpost to this handbook.\n\nFor an existing project, confirm Node.js 20 or newer is installed, copy only the release `_brainwave/` directory into `project-root/_brainwave/`, then run:\n\n```text\nnode _brainwave/_engine/brainwave_runner.js integrate\n```\n\nIntegration preserves existing instructions and hook registrations. It adds or refreshes only managed _brainwave bridges and is safe to run repeatedly.\n\n`unintegrate` removes those managed root bridges and registrations without deleting `_brainwave/` or any project artifacts:\n\n```text\nnode _brainwave/_engine/brainwave_runner.js unintegrate\n```\n\n## Agent Support\n\nStatic discovery is the dependable baseline:\n\n| Agent | Static project guidance | Session hook |\n|---|---|---|\n| Cursor | `AGENTS.md` | `.cursor/hooks.json` |\n| Claude Code | `CLAUDE.md` | `.claude/settings.json` |\n| Codex | `AGENTS.md` | `.codex/hooks.json` |\n\nAll three session hooks call thin platform adapters backed by the same tool-neutral runtime. The runtime reads lifecycle state and supplies relevant context; it never interprets the concept, infers profile values from keywords, or chooses DNA.\n\nCommand hooks execute local code. Cursor, Claude Code, and Codex may ask the user to review or trust project hooks before running them. `integrate` registers all three bundled hooks for portability, but registrations are inert in tools that do not read them and may be left untrusted or disabled in supported tools. There is currently no separate static-only integration mode. Hooks are enhancements rather than the source of truth: disabling them does not remove the governing instructions or deterministic engine safeguards.\n\nIn another IDE or agent environment, begin by telling the agent to read the root `AGENTS.md`, then `_brainwave/AGENTS.md` and this handbook. If the environment uses another native instruction filename, make that file a small bridge to `_brainwave/AGENTS.md`; do not duplicate the directive. _brainwave cannot make an unknown host discover repository instructions automatically, but its workflow and engine do not depend on hooks.\n\n## The Dashboard\n\n`_dashboard.html` is the window into _brainwave. Open it directly from disk; no local server is required.\n\nIt shows:\n\n- a seven-stage vertical journey, with completed stages collapsed and the current stage in focus\n- in-dashboard previews of the seed, North Star, decisions, handbook, and expressed documents\n- the installed DNA Library, including each module's full DNA document catalogue before a concept is selected\n- document and DNA-block progress using canonical IDs and expandable block-level detail\n- a quiet project-state view for technical provenance without placing it in the main journey\n\nThe interface is intentionally presentation-led: icons, state, sequence, and visual placeholders do most of the explanatory work. Source links remain available inside previews for users who want to work directly with the files.\n\nThe dashboard is derived, not authoritative. `_dna/` owns module definitions, `_brainwave_state.yaml` owns selection, the decisions log owns material rationale, and DNA documents own block status. `_manifest.yaml` supplies the embedded dashboard snapshot.\n\nRefresh it from the project root:\n\n```text\nnode _brainwave/_engine/brainwave_runner.js refresh\n```\n\n## Bundled DNA\n\n- **`_DNA-SAPP` — Software Application DNA** produces software architecture documentation for applications and digital services.\n- **`_DNA-BRND` — Brand Identity DNA** produces enduring verbal and visual identity guidance without expanding into campaigns, acquisition, or go-to-market planning.\n\nThe agent may recommend either or both. Counts and document names are read directly from the module files and dashboard, so this handbook does not duplicate their catalogues.\n\n## Working Agreement\n\n- Preserve the user's wording and natural structure when capturing the seed. Do not expand it to fill a template or infer missing content; obtain approval before any material paraphrase or restructuring.\n- Preserve `_my_brainwave_seed.md` exactly after capture.\n- Read `_my_brainwave_north_star.md` first for current direction.\n- Ask one to three focused questions at a time while shaping direction.\n- Do not require exhaustive answers; resolve or explicitly mark only materially important gaps.\n- Let the AI agent recommend DNA modules and DNA documents using semantic judgment. The engine validates and scaffolds; it does not interpret the idea.\n- Use each DNA document group's `when_relevant` as the domain gate, its baseline documents as the normal starting point, and each file's `intent` to decide which optional documents are material.\n- Obtain explicit user agreement before recording DNA module selection or DNA document scope.\n- Keep DNA definitions unchanged during a project. Project selection belongs in `_brainwave_state.yaml`.\n- Record a decision in its owning DNA block or ADR, not in the seed or a duplicate ledger.\n- After DNA documentation is complete, update only the statuses of blocks affected by downstream work. Do not reopen the lifecycle unless direction, DNA module selection, or DNA document scope changes.\n- Create a local README only for non-obvious purpose, boundaries, invariants, relationships, working rules, or known traps—not to list visible files.\n\n## Framework and Project Ownership\n\nFramework-owned files may be replaced by a future _brainwave update:\n\n- `_engine/`\n- `_dna/`\n- `_templates/`\n- `_brainwave_handbook.md`\n- `_brainwave/AGENTS.md`\n\nProject-owned files must never be overwritten by an update:\n\n- `_my_brainwave_seed.md`\n- `_my_brainwave_north_star.md`\n- `_brainwave_state.yaml`\n- `_settings.yaml`\n- `_decisions_log.md`\n- `_documentation/`\n\n`_manifest.yaml` and the state embedded in `_dashboard.html` are derived and may be regenerated. Root bridges and hook configurations are merged rather than replaced.\n\nUntil an automated updater exists, update framework-owned files only and run `integrate` followed by `refresh`. Never copy a new release wholesale over an active project. `unintegrate` removes root connections only; project-owned artifacts must be backed up and removed deliberately.\n\n## When _brainwave Is Complete\n\n`brainwave_documentation_complete` means the initial DNA documentation foundation has been accepted. It does not mean the resulting product or brand has been implemented.\n\nAt this stage, _brainwave stops announcing or initiating its workflow during ordinary development. The relevant DNA blocks remain lightweight traceability anchors: downstream agents update a block from `not_started` through `implemented` and `verified`, or mark it `blocked`, `not_applicable`, or `superseded` when appropriate.\n"}},"decisions":[],"documents":{}},"events":[]}</script>
+  <script id="brainwave-state" type="application/json">{"schema_version":"3.0.0","generated_at":"2026-07-31T14:08:02.535Z","workspace_root":".","framework":{"name":"_brainwave","version":"0.1.0"},"seed":{"path":"_my_brainwave_seed.md","word_count":0,"current_sha256":null,"locked_sha256":null,"integrity":"unlocked","captured_at":null,"last_ingested_at":"2026-07-31T14:08:02.536Z"},"north_star":{"path":"_my_brainwave_north_star.md","status":"missing","word_count":0,"sha256":null,"updated_at":"2026-07-31T10:06:31.103Z"},"lifecycle":{"path":"_brainwave_state.yaml","stage":"awaiting_seed","stage_updated_at":null,"passive":false},"settings":{"path":"_settings.yaml","loaded":true,"guidance_mode":null,"technical_proficiency":null,"ideation_mode":"thought_partner","verbosity_budget":"standard"},"engine":{"status":"ok","last_command":"refresh","last_cycle_at":"2026-07-31T14:08:02.535Z","task_router":{"pending_tasks":0}},"dna":{"directory":"_dna","totals":{"available_modules":2,"selected_modules":0,"nodes":63,"directories":15,"files":48,"expressed_nodes":0,"expressed_files":0},"modules":{"_DNA-BRND":{"source_path":"_dna/_DNA-BRND.yaml","dna_code":"BRND","canonical_id":"_DNA-BRND","name":"Brand Identity DNA","description":"A proportionate catalogue for defining the enduring brand identity of a product or organisation. It translates an agreed North Star into recognisable verbal and visual direction without redefining product strategy or expanding into campaigns, acquisition, or go-to-market planning.","version":"1.3.0","schema_version":"3.0.0","documentation_label":"brand identity documentation","selected":false,"selected_version":null,"totals":{"nodes":15,"directories":4,"files":11,"expressed_nodes":0,"expressed_files":0},"nodes":{"00100":{"id":"00100","qualified_id":"_DNA-BRND-00100","type":"directory","title":"Brand Direction","when_relevant":"Use when the intended perception, character, or distinctive identity must be established. Derive this direction from the North Star without repeating its product purpose, audience definition, or success criteria.","intent":null,"parent_id":null,"baseline":true,"expressed":false,"processing_status":"container","block_count":0,"contract_errors":[]},"00101":{"id":"00101","qualified_id":"_DNA-BRND-00101","type":"file","title":"Positioning and Perception","when_relevant":null,"intent":"Define the distinctive position the brand should occupy, the qualities people should associate with it, and perceptions it should deliberately avoid. Translate the agreed North Star rather than redefining product or market strategy.","parent_id":"00100","baseline":true,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00102":{"id":"00102","qualified_id":"_DNA-BRND-00102","type":"file","title":"Personality and Principles","when_relevant":null,"intent":"Define a small set of characteristic traits and decision principles that make the brand's behaviour and expression recognisable and consistent.","parent_id":"00100","baseline":true,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00200":{"id":"00200","qualified_id":"_DNA-BRND-00200","type":"directory","title":"Verbal Identity","when_relevant":"Use when the brand communicates through product copy, documentation, support, public content, or human conversation and needs a consistent verbal character. This DNA document group governs enduring expression, not campaign messaging or channel strategy.","intent":null,"parent_id":null,"baseline":true,"expressed":false,"processing_status":"container","block_count":0,"contract_errors":[]},"00201":{"id":"00201","qualified_id":"_DNA-BRND-00201","type":"file","title":"Voice and Tone","when_relevant":null,"intent":"Define the stable brand voice, how tone adapts by context and emotional stakes, and clear examples of language that fits or conflicts with the identity.","parent_id":"00200","baseline":true,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00202":{"id":"00202","qualified_id":"_DNA-BRND-00202","type":"file","title":"Naming and Terminology","when_relevant":null,"intent":"Establish durable naming conventions, preferred vocabulary, prohibited or misleading terms, and rules for naming product concepts or features where consistency matters.","parent_id":"00200","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00300":{"id":"00300","qualified_id":"_DNA-BRND-00300","type":"directory","title":"Visual Identity","when_relevant":"Use when the brand needs a coherent and recognisable visual language. Define brand primitives and usage intent here; product interface components and interaction behaviour remain the responsibility of the applicable software or experience DNA.","intent":null,"parent_id":null,"baseline":true,"expressed":false,"processing_status":"container","block_count":0,"contract_errors":[]},"00301":{"id":"00301","qualified_id":"_DNA-BRND-00301","type":"file","title":"Colour System","when_relevant":null,"intent":"Define the primary, supporting, neutral, and semantic colour roles; their intended emotional effect; approved combinations; and constraints needed for consistent, accessible use.","parent_id":"00300","baseline":true,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00302":{"id":"00302","qualified_id":"_DNA-BRND-00302","type":"file","title":"Typography System","when_relevant":null,"intent":"Define typeface direction, hierarchy, roles, weights, fallback expectations, and readability principles as brand primitives rather than implementation-specific interface components.","parent_id":"00300","baseline":true,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00303":{"id":"00303","qualified_id":"_DNA-BRND-00303","type":"file","title":"Logo System","when_relevant":null,"intent":"Define the logo concept or approved marks, variants, clear space, minimum sizes, backgrounds, and misuse constraints when a distinct logo system is needed.","parent_id":"00300","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00304":{"id":"00304","qualified_id":"_DNA-BRND-00304","type":"file","title":"Imagery and Iconography","when_relevant":null,"intent":"Define the art direction, image-selection principles, illustration character, and iconographic style needed to keep non-typographic visual expression coherent.","parent_id":"00300","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00400":{"id":"00400","qualified_id":"_DNA-BRND-00400","type":"directory","title":"Brand Application","when_relevant":"Use when identity decisions must be applied consistently and accessibly across product, communication, and operational touchpoints. Reference the earlier identity decisions rather than duplicating them.","intent":null,"parent_id":null,"baseline":true,"expressed":false,"processing_status":"container","block_count":0,"contract_errors":[]},"00401":{"id":"00401","qualified_id":"_DNA-BRND-00401","type":"file","title":"Accessibility and Inclusive Expression","when_relevant":null,"intent":"Define accessibility constraints for colour, typography, imagery, motion, and language, together with inclusive-expression principles that the brand must preserve across applications.","parent_id":"00400","baseline":true,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00402":{"id":"00402","qualified_id":"_DNA-BRND-00402","type":"file","title":"Application Guidance","when_relevant":null,"intent":"Define how brand primitives should translate across product interfaces, websites, documents, support, and other relevant touchpoints while leaving component behaviour and technical implementation to their owning systems.","parent_id":"00400","baseline":true,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00403":{"id":"00403","qualified_id":"_DNA-BRND-00403","type":"file","title":"Asset Governance","when_relevant":null,"intent":"Define source-of-truth locations, ownership, approval expectations, versioning, and controlled evolution for brand assets when multiple contributors or delivery surfaces make governance necessary.","parent_id":"00400","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]}}},"_DNA-SAPP":{"source_path":"_dna/_DNA-SAPP.yaml","dna_code":"SAPP","canonical_id":"_DNA-SAPP","name":"Software Application DNA","description":"Architecture documentation for AI-built software products and digital services, with an emphasis on web applications.","version":"1.3.0","schema_version":"3.0.0","documentation_label":"software architecture documentation","selected":false,"selected_version":null,"totals":{"nodes":48,"directories":11,"files":37,"expressed_nodes":0,"expressed_files":0},"nodes":{"00200":{"id":"00200","qualified_id":"_DNA-SAPP-00200","type":"directory","title":"Architecture","when_relevant":"Establish a proportionate structural baseline for every software application, including its boundary, major components, responsibilities, and material dependencies.","intent":null,"parent_id":null,"baseline":true,"expressed":false,"processing_status":"container","block_count":0,"contract_errors":[]},"00201":{"id":"00201","qualified_id":"_DNA-SAPP-00201","type":"file","title":"System Context","when_relevant":null,"intent":"Define the system boundary, principal actors, external systems, trust relationships, and material dependencies at a level proportionate to the product.","parent_id":"00200","baseline":true,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00202":{"id":"00202","qualified_id":"_DNA-SAPP-00202","type":"file","title":"Component Model","when_relevant":null,"intent":"Define major runtime or logical components, their responsibilities, dependencies, and interaction boundaries without duplicating detailed interface contracts.","parent_id":"00200","baseline":true,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00203":{"id":"00203","qualified_id":"_DNA-SAPP-00203","type":"file","title":"Domain Boundaries","when_relevant":null,"intent":"Use when multiple business domains, invariants, data owners, or responsibility boundaries need explicit separation.","parent_id":"00200","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00300":{"id":"00300","qualified_id":"_DNA-SAPP-00300","type":"directory","title":"Data Models","when_relevant":"Use when the product stores persistent information or has meaningful entities, relationships, ownership, retention, or migration concerns.","intent":null,"parent_id":null,"baseline":false,"expressed":false,"processing_status":"container","block_count":0,"contract_errors":[]},"00301":{"id":"00301","qualified_id":"_DNA-SAPP-00301","type":"file","title":"Domain Entities","when_relevant":null,"intent":"Define core entities, relationships, invariant ownership, and lifecycles without prescribing storage schemas.","parent_id":"00300","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00302":{"id":"00302","qualified_id":"_DNA-SAPP-00302","type":"file","title":"Schema Strategy","when_relevant":null,"intent":"Define storage models, schema ownership and evolution, consistency choices, and migration safety without assuming a particular database style.","parent_id":"00300","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00303":{"id":"00303","qualified_id":"_DNA-SAPP-00303","type":"file","title":"Data Retention","when_relevant":null,"intent":"Define operational data lifecycle rules for retention, deletion, archival, legal holds, and backup expiry; privacy purposes and rights remain owned by Privacy and Data Protection.","parent_id":"00300","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00400":{"id":"00400","qualified_id":"_DNA-SAPP-00400","type":"directory","title":"Security","when_relevant":"Use when identity, permissions, sensitive information, threats, privacy, or compliance obligations affect the design.","intent":null,"parent_id":null,"baseline":false,"expressed":false,"processing_status":"container","block_count":0,"contract_errors":[]},"00401":{"id":"00401","qualified_id":"_DNA-SAPP-00401","type":"file","title":"Threat Model","when_relevant":null,"intent":"Identify protected assets, actors, trust boundaries, attack surfaces, abuse cases, and proportionate mitigations.","parent_id":"00400","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00402":{"id":"00402","qualified_id":"_DNA-SAPP-00402","type":"file","title":"Authentication and Authorization","when_relevant":null,"intent":"Define identity sources, authentication lifecycle, authorization model, and permission boundaries.","parent_id":"00400","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00403":{"id":"00403","qualified_id":"_DNA-SAPP-00403","type":"file","title":"Secret Management","when_relevant":null,"intent":"Define secret ownership, storage, access, rotation, revocation, and exposure response.","parent_id":"00400","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00404":{"id":"00404","qualified_id":"_DNA-SAPP-00404","type":"file","title":"Compliance Controls","when_relevant":null,"intent":"Define applicable obligations and the technical or operational controls that satisfy them; evidence readiness remains owned by Audit Readiness.","parent_id":"00400","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00405":{"id":"00405","qualified_id":"_DNA-SAPP-00405","type":"file","title":"Privacy and Data Protection","when_relevant":null,"intent":"Use when personal, sensitive, or regulated data requires explicit decisions about classification, minimisation, permitted processing and sharing, rights handling, deletion, residency, or privacy boundaries.","parent_id":"00400","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00500":{"id":"00500","qualified_id":"_DNA-SAPP-00500","type":"directory","title":"API Contracts","when_relevant":"Use when modules, services, clients, partners, or external systems communicate through APIs, events, webhooks, or other contracts.","intent":null,"parent_id":null,"baseline":false,"expressed":false,"processing_status":"container","block_count":0,"contract_errors":[]},"00501":{"id":"00501","qualified_id":"_DNA-SAPP-00501","type":"file","title":"Service Map","when_relevant":null,"intent":"Use when several services, interfaces, owners, or trust zones need a map of responsibilities, dependencies, and contract boundaries.","parent_id":"00500","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00502":{"id":"00502","qualified_id":"_DNA-SAPP-00502","type":"file","title":"Endpoint Contracts","when_relevant":null,"intent":"Define request and response schemas, errors, compatibility, versioning, idempotency, and externally observable endpoint behaviour.","parent_id":"00500","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00503":{"id":"00503","qualified_id":"_DNA-SAPP-00503","type":"file","title":"Event Contracts","when_relevant":null,"intent":"Define event payloads, ownership, delivery guarantees, ordering, compatibility, evolution, and replay behaviour.","parent_id":"00500","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00600":{"id":"00600","qualified_id":"_DNA-SAPP-00600","type":"directory","title":"UI UX","when_relevant":"Use when an interactive experience requires journeys, navigation, information architecture, accessible interaction behaviour, or reusable visual rules.","intent":null,"parent_id":null,"baseline":false,"expressed":false,"processing_status":"container","block_count":0,"contract_errors":[]},"00601":{"id":"00601","qualified_id":"_DNA-SAPP-00601","type":"file","title":"User Journeys","when_relevant":null,"intent":"Map critical user goals, end-to-end flows, alternate paths, failure states, and recovery journeys.","parent_id":"00600","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00602":{"id":"00602","qualified_id":"_DNA-SAPP-00602","type":"file","title":"Information Architecture","when_relevant":null,"intent":"Define content, feature and route hierarchy, navigation, labelling, findability, and orientation across the experience.","parent_id":"00600","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00603":{"id":"00603","qualified_id":"_DNA-SAPP-00603","type":"file","title":"Design System Tokens","when_relevant":null,"intent":"Translate any selected brand primitives into implementation-ready product tokens and define software-owned consistency rules without duplicating brand identity guidance.","parent_id":"00600","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00604":{"id":"00604","qualified_id":"_DNA-SAPP-00604","type":"file","title":"Interaction and Accessibility","when_relevant":null,"intent":"Define software-owned interaction behaviour, interface states, input, keyboard and focus rules, semantic accessibility, error recovery, and adaptive or reduced-motion behaviour without duplicating brand expression.","parent_id":"00600","baseline":true,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00700":{"id":"00700","qualified_id":"_DNA-SAPP-00700","type":"directory","title":"Platform Ops","when_relevant":"Use when environments, deployment, rollback, resilience, or operational ownership require deliberate design.","intent":null,"parent_id":null,"baseline":false,"expressed":false,"processing_status":"container","block_count":0,"contract_errors":[]},"00701":{"id":"00701","qualified_id":"_DNA-SAPP-00701","type":"file","title":"Environments","when_relevant":null,"intent":"Define environment and runtime topology, promotion boundaries, configuration separation, data handling, and proportionate parity expectations.","parent_id":"00700","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00702":{"id":"00702","qualified_id":"_DNA-SAPP-00702","type":"file","title":"Release Orchestration","when_relevant":null,"intent":"Define build and deployment flow, promotion and rollout strategy, compatibility sequencing, rollback, and release ownership.","parent_id":"00700","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00703":{"id":"00703","qualified_id":"_DNA-SAPP-00703","type":"file","title":"Resilience Patterns","when_relevant":null,"intent":"Define routine runtime failure handling, dependency resilience, graceful degradation, failover, and recovery patterns without duplicating disaster recovery.","parent_id":"00700","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00704":{"id":"00704","qualified_id":"_DNA-SAPP-00704","type":"file","title":"Operational Readiness","when_relevant":null,"intent":"Use when service ownership, incident response and escalation, runbook responsibilities, maintenance, support handoffs, or launch-readiness criteria require explicit agreement.","parent_id":"00700","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00800":{"id":"00800","qualified_id":"_DNA-SAPP-00800","type":"directory","title":"Quality and Testing","when_relevant":"Use when risk-based testing, acceptance criteria, regression protection, or incident learning need a defined strategy.","intent":null,"parent_id":null,"baseline":false,"expressed":false,"processing_status":"container","block_count":0,"contract_errors":[]},"00801":{"id":"00801","qualified_id":"_DNA-SAPP-00801","type":"file","title":"Quality Strategy","when_relevant":null,"intent":"Define material quality attributes, risk posture, test levels, ownership, acceptance criteria, and release gates.","parent_id":"00800","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00802":{"id":"00802","qualified_id":"_DNA-SAPP-00802","type":"file","title":"Test Matrix","when_relevant":null,"intent":"Map critical risks, requirements, and quality attributes to verification methods, environments, and regression coverage.","parent_id":"00800","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00803":{"id":"00803","qualified_id":"_DNA-SAPP-00803","type":"file","title":"Incident Learning","when_relevant":null,"intent":"Define how production incidents are reviewed, systemic causes are identified, and corrective actions are verified and fed back into design and testing.","parent_id":"00800","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00900":{"id":"00900","qualified_id":"_DNA-SAPP-00900","type":"directory","title":"Delivery Governance","when_relevant":"Use when implementation needs phases, dependency sequencing, delivery ownership, or an explicit risk register.","intent":null,"parent_id":null,"baseline":false,"expressed":false,"processing_status":"container","block_count":0,"contract_errors":[]},"00901":{"id":"00901","qualified_id":"_DNA-SAPP-00901","type":"file","title":"Delivery Phases","when_relevant":null,"intent":"Define milestone boundaries, architectural increments, sequencing rationale, and exit conditions without becoming a live task plan.","parent_id":"00900","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00902":{"id":"00902","qualified_id":"_DNA-SAPP-00902","type":"file","title":"Dependency Map","when_relevant":null,"intent":"Identify cross-team, system, vendor, and decision dependencies that constrain sequencing or ownership.","parent_id":"00900","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"00903":{"id":"00903","qualified_id":"_DNA-SAPP-00903","type":"file","title":"Risk Register","when_relevant":null,"intent":"Identify material delivery risks that shape scope or sequencing, with owners and mitigations; do not duplicate a live issue tracker.","parent_id":"00900","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"01000":{"id":"01000","qualified_id":"_DNA-SAPP-01000","type":"directory","title":"Observability","when_relevant":"Use when logs, metrics, traces, service objectives, alerts, or operational dashboards are important to safe operation.","intent":null,"parent_id":null,"baseline":false,"expressed":false,"processing_status":"container","block_count":0,"contract_errors":[]},"01001":{"id":"01001","qualified_id":"_DNA-SAPP-01001","type":"file","title":"Telemetry Strategy","when_relevant":null,"intent":"Define logs, metrics, and traces, including signal ownership, sampling, retention, and controls preventing secret or personal-data leakage.","parent_id":"01000","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"01002":{"id":"01002","qualified_id":"_DNA-SAPP-01002","type":"file","title":"Service Level Objectives","when_relevant":null,"intent":"Use when reliability commitments justify measurable service objectives, indicators, error budgets, and actionable alerting.","parent_id":"01000","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"01003":{"id":"01003","qualified_id":"_DNA-SAPP-01003","type":"file","title":"Operational Dashboards","when_relevant":null,"intent":"Define operational views, audiences, signals, thresholds, and the decision or response each dashboard must support.","parent_id":"01000","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"01100":{"id":"01100","qualified_id":"_DNA-SAPP-01100","type":"directory","title":"Scalability and FinOps","when_relevant":"Use when growth, performance, capacity, or infrastructure cost could materially shape the design.","intent":null,"parent_id":null,"baseline":false,"expressed":false,"processing_status":"container","block_count":0,"contract_errors":[]},"01101":{"id":"01101","qualified_id":"_DNA-SAPP-01101","type":"file","title":"Performance and Scalability Model","when_relevant":null,"intent":"Define workload and growth assumptions, material latency or throughput expectations, likely bottlenecks, performance budgets, and scaling paths.","parent_id":"01100","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"01102":{"id":"01102","qualified_id":"_DNA-SAPP-01102","type":"file","title":"Cost Controls","when_relevant":null,"intent":"Define infrastructure cost drivers, allocation expectations, budgets, measurement, and engineering guardrails.","parent_id":"01100","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"01103":{"id":"01103","qualified_id":"_DNA-SAPP-01103","type":"file","title":"Capacity Plan","when_relevant":null,"intent":"Use when forecast demand, measured capacity, provisioning lead time, or expansion thresholds materially affect design or operations.","parent_id":"01100","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"01200":{"id":"01200","qualified_id":"_DNA-SAPP-01200","type":"directory","title":"Risk and Continuity","when_relevant":"Use when continuity, backup, disaster recovery, audit evidence, or operational fallback requirements need to be planned.","intent":null,"parent_id":null,"baseline":false,"expressed":false,"processing_status":"container","block_count":0,"contract_errors":[]},"01201":{"id":"01201","qualified_id":"_DNA-SAPP-01201","type":"file","title":"Business Continuity","when_relevant":null,"intent":"Define continuity expectations, essential capabilities, fallback operations, ownership, and return-to-normal criteria during major disruption.","parent_id":"01200","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"01202":{"id":"01202","qualified_id":"_DNA-SAPP-01202","type":"file","title":"Disaster Recovery","when_relevant":null,"intent":"Define backup and restoration strategy, recovery-point and recovery-time objectives, recovery from major service or site loss, and exercised recovery runbooks.","parent_id":"01200","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]},"01203":{"id":"01203","qualified_id":"_DNA-SAPP-01203","type":"file","title":"Audit Readiness","when_relevant":null,"intent":"Use when contractual, regulatory, or internal assurance requires maintained audit trails, evidence availability, ownership, retention, and review cadence.","parent_id":"01200","baseline":false,"expressed":false,"processing_status":"not_started","block_count":0,"contract_errors":[]}}}}},"filesystem":{"tracked_files":{},"missing_expressed_files":[]},"progress":{"documentation_completion_pct":0,"modules":{"_DNA-BRND":{"name":"Brand Identity DNA","version":"1.3.0","documentation_label":"brand identity documentation","selected":false,"available_files":11,"expressed_files":0,"completed_files":0,"completion_pct":0,"folders":{"00100":{"title":"Brand Direction","path":"_documentation/_DNA-BRND/00100_brand_direction","available_files":2,"expressed_files":0,"completed_files":0,"completion_pct":0},"00200":{"title":"Verbal Identity","path":"_documentation/_DNA-BRND/00200_verbal_identity","available_files":2,"expressed_files":0,"completed_files":0,"completion_pct":0},"00300":{"title":"Visual Identity","path":"_documentation/_DNA-BRND/00300_visual_identity","available_files":4,"expressed_files":0,"completed_files":0,"completion_pct":0},"00400":{"title":"Brand Application","path":"_documentation/_DNA-BRND/00400_brand_application","available_files":3,"expressed_files":0,"completed_files":0,"completion_pct":0}}},"_DNA-SAPP":{"name":"Software Application DNA","version":"1.3.0","documentation_label":"software architecture documentation","selected":false,"available_files":37,"expressed_files":0,"completed_files":0,"completion_pct":0,"folders":{"00200":{"title":"Architecture","path":"_documentation/_DNA-SAPP/00200_architecture","available_files":3,"expressed_files":0,"completed_files":0,"completion_pct":0},"00300":{"title":"Data Models","path":"_documentation/_DNA-SAPP/00300_data_models","available_files":3,"expressed_files":0,"completed_files":0,"completion_pct":0},"00400":{"title":"Security","path":"_documentation/_DNA-SAPP/00400_security","available_files":5,"expressed_files":0,"completed_files":0,"completion_pct":0},"00500":{"title":"API Contracts","path":"_documentation/_DNA-SAPP/00500_api_contracts","available_files":3,"expressed_files":0,"completed_files":0,"completion_pct":0},"00600":{"title":"UI UX","path":"_documentation/_DNA-SAPP/00600_ui_ux","available_files":4,"expressed_files":0,"completed_files":0,"completion_pct":0},"00700":{"title":"Platform Ops","path":"_documentation/_DNA-SAPP/00700_platform_ops","available_files":4,"expressed_files":0,"completed_files":0,"completion_pct":0},"00800":{"title":"Quality and Testing","path":"_documentation/_DNA-SAPP/00800_quality_testing","available_files":3,"expressed_files":0,"completed_files":0,"completion_pct":0},"00900":{"title":"Delivery Governance","path":"_documentation/_DNA-SAPP/00900_delivery_governance","available_files":3,"expressed_files":0,"completed_files":0,"completion_pct":0},"01000":{"title":"Observability","path":"_documentation/_DNA-SAPP/01000_observability","available_files":3,"expressed_files":0,"completed_files":0,"completion_pct":0},"01100":{"title":"Scalability and FinOps","path":"_documentation/_DNA-SAPP/01100_scalability_finops","available_files":3,"expressed_files":0,"completed_files":0,"completion_pct":0},"01200":{"title":"Risk and Continuity","path":"_documentation/_DNA-SAPP/01200_risk_continuity","available_files":3,"expressed_files":0,"completed_files":0,"completion_pct":0}}}}},"implementation":{"totals":{"blocks":0,"not_started":0,"in_progress":0,"implemented":0,"verified":0,"blocked":0,"superseded":0,"not_applicable":0,"invalid":0},"current":null,"next":null,"blocks":[]},"presentation":{"project_title":null,"content":{"seed":{"title":"_brainwave Seed","path":"_my_brainwave_seed.md","markdown":""},"north_star":{"title":"North Star","path":"_my_brainwave_north_star.md","markdown":""},"decisions":{"title":"Decision history","path":"_decisions_log.md","markdown":"# _brainwave Decisions Log\n\nPurpose: preserve only material rationale for North Star direction, DNA module selection, and DNA document scope. Domain decisions belong in the relevant generated document or ADR; operational continuation belongs in a handover.\n\n## Entry Template\n\n- timestamp:\n- trigger:\n- decision:\n- rationale:\n- alternatives_considered:\n- impact_on_dna:\n- approved_by:\n"},"handbook":{"title":"_brainwave Handbook","path":"_brainwave_handbook.md","markdown":"# _brainwave Handbook\n\n_brainwave turns an original idea into an agreed North Star and a proportionate set of domain documentation before downstream work begins. It is active while the idea and documentation are shaped, then becomes passive once that foundation is accepted.\n\n## Lifecycle\n\n`_brainwave_state.yaml` owns one authoritative stage:\n\n1. `awaiting_seed` — **Capture the idea:** discuss and preserve the immutable _brainwave Seed.\n2. `shaping_north_star` — **Agree the direction:** develop and explicitly agree the living North Star.\n3. `selecting_dna` — **Choose DNA modules:** recommend relevant domains and record the agreed modules.\n4. `scoping_brainwave_documentation` — **Scope DNA documents:** agree the proportionate documents needed from those modules.\n5. `building_brainwave_documentation` — **Build DNA documentation:** complete the scoped documents and their traceable DNA blocks.\n6. `reviewing_brainwave_documentation` — **Review the foundation:** check gaps, conflicts, cross-module consistency, and downstream readiness.\n7. `brainwave_documentation_complete` — **Ready for implementation:** remain passive unless the user explicitly reopens _brainwave.\n\nA completed _brainwave returns to `shaping_north_star` when direction changes, `selecting_dna` when the relevant domains change, or `scoping_brainwave_documentation` when only DNA document scope changes.\n\n## Guidance Modes\n\nDuring onboarding, _brainwave asks whether to use:\n\n- `guided` — concise stage signposting, a seven-step journey at orientation and approval points, plain-language explanations of unfamiliar terms, and early links to this handbook and `_dashboard.html`\n- `concise` — the current step and immediate next action, with more explanation only when needed or requested\n\nGuidance mode controls explanation of the process. The separate detail setting controls the depth of working output and documentation. Guided mode does not make every response longer, and the journey is not repeated during routine shaping questions.\n\nThe user-facing journey is:\n\n1. Capture the idea.\n2. Agree the direction.\n3. Choose DNA modules.\n4. Scope DNA documents.\n5. Build DNA documentation.\n6. Review the foundation.\n7. Ready for implementation.\n\n## Providing the Seed\n\nThe user can choose either route:\n\n- **Discuss the concept:** develop it with the agent, then explicitly approve what is captured.\n- **Use a prepared concept:** paste it into chat for verbatim capture, or save it directly in `_my_brainwave_seed.md`.\n\nFor the direct-file route, save the concept and tell the agent: `build concept using the seed file exactly as written`. Saving the file does not lock it. The engine locks its hash only after confirmation and transition to `shaping_north_star`.\n\n## Core Terms\n\n- **_brainwave Seed:** The user's explicitly approved concept, preserved in its supplied wording and natural shape. It becomes immutable after capture and is never a working-notes document.\n- **North Star:** The living current direction derived from the seed. It may evolve without altering the original seed.\n- **DNA Library:** The installed collection of DNA modules available to the project.\n- **DNA module:** A versioned, data-only catalogue of possible documentation for one domain.\n- **DNA document group:** A coherent folder of related DNA documents.\n- **DNA document:** One expressed document such as system context, schema strategy, or voice and tone.\n- **Baseline:** A DNA module or DNA document the agent should normally recommend when its module or parent DNA document group is relevant. It guides proportionate scoping but never overrides explicit user agreement.\n- **DNA block:** One coherent direction, obligation, or verifiable rule inside a document. It is also the smallest implementation-traceability unit.\n- **Expressed:** Agreed as relevant and recorded in the current _brainwave scope.\n- **DNA documentation:** The full generated set across all selected DNA modules.\n- **Architecture Decision Record (ADR):** One consequential architecture decision with context, alternatives, direction, and consequences. An ADR may be a DNA document, but system context, data models, user journeys, operational strategies, and brand guidance are not automatically ADRs.\n- **Steering decision:** A recorded reason for changing North Star direction, DNA module selection, or DNA document scope.\n- **Handover:** Temporary continuation state between working sessions. It is operational context, not a DNA module, DNA block, or architecture decision.\n\nThe canonical identity tree is:\n\n```text\n_DNA-SAPP                 module\n_DNA-SAPP-00300           DNA document group\n_DNA-SAPP-00302           document\n_DNA-SAPP-00302.01        block\n```\n\nThe minimum DNA block contract, implementation statuses, and supersession rules live in `_dna/README.md`.\n\n## Project Placement\n\nThe supported layout is one repository and AI workspace:\n\n```text\nproject-root/\n|-- AGENTS.md\n|-- CLAUDE.md\n|-- .cursor/hooks.json\n|-- .claude/settings.json\n|-- .codex/hooks.json\n|-- _brainwave/\n`-- app/\n```\n\nThe implementation may use another folder name. Keep it in the same repository as `_brainwave` so direction, documentation, implementation, and Git history travel together.\n\nFor a new project, use GitHub's **Use this template** action on the complete release repository. A normal clone retains the upstream _brainwave remote and must be repointed before product work. The root README and package metadata begin as framework onboarding and tooling; the project may replace them while retaining a signpost to this handbook.\n\nFor an existing project, confirm Node.js 20 or newer is installed, copy only the release `_brainwave/` directory into `project-root/_brainwave/`, then run:\n\n```text\nnode _brainwave/_engine/brainwave_runner.js integrate\n```\n\nIntegration preserves existing instructions and hook registrations. It adds or refreshes only managed _brainwave bridges and is safe to run repeatedly.\n\n`unintegrate` removes those managed root bridges and registrations without deleting `_brainwave/` or any project artifacts:\n\n```text\nnode _brainwave/_engine/brainwave_runner.js unintegrate\n```\n\n## Agent Support\n\nStatic discovery is the dependable baseline:\n\n| Agent | Static project guidance | Session hook |\n|---|---|---|\n| Cursor | `AGENTS.md` | `.cursor/hooks.json` |\n| Claude Code | `CLAUDE.md` | `.claude/settings.json` |\n| Codex | `AGENTS.md` | `.codex/hooks.json` |\n\nAll three session hooks call thin platform adapters backed by the same tool-neutral runtime. The runtime reads lifecycle state and supplies relevant context; it never interprets the concept, infers profile values from keywords, or chooses DNA.\n\nCommand hooks execute local code. Cursor, Claude Code, and Codex may ask the user to review or trust project hooks before running them. `integrate` registers all three bundled hooks for portability, but registrations are inert in tools that do not read them and may be left untrusted or disabled in supported tools. There is currently no separate static-only integration mode. Hooks are enhancements rather than the source of truth: disabling them does not remove the governing instructions or deterministic engine safeguards.\n\nIn another IDE or agent environment, begin by telling the agent to read the root `AGENTS.md`, then `_brainwave/AGENTS.md` and this handbook. If the environment uses another native instruction filename, make that file a small bridge to `_brainwave/AGENTS.md`; do not duplicate the directive. _brainwave cannot make an unknown host discover repository instructions automatically, but its workflow and engine do not depend on hooks.\n\n## The Dashboard\n\n`_dashboard.html` is the window into _brainwave. Open it directly from disk; no local server is required.\n\nIt shows:\n\n- a seven-stage vertical journey, with completed stages collapsed and the current stage in focus\n- in-dashboard previews of the seed, North Star, decisions, handbook, and expressed documents\n- the installed DNA Library, including each module's full DNA document catalogue before a concept is selected\n- document and DNA-block progress using canonical IDs and expandable block-level detail\n- a quiet project-state view for technical provenance without placing it in the main journey\n\nThe interface is intentionally presentation-led: icons, state, sequence, and visual placeholders do most of the explanatory work. Source links remain available inside previews for users who want to work directly with the files.\n\nThe dashboard is derived, not authoritative. `_dna/` owns module definitions, `_brainwave_state.yaml` owns selection, the decisions log owns material rationale, and DNA documents own block status. `_manifest.yaml` supplies the embedded dashboard snapshot.\n\nRefresh it from the project root:\n\n```text\nnode _brainwave/_engine/brainwave_runner.js refresh\n```\n\n## Bundled DNA\n\n- **`_DNA-SAPP` — Software Application DNA** produces software architecture documentation for applications and digital services.\n- **`_DNA-BRND` — Brand Identity DNA** produces enduring verbal and visual identity guidance without expanding into campaigns, acquisition, or go-to-market planning.\n\nThe agent may recommend either or both. Counts and document names are read directly from the module files and dashboard, so this handbook does not duplicate their catalogues.\n\n## Working Agreement\n\n- Preserve the user's wording and natural structure when capturing the seed. Do not expand it to fill a template or infer missing content; obtain approval before any material paraphrase or restructuring.\n- Preserve `_my_brainwave_seed.md` exactly after capture.\n- Read `_my_brainwave_north_star.md` first for current direction.\n- Ask one to three focused questions at a time while shaping direction.\n- Do not require exhaustive answers; resolve or explicitly mark only materially important gaps.\n- Let the AI agent recommend DNA modules and DNA documents using semantic judgment. The engine validates and scaffolds; it does not interpret the idea.\n- Use each DNA document group's `when_relevant` as the domain gate, its baseline documents as the normal starting point, and each file's `intent` to decide which optional documents are material.\n- Obtain explicit user agreement before recording DNA module selection or DNA document scope.\n- Keep DNA definitions unchanged during a project. Project selection belongs in `_brainwave_state.yaml`.\n- Record a decision in its owning DNA block or ADR, not in the seed or a duplicate ledger.\n- After DNA documentation is complete, update only the statuses of blocks affected by downstream work. Do not reopen the lifecycle unless direction, DNA module selection, or DNA document scope changes.\n- Create a local README only for non-obvious purpose, boundaries, invariants, relationships, working rules, or known traps—not to list visible files.\n\n## Framework and Project Ownership\n\nFramework-owned files may be replaced by a future _brainwave update:\n\n- `_engine/`\n- `_dna/`\n- `_templates/`\n- `_brainwave_handbook.md`\n- `_brainwave/AGENTS.md`\n\nProject-owned files must never be overwritten by an update:\n\n- `_my_brainwave_seed.md`\n- `_my_brainwave_north_star.md`\n- `_brainwave_state.yaml`\n- `_settings.yaml`\n- `_decisions_log.md`\n- `_documentation/`\n\n`_manifest.yaml` and the state embedded in `_dashboard.html` are derived and may be regenerated. Root bridges and hook configurations are merged rather than replaced.\n\nUntil an automated updater exists, update framework-owned files only and run `integrate` followed by `refresh`. Never copy a new release wholesale over an active project. `unintegrate` removes root connections only; project-owned artifacts must be backed up and removed deliberately.\n\n## When _brainwave Is Complete\n\n`brainwave_documentation_complete` means the initial DNA documentation foundation has been accepted. It does not mean the resulting product or brand has been implemented.\n\nAt this stage, _brainwave stops announcing or initiating its workflow during ordinary development. The relevant DNA blocks remain lightweight traceability anchors: downstream agents update a block from `not_started` through `implemented` and `verified`, or mark it `blocked`, `not_applicable`, or `superseded` when appropriate.\n"}},"decisions":[],"documents":{}},"events":[]}</script>
   <script>
     (() => {
+      // Configuration
       const stageDefinitions = [
         { id: "awaiting_seed", label: "_brainwave Seed", action: "Capture the idea" },
         { id: "shaping_north_star", label: "North Star", action: "Agree the direction" },
@@ -1699,32 +2182,121 @@
         { id: "brainwave_documentation_complete", label: "Implementation", action: "Ready for implementation" }
       ];
 
-      const statusGlyph = {
-        not_started: "○",
-        in_progress: "●",
-        implemented: "◆",
-        verified: "✓",
-        blocked: "!",
-        superseded: "↗",
-        not_applicable: "–",
-        invalid: "×"
-      };
+      const blockStates = Object.freeze({
+        not_started: { progress: 0, ringTone: "empty", ringGlyph: "", ringLabel: "Not started" },
+        in_progress: { progress: 50, ringTone: "working", ringGlyph: "", ringLabel: "In progress" },
+        implemented: { progress: 100, ringTone: "complete", ringGlyph: "✓", ringLabel: "Complete" },
+        verified: { progress: 100, ringTone: "complete", ringGlyph: "✓", ringLabel: "Complete" },
+        blocked: { progress: 100, ringTone: "issue", ringGlyph: "!", ringLabel: "Needs attention" },
+        superseded: { progress: 100, ringTone: "muted", ringGlyph: "", ringLabel: "Superseded" },
+        not_applicable: { progress: 0, ringTone: "muted", ringGlyph: "−", ringLabel: "Not applicable" },
+        invalid: { progress: 100, ringTone: "issue", ringGlyph: "!", ringLabel: "Needs attention" }
+      });
+      const defaultBlockState = blockStates.not_started;
 
+      // Embedded snapshot and derived indexes
       const stateElement = document.getElementById("brainwave-state");
       let state = {};
       try { state = JSON.parse(stateElement.textContent || "{}"); } catch (_) {}
 
-      const modules = state.dna?.modules || {};
+      const dna = state.dna || {};
+      const dnaTotals = dna.totals || {};
+      const progress = state.progress || {};
+      const progressModules = Object.values(progress.modules || {});
+      const implementation = state.implementation || {};
+      const implementationTotals = implementation.totals || {};
+      const modules = dna.modules || {};
       const moduleEntries = Object.entries(modules);
       const trackedFiles = state.filesystem?.tracked_files || {};
-      const blocks = state.implementation?.blocks || [];
+      const trackedFileEntries = Object.entries(trackedFiles);
+      const blocks = Array.isArray(implementation.blocks) ? implementation.blocks : [];
       const presentation = state.presentation || {};
       const presentationContent = presentation.content || {};
       const presentationDocuments = presentation.documents || {};
+      const trackedPathByQualifiedId = new Map(
+        trackedFileEntries.map(([path, meta]) => [meta.qualified_node_id, path])
+      );
+      const blockById = new Map(blocks.map((block) => [block.id, block]));
+      const blocksByDocument = new Map();
+      for (const block of blocks) {
+        if (!blocksByDocument.has(block.document_id)) blocksByDocument.set(block.document_id, []);
+        blocksByDocument.get(block.document_id).push(block);
+      }
+      const expressedDocuments = moduleEntries.flatMap(([moduleId, module]) =>
+        Object.values(module.nodes || {})
+          .filter((node) => node.type === "file" && node.expressed)
+          .map((node) => ({
+            ...node,
+            moduleId,
+            moduleName: module.name,
+            path: trackedPathByQualifiedId.get(node.qualified_id) || null
+          }))
+      ).sort((a, b) => a.moduleId.localeCompare(b.moduleId) || a.id.localeCompare(b.id));
+      const selectedDocumentationTotals = progressModules.reduce(
+        (summary, moduleProgress) => {
+          if (!moduleProgress.selected) return summary;
+          summary.complete += Number(moduleProgress.completed_files || 0);
+          summary.total += Number(moduleProgress.expressed_files || 0);
+          return summary;
+        },
+        { complete: 0, total: 0 }
+      );
+      const dashboardStats = Object.freeze({
+        availableModules: Number(dnaTotals.available_modules || moduleEntries.length || 0),
+        selectedModules: Number(dnaTotals.selected_modules || 0),
+        selectedModuleNames: moduleEntries.filter(([, module]) => module.selected).map(([, module]) => module.name),
+        expressedDocuments: Number(dnaTotals.expressed_files || 0),
+        completeDocuments: progressModules.reduce((sum, moduleProgress) => sum + Number(moduleProgress.completed_files || 0), 0),
+        scopedCompleteDocuments: selectedDocumentationTotals.complete,
+        documentTotal: selectedDocumentationTotals.total,
+        documentationCompletion: Number(progress.documentation_completion_pct || 0),
+        contractErrors: trackedFileEntries.reduce((sum, [, file]) => sum + (file.contract_errors?.length || 0), 0),
+        blockTotal: Number(implementationTotals.blocks || 0),
+        completeBlocks: Number(implementationTotals.implemented || 0) + Number(implementationTotals.verified || 0),
+        blockedBlocks: Number(implementationTotals.blocked || 0),
+        verifiedBlocks: Number(implementationTotals.verified || 0)
+      });
+      const searchEntries = [];
+      for (const [moduleId, module] of moduleEntries) {
+        searchEntries.push({
+          kind: "module",
+          id: module.canonical_id || moduleId,
+          title: module.name || moduleId,
+          context: `${module.totals?.files || 0} documents`,
+          moduleId
+        });
+        for (const node of Object.values(module.nodes || {})) {
+          searchEntries.push({
+            kind: node.type === "directory" ? "group" : "document",
+            id: node.qualified_id,
+            title: node.title || node.qualified_id,
+            context: module.name || moduleId,
+            moduleId,
+            documentId: node.id
+          });
+        }
+      }
+      for (const block of blocks) {
+        searchEntries.push({
+          kind: "block",
+          id: block.id,
+          title: block.title || block.id,
+          context: block.document_title || block.module_name || "DNA block",
+          moduleId: block.module_id || String(block.id || "").match(/^(_DNA-[A-Z0-9]{4})-/)?.[1] || "",
+          blockId: block.id
+        });
+      }
+      searchEntries.forEach((entry, index) => {
+        entry.index = index;
+        entry.searchText = `${entry.id} ${entry.title} ${entry.context}`.toLowerCase();
+        entry.searchCompact = entry.searchText.replace(/[^a-z0-9]+/g, "");
+      });
       let inspectorReturnFocus = null;
       let inspectorHistory = [];
       let inspectorView = null;
+      let searchQuery = "";
 
+      // Formatting and safety helpers
       const esc = (value) => String(value ?? "")
         .replaceAll("&", "&amp;")
         .replaceAll("<", "&lt;")
@@ -1735,6 +2307,14 @@
         .replaceAll("_", " ")
         .replace(/\b\w/g, (character) => character.toUpperCase());
 
+      const blockState = (status) => blockStates[status] || defaultBlockState;
+      const searchKindLabels = Object.freeze({
+        module: "Module",
+        group: "Doc group",
+        document: "Document",
+        block: "Block"
+      });
+
       const currentStage = state.lifecycle?.stage || "awaiting_seed";
       const currentStageIndex = Math.max(0, stageDefinitions.findIndex((stage) => stage.id === currentStage));
       const currentDefinition = stageDefinitions[currentStageIndex] || stageDefinitions[0];
@@ -1744,6 +2324,42 @@
         const href = String(value || "").trim();
         if (!href || /^(?:javascript|data|vbscript):/i.test(href)) return "#";
         return href;
+      }
+
+      function normalizedSearch(value) {
+        return String(value || "")
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, " ")
+          .trim();
+      }
+
+      function matchingSearchEntries(query) {
+        const normalized = normalizedSearch(query);
+        if (!normalized) return [];
+        const terms = normalized.split(/\s+/);
+        const compact = normalized.replaceAll(" ", "");
+        return searchEntries
+          .map((entry) => {
+            const id = String(entry.id || "").toLowerCase();
+            const idCompact = id.replace(/[^a-z0-9]+/g, "");
+            const title = String(entry.title || "").toLowerCase();
+            const matches = terms.every((term) => entry.searchText.includes(term)) || entry.searchCompact.includes(compact);
+            if (!matches) return null;
+            const score = idCompact === compact
+              ? 0
+              : idCompact.startsWith(compact)
+                ? 1
+                : idCompact.includes(compact)
+                  ? 2
+                  : title.startsWith(normalized)
+                    ? 3
+                    : 4;
+            return { entry, score };
+          })
+          .filter(Boolean)
+          .sort((a, b) => a.score - b.score || a.entry.id.localeCompare(b.entry.id))
+          .slice(0, 24)
+          .map(({ entry }) => entry);
       }
 
       function inlineMarkdown(value) {
@@ -1869,15 +2485,21 @@
         return html.join("");
       }
 
-      function emptyReader(symbol = "◇") {
-        return `<div class="empty-reader"><div><div class="empty-symbol">${esc(symbol)}</div><div class="empty-lines"><span class="skeleton-line"></span><span class="skeleton-line"></span><span class="skeleton-line"></span></div></div></div>`;
+      function emptyReader(iconName = "") {
+        const icon = iconName
+          ? `<div class="empty-icon"><span class="ui-icon ${esc(iconName)}" aria-hidden="true"></span></div>`
+          : "";
+        return `<div class="empty-reader ${iconName ? "" : "compact"}"><div>${icon}<div class="empty-lines"><span class="skeleton-line"></span><span class="skeleton-line"></span><span class="skeleton-line"></span></div></div></div>`;
       }
 
       function firstReadableLine(markdown) {
-        return String(markdown || "")
+        const line = String(markdown || "")
           .split(/\r?\n/)
           .map((line) => line.trim())
           .find((line) => line && !/^#|^Status:|^Last updated:|^Source seed:/.test(line)) || "";
+        return line
+          .replace(/^(\*\*|__)(.+)\1$/, "$2")
+          .replace(/^`(.+)`$/, "$1");
       }
 
       function moduleTone(moduleId) {
@@ -1888,59 +2510,120 @@
         return String(moduleId || "").replace(/^_DNA-/, "").slice(0, 4) || "DNA";
       }
 
-      function trackedPathFor(qualifiedId) {
-        return Object.entries(trackedFiles)
-          .find(([, meta]) => meta.qualified_node_id === qualifiedId)?.[0] || null;
+      function documentMaturity(node) {
+        if (!node.expressed) return "empty";
+        const path = trackedPathByQualifiedId.get(node.qualified_id);
+        const file = path ? trackedFiles[path] : null;
+        const status = file?.processing_status || node.processing_status;
+        if (file?.contract_errors?.length || status === "invalid" || status === "blocked") return "issue";
+        if (status === "complete") return "complete";
+        if (status === "in_progress") return "drafting";
+        if (file?.exists) return "scoped";
+        return "empty";
       }
 
-      function expressedDocuments() {
-        const documents = [];
-        for (const [moduleId, module] of moduleEntries) {
-          for (const node of Object.values(module.nodes || {})) {
-            if (node.type !== "file" || !node.expressed) continue;
-            documents.push({
-              ...node,
-              moduleId,
-              moduleName: module.name,
-              path: trackedPathFor(node.qualified_id)
-            });
+      function compactCells(counts, total, limit = 12) {
+        const cellCount = total > 0 ? Math.min(limit, Math.max(3, total)) : 4;
+        if (total <= 0) return Array.from({ length: cellCount }, () => "empty");
+        const priorities = ["issue", "complete", "drafting", "scoped", "empty"];
+        return Array.from({ length: cellCount }, (_, index) => {
+          const low = Math.floor((index * total) / cellCount);
+          const high = Math.ceil(((index + 1) * total) / cellCount);
+          let cursor = 0;
+          const bucket = { issue: 0, complete: 0, drafting: 0, scoped: 0, empty: 0 };
+          for (const status of priorities) {
+            const next = cursor + (counts[status] || 0);
+            const overlap = Math.max(0, Math.min(high, next) - Math.max(low, cursor));
+            bucket[status] = overlap;
+            cursor = next;
           }
-        }
-        return documents.sort((a, b) =>
-          a.moduleId.localeCompare(b.moduleId) || a.id.localeCompare(b.id)
-        );
+          return priorities.find((status) => bucket[status] > 0) || "empty";
+        });
       }
 
-      function artifactCard(contentKey, icon) {
+      function moduleMaturity(moduleId, module) {
+        const fileNodes = Object.values(module.nodes || {})
+          .filter((node) => node.type === "file")
+          .sort((a, b) => a.id.localeCompare(b.id));
+        const selectedTotal = fileNodes.filter((node) => node.expressed).length;
+        const total = module.selected ? selectedTotal : fileNodes.length;
+        const counts = { empty: 0, scoped: 0, drafting: 0, complete: 0, issue: 0 };
+        for (const node of fileNodes) {
+          if (module.selected && !node.expressed) continue;
+          counts[documentMaturity(node)] += 1;
+        }
+        const label = !module.selected
+          ? "Installed"
+          : total === 0
+            ? "Selected"
+            : counts.issue
+              ? "Needs attention"
+              : counts.complete === total
+                ? "Complete"
+                : counts.drafting || counts.scoped
+                  ? "Drafting"
+                  : "Scoped";
+        const detail = module.selected && total
+          ? `${counts.complete} of ${total} complete`
+          : `${fileNodes.length} available`;
+        return {
+          ...counts,
+          total,
+          label,
+          detail,
+          cells: compactCells(counts, total)
+        };
+      }
+
+      // Journey content
+      function quietEmpty(label) {
+        const cards = Array.from({ length: 3 }, () => '<span class="quiet-empty-card"></span>').join("");
+        return `<div class="quiet-empty" aria-label="${esc(label)}">${cards}</div>`;
+      }
+
+      function artifactIcon(contentKey) {
+        if (contentKey === "seed") {
+          return '<span class="artifact-symbol idea"><i></i><i></i><i></i></span>';
+        }
+        return '<span class="artifact-symbol direction"></span>';
+      }
+
+      function artifactCard(contentKey) {
         const content = presentationContent[contentKey] || {};
         const markdown = content.markdown || "";
         if (!markdown.trim()) return "";
         return `<button class="artifact-card" type="button" data-action="content" data-content="${esc(contentKey)}">
-          <span class="artifact-icon" aria-hidden="true">${esc(icon)}</span>
-          <span><span class="artifact-title">${esc(content.title)}</span><span class="artifact-note">${esc(firstReadableLine(markdown))}</span></span>
+          <span class="artifact-icon" aria-hidden="true">${artifactIcon(contentKey)}</span>
+          <span class="artifact-copy"><span class="artifact-title">${esc(content.title)}</span><span class="artifact-note">${esc(firstReadableLine(markdown))}</span></span>
           <span class="eye" aria-hidden="true"></span>
         </button>`;
       }
 
       function moduleMiniGrid() {
-        const cards = moduleEntries.map(([moduleId, module]) =>
-          `<button class="module-mini" type="button" data-action="module" data-module="${esc(moduleId)}" data-tone="${moduleTone(moduleId)}">
+        const cards = moduleEntries.map(([moduleId, module]) => {
+          const maturity = moduleMaturity(moduleId, module);
+          return (
+          `<button class="module-mini" type="button" data-action="module" data-module="${esc(moduleId)}" data-tone="${moduleTone(moduleId)}" title="${esc(`${module.name}: ${maturity.detail}`)}">
             <span class="module-mark" aria-hidden="true">${esc(moduleCode(moduleId))}</span>
             ${module.selected ? '<span class="module-selected" aria-label="Selected">✓</span>' : ""}
             <div class="module-mini-title">${esc(module.name)}</div>
-            <div class="module-mini-state">${module.selected ? "Selected" : "Installed"}</div>
+            <div class="module-mini-state">${esc(maturity.label)}</div>
+            <div class="module-mini-status" aria-label="${esc(maturity.detail)}">
+              <div class="module-strand" style="--strand-count:${maturity.cells.length}">${maturity.cells.map((cell) => `<span class="strand-cell ${esc(cell)}"></span>`).join("")}</div>
+              <div class="module-mini-summary"><span>${esc(maturity.detail)}</span><span>${esc(moduleCode(moduleId))}</span></div>
+            </div>
           </button>`
-        ).join("");
-        return `<div class="module-mini-grid">${cards}<div class="module-mini module-add" aria-disabled="true"><span>＋</span><small>More DNA modules coming soon</small></div></div>`;
+          );
+        }).join("");
+        return `<div class="module-mini-grid">${cards}<div class="module-mini module-add" aria-disabled="true"><span class="plus-icon" aria-hidden="true"></span><small>More DNA modules coming soon</small></div></div>`;
       }
 
       function scopeContent() {
-        const documents = expressedDocuments();
-        if (!documents.length) {
-          return '<div class="quiet-empty" aria-label="DNA documents have not been scoped"><span class="quiet-empty-card"></span><span class="quiet-empty-card"></span><span class="quiet-empty-card"></span></div>';
+        if (!expressedDocuments.length) {
+          return quietEmpty("DNA documents have not been scoped");
         }
         const byModule = new Map();
-        for (const document of documents) {
+        for (const document of expressedDocuments) {
           if (!byModule.has(document.moduleId)) byModule.set(document.moduleId, []);
           byModule.get(document.moduleId).push(document);
         }
@@ -1954,19 +2637,12 @@
       }
 
       function blockMap() {
-        const documents = expressedDocuments();
-        const blocksByDocument = new Map();
-        for (const block of blocks) {
-          if (!blocksByDocument.has(block.document_id)) blocksByDocument.set(block.document_id, []);
-          blocksByDocument.get(block.document_id).push(block);
+        if (!expressedDocuments.length && !blocks.length) {
+          return quietEmpty("DNA blocks will appear once the DNA documents are scoped");
         }
 
-        if (!documents.length && !blocks.length) {
-          return '<div class="quiet-empty" aria-label="DNA blocks will appear once the DNA documents are scoped"><span class="quiet-empty-card"></span><span class="quiet-empty-card"></span><span class="quiet-empty-card"></span></div>';
-        }
-
-        const allDocuments = documents.length
-          ? documents
+        const allDocuments = expressedDocuments.length
+          ? expressedDocuments
           : [...blocksByDocument.entries()].map(([documentId, documentBlocks]) => ({
               qualified_id: documentId,
               title: documentBlocks[0]?.document_title || documentId,
@@ -1979,36 +2655,26 @@
           const moduleChanged = index === 0 || allDocuments[index - 1]?.moduleId !== document.moduleId;
           return `${moduleChanged ? `<div class="block-module-title"><span class="module-mark">${esc(moduleCode(document.moduleId))}</span>${esc(document.moduleName || modules[document.moduleId]?.name || document.moduleId)}</div>` : ""}
           <div class="implementation-document">
-            <div><div class="document-id">${esc(document.qualified_id)}</div><div class="document-title">${esc(document.title)}</div></div>
-            <div class="blocks">${documentBlocks.length ? documentBlocks.map((block) =>
-              `<button class="dna-block ${esc(block.status)}" type="button" data-action="block" data-block="${esc(block.id)}" title="${esc(`${block.id}: ${block.title}`)}">
-                <span class="block-top"><span>.${esc(block.slice)}</span><span class="block-state" aria-label="${esc(titleCase(block.status))}">${esc(statusGlyph[block.status] || "○")}</span></span>
-                <span class="block-title">${esc(block.title)}</span>
-              </button>`
-            ).join("") : skeletonBlocks(3)}</div>
+            <div class="document-heading"><div class="document-title">${esc(document.title)}</div><div class="document-id">${esc(document.qualified_id)}</div></div>
+            <div class="blocks">${documentBlocks.length ? documentBlocks.map((block) => {
+              const status = blockState(block.status);
+              return `<button class="dna-block ${esc(block.status)}" type="button" data-action="block" data-block="${esc(block.id)}" title="${esc(`${block.id}: ${block.title}`)}">
+                <span class="block-copy"><span class="block-slice">.${esc(block.slice)}</span><span class="block-title">${esc(block.title)}</span></span>
+                <span class="block-progress-ring ${esc(status.ringTone)}" style="--block-progress:${status.progress}" aria-label="${esc(status.ringLabel)}"><span>${esc(status.ringGlyph)}</span></span>
+              </button>`;
+            }).join("") : skeletonBlocks(3)}</div>
           </div>`;
         }).join("")}</div>`;
       }
 
       function reviewContent() {
-        const completion = Number(state.progress?.documentation_completion_pct || 0);
-        const completeDocuments = Object.values(state.progress?.modules || {}).reduce(
-          (sum, module) => sum + Number(module.completed_files || 0),
-          0
-        );
-        const expressedCount = Number(state.dna?.totals?.expressed_files || 0);
-        const contractErrors = Object.values(trackedFiles).reduce(
-          (sum, file) => sum + (file.contract_errors?.length || 0),
-          0
-        );
-        const blocked = Number(state.implementation?.totals?.blocked || 0);
         return `<div class="review-card">
-          <div class="progress-ring" style="--progress:${completion}"><strong>${completion}%</strong></div>
-          <div><div class="review-title">${completion === 100 && expressedCount ? "Foundation assembled" : "Foundation review"}</div>
+          <div class="progress-ring" style="--progress:${dashboardStats.documentationCompletion}"><strong>${dashboardStats.documentationCompletion}%</strong></div>
+          <div><div class="review-title">${dashboardStats.documentationCompletion === 100 && dashboardStats.expressedDocuments ? "Foundation assembled" : "Foundation review"}</div>
             <div class="review-metrics">
-              <span class="metric">✓ ${completeDocuments}/${expressedCount}</span>
-              ${contractErrors ? `<span class="metric warn">× ${contractErrors}</span>` : ""}
-              ${blocked ? `<span class="metric warn">! ${blocked}</span>` : ""}
+              <span class="metric">✓ ${dashboardStats.completeDocuments}/${dashboardStats.expressedDocuments}</span>
+              ${dashboardStats.contractErrors ? `<span class="metric warn">× ${dashboardStats.contractErrors}</span>` : ""}
+              ${dashboardStats.blockedBlocks ? `<span class="metric warn">! ${dashboardStats.blockedBlocks}</span>` : ""}
             </div>
           </div>
         </div>`;
@@ -2016,23 +2682,22 @@
 
       function readyContent() {
         const ready = currentStage === "brainwave_documentation_complete";
-        const verified = Number(state.implementation?.totals?.verified || 0);
         return `<div class="review-card">
           <div class="progress-ring" style="--progress:${ready ? 100 : 0}"><strong>${ready ? "✓" : "○"}</strong></div>
           <div><div class="review-title">${ready ? "Foundation ready" : "Ready after review"}</div>
-            <div class="review-metrics">${verified ? `<span class="metric">✓ ${verified} verified</span>` : '<span class="metric">◇</span>'}</div>
+            ${dashboardStats.verifiedBlocks ? `<div class="review-metrics"><span class="metric">✓ ${dashboardStats.verifiedBlocks} verified</span></div>` : ""}
           </div>
         </div>`;
       }
 
       function stageBody(index) {
         if (index === 0) {
-          return artifactCard("seed", "◇") ||
+          return artifactCard("seed") ||
             '<div class="first-step"><div><div class="idea-prompt-icon" aria-hidden="true"><i></i><i></i><i></i></div><span>Tell your agent what you want to shape.</span></div></div>';
         }
         if (index === 1) {
-          return artifactCard("north_star", "⌁") ||
-            '<div class="first-step"><div><div class="direction-icon" aria-hidden="true">↗</div><span>Direction takes shape here.</span></div></div>';
+          return artifactCard("north_star") ||
+            '<div class="first-step"><div><div class="direction-icon" aria-hidden="true"><span class="artifact-symbol direction"></span></div><span>Direction takes shape here.</span></div></div>';
         }
         if (index === 2) return moduleMiniGrid();
         if (index === 3) return scopeContent();
@@ -2042,11 +2707,23 @@
       }
 
       function stageBadge(index) {
-        if (index === 3) return state.dna?.totals?.expressed_files || "";
-        if (index === 4) return state.implementation?.totals?.blocks || "";
+        if (index === 2) {
+          return `${dashboardStats.selectedModules}/${dashboardStats.availableModules} modules`;
+        }
+        if (index === 3) {
+          return dashboardStats.documentTotal
+            ? `${dashboardStats.scopedCompleteDocuments} of ${dashboardStats.documentTotal} complete`
+            : dashboardStats.expressedDocuments || "";
+        }
+        if (index === 4) {
+          return dashboardStats.blockTotal
+            ? `${dashboardStats.completeBlocks} of ${dashboardStats.blockTotal} complete`
+            : "";
+        }
         return "";
       }
 
+      // Primary views
       function renderJourney() {
         document.getElementById("journey").innerHTML = stageDefinitions.map((definition, index) => {
           const status = index < currentStageIndex ? "complete" : index === currentStageIndex ? "current" : "future";
@@ -2082,7 +2759,7 @@
           </button>`;
         }).join("");
         document.getElementById("library").innerHTML =
-          `${cards}<div class="library-card library-add" aria-disabled="true"><span>＋</span><small>More DNA modules coming soon</small></div>`;
+          `${cards}<div class="library-card library-add" aria-disabled="true"><span class="plus-icon" aria-hidden="true"></span><small>More DNA modules coming soon</small></div>`;
       }
 
       function setView(view) {
@@ -2096,6 +2773,65 @@
         });
       }
 
+      function searchResultsMarkup(query, matches) {
+        if (!String(query || "").trim()) {
+          return '<div class="search-empty"><span class="ui-icon search" aria-hidden="true"></span></div>';
+        }
+        if (!matches.length) return '<div class="search-empty">No matches</div>';
+        return matches.map((entry) =>
+          `<button class="search-result" type="button" data-action="search-result" data-search-index="${entry.index}">
+            <span class="search-result-main"><span class="search-result-title">${esc(entry.title)}</span><span class="search-result-id">${esc(entry.id)}</span></span>
+            <span class="search-result-tags">
+              ${entry.moduleId ? `<span class="search-result-module" data-tone="${moduleTone(entry.moduleId)}">${esc(moduleCode(entry.moduleId))}</span>` : ""}
+              <span class="search-result-kind">${esc(searchKindLabels[entry.kind] || entry.kind)}</span>
+            </span>
+          </button>`
+        ).join("");
+      }
+
+      function buildSearchView(query = "") {
+        const matches = matchingSearchEntries(query);
+        const resultsHtml = searchResultsMarkup(query, matches);
+        const meta = String(query || "").trim()
+          ? `${matches.length} match${matches.length === 1 ? "" : "es"}`
+          : `${searchEntries.length} indexed items`;
+        return {
+          eyebrow: "Dashboard",
+          title: "Search",
+          meta,
+          html: `<div class="search-panel">
+            <label class="search-field"><span class="ui-icon search" aria-hidden="true"></span><input class="search-input" id="dashboard-search" type="search" value="${esc(query)}" placeholder="Search by ID or title" aria-label="Search by ID or title" autocomplete="off" spellcheck="false"></label>
+            <div class="search-results" id="search-results" aria-live="polite">${resultsHtml}</div>
+          </div>`,
+          resultsHtml
+        };
+      }
+
+      function openSearch() {
+        openInspector(buildSearchView(searchQuery));
+        const input = document.getElementById("dashboard-search");
+        input?.focus();
+        input?.select();
+      }
+
+      function updateSearch(query) {
+        searchQuery = query;
+        const view = buildSearchView(query);
+        inspectorView = view;
+        document.getElementById("inspector-meta").textContent = view.meta;
+        const results = document.getElementById("search-results");
+        if (results) results.innerHTML = view.resultsHtml;
+      }
+
+      function openSearchResult(index) {
+        const entry = searchEntries[index];
+        if (!entry) return;
+        if (entry.kind === "block") openBlock(entry.blockId, { remember: true });
+        else if (entry.kind === "document") openModuleDocument(entry.moduleId, entry.documentId);
+        else openModule(entry.moduleId, { remember: true });
+      }
+
+      // Inspector
       function renderInspectorView(view) {
         document.getElementById("inspector-eyebrow").textContent = view.eyebrow;
         document.getElementById("inspector-title").textContent = view.title;
@@ -2156,7 +2892,7 @@
           meta: content.path || "",
           html: content.markdown?.trim()
             ? `<div class="reader">${markdownToHtml(content.markdown)}</div>`
-            : emptyReader(key === "decisions" ? "◷" : "◇"),
+            : emptyReader(key === "decisions" ? "history" : ""),
           sourcePath: content.path
         });
       }
@@ -2168,7 +2904,7 @@
           ? `<div class="decision-list">${decisions.slice().reverse().map((decision) =>
               `<article class="decision-card"><div class="decision-time">${esc(decision.timestamp || "Decision")}</div><div class="decision-title">${esc(decision.decision || decision.trigger || "Steering decision")}</div>${decision.rationale ? `<div class="decision-rationale">${esc(decision.rationale)}</div>` : ""}</article>`
             ).join("")}</div>`
-          : emptyReader("◷");
+          : emptyReader("history");
         openInspector({
           eyebrow: "Project record",
           title: content.title || "Decision history",
@@ -2179,12 +2915,6 @@
       }
 
       function openState() {
-        const selectedModules = moduleEntries.filter(([, module]) => module.selected).map(([, module]) => module.name);
-        const completeDocuments = Object.values(state.progress?.modules || {}).reduce(
-          (sum, module) => sum + Number(module.completed_files || 0),
-          0
-        );
-        const expressed = Number(state.dna?.totals?.expressed_files || 0);
         const snapshot = state.generated_at ? new Date(state.generated_at).toLocaleString() : "—";
         openInspector({
           eyebrow: "Project record",
@@ -2194,24 +2924,24 @@
             <div class="state-row"><span>Current step</span><strong>${esc(currentDefinition.action)}</strong></div>
             <div class="state-row"><span>Idea</span><strong>${esc(state.seed?.integrity === "unchanged" ? "Locked ✓" : titleCase(state.seed?.integrity || "Waiting"))}</strong></div>
             <div class="state-row"><span>North Star</span><strong>${esc(titleCase(state.north_star?.status || "Waiting"))}</strong></div>
-            <div class="state-row"><span>DNA modules</span><strong>${esc(selectedModules.join(" · ") || "—")}</strong></div>
-            <div class="state-row"><span>Documents</span><strong>${completeDocuments}/${expressed}</strong></div>
+            <div class="state-row"><span>DNA modules</span><strong>${esc(dashboardStats.selectedModuleNames.join(" · ") || "—")}</strong></div>
+            <div class="state-row"><span>Documents</span><strong>${dashboardStats.completeDocuments}/${dashboardStats.expressedDocuments}</strong></div>
             <div class="state-row"><span>Guidance</span><strong>${esc(titleCase(state.settings?.guidance_mode || "Not set"))}</strong></div>
             <div class="state-row"><span>Snapshot</span><strong>${esc(snapshot)}</strong></div>
           </div>`
         });
       }
 
-      function openModule(moduleId) {
+      function openModule(moduleId, { remember = false } = {}) {
         const module = modules[moduleId];
         if (!module) return;
         const nodes = Object.values(module.nodes || {});
         const groups = nodes.filter((node) => node.type === "directory" && !node.parent_id).sort((a, b) => a.id.localeCompare(b.id));
-        const html = `<div class="module-detail-head"><span class="module-mark">${esc(moduleCode(moduleId))}</span><div><div class="module-detail-description">${esc(module.description)}</div></div></div>
+        const html = `<div class="module-detail-head" data-tone="${moduleTone(moduleId)}"><span class="module-mark">${esc(moduleCode(moduleId))}</span><div><div class="module-detail-description">${esc(module.description)}</div></div></div>
           <div class="module-detail-groups">${groups.map((group) => {
             const documents = nodes.filter((node) => node.type === "file" && node.parent_id === group.id).sort((a, b) => a.id.localeCompare(b.id));
             return `<section class="module-detail-group"><h3><span>${esc(group.title)}</span><small>${esc(group.qualified_id)}</small></h3>${group.when_relevant ? `<p>${esc(group.when_relevant)}</p>` : ""}<div class="module-doc-list">${documents.map((document) =>
-              `<button class="module-doc" type="button" data-action="module-document" data-module="${esc(moduleId)}" data-document="${esc(document.id)}"><span><strong>${esc(document.title)}</strong><small>${esc(document.qualified_id)}</small></span><span>${document.baseline ? "◆" : "◇"}</span></button>`
+              `<button class="module-doc" type="button" data-action="module-document" data-module="${esc(moduleId)}" data-document="${esc(document.id)}"><span><strong>${esc(document.title)}</strong><small>${esc(document.qualified_id)}</small></span><span class="module-doc-indicator">${document.baseline ? '<span class="ui-icon flag" aria-label="Baseline" title="Baseline"></span>' : ""}</span></button>`
             ).join("")}</div></section>`;
           }).join("")}</div>`;
         openInspector({
@@ -2219,14 +2949,14 @@
           title: module.name,
           meta: `v${module.version} · ${module.totals?.files || 0} documents`,
           html
-        });
+        }, { remember });
       }
 
       function openModuleDocument(moduleId, documentId) {
         const module = modules[moduleId];
         const document = module?.nodes?.[documentId];
         if (!module || !document) return;
-        const path = trackedPathFor(document.qualified_id);
+        const path = trackedPathByQualifiedId.get(document.qualified_id) || null;
         const renderedDocument = path ? presentationDocuments[path] : null;
         const preview = renderedDocument?.markdown?.trim()
           ? `<div class="reader">${markdownToHtml(renderedDocument.markdown)}</div>`
@@ -2253,8 +2983,8 @@
         });
       }
 
-      function openBlock(blockId) {
-        const block = blocks.find((entry) => entry.id === blockId);
+      function openBlock(blockId, { remember = false } = {}) {
+        const block = blockById.get(blockId);
         if (!block) return;
         const detailLabels = [
           ["context", "Context"],
@@ -2273,11 +3003,12 @@
           eyebrow: block.document_title || "DNA block",
           title: block.title,
           meta: titleCase(block.status),
-          html: `<div class="block-identity"><span class="status-dot ${esc(block.status)}"></span>${esc(block.id)}</div><div class="block-sections">${sections || emptyReader(statusGlyph[block.status] || "◇")}</div>`,
+          html: `<div class="block-identity"><span class="status-dot ${esc(block.status)}"></span>${esc(block.id)}</div><div class="block-sections">${sections || emptyReader()}</div>`,
           sourcePath: block.path
-        });
+        }, { remember });
       }
 
+      // Interaction and initial render
       document.addEventListener("click", (event) => {
         const target = event.target.closest("[data-view], [data-action]");
         if (!target) return;
@@ -2291,7 +3022,9 @@
           if (expandedStages.has(index)) expandedStages.delete(index);
           else expandedStages.add(index);
           renderJourney();
-        } else if (action === "content") openContent(target.dataset.content);
+        } else if (action === "search") openSearch();
+        else if (action === "search-result") openSearchResult(Number(target.dataset.searchIndex));
+        else if (action === "content") openContent(target.dataset.content);
         else if (action === "decisions") openDecisions();
         else if (action === "handbook") openContent("handbook");
         else if (action === "state") openState();
@@ -2302,6 +3035,10 @@
         else if (action === "block") openBlock(target.dataset.block);
         else if (action === "inspector-back") backInspector();
         else if (action === "close-inspector") closeInspector();
+      });
+
+      document.addEventListener("input", (event) => {
+        if (event.target.id === "dashboard-search") updateSearch(event.target.value);
       });
 
       document.addEventListener("keydown", (event) => {
