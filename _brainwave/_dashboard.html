@@ -269,6 +269,31 @@
       transform-origin: right center;
     }
 
+    .ui-icon.key::before {
+      position: absolute;
+      top: 1px;
+      left: 1px;
+      width: 6px;
+      height: 6px;
+      border: 1.5px solid currentColor;
+      border-radius: 50%;
+      content: "";
+    }
+
+    .ui-icon.key::after {
+      position: absolute;
+      top: 8px;
+      left: 7px;
+      width: 8px;
+      height: 1.5px;
+      border-radius: 999px;
+      background: currentColor;
+      box-shadow: 3px 2px 0 -0.25px currentColor;
+      content: "";
+      transform: rotate(45deg);
+      transform-origin: left center;
+    }
+
     .ui-icon.history::before {
       position: absolute;
       inset: 1px;
@@ -321,26 +346,6 @@
       height: 1px;
       background: currentColor;
       box-shadow: 0 3px currentColor, 0 6px currentColor;
-      content: "";
-    }
-
-    .ui-icon.refresh::before {
-      position: absolute;
-      inset: 1px;
-      border: 1.5px solid currentColor;
-      border-right-color: transparent;
-      border-radius: 50%;
-      content: "";
-    }
-
-    .ui-icon.refresh::after {
-      position: absolute;
-      top: 0;
-      right: 0;
-      width: 5px;
-      height: 5px;
-      border-top: 1.5px solid currentColor;
-      border-right: 1.5px solid currentColor;
       content: "";
     }
 
@@ -619,7 +624,7 @@
       transition: transform 160ms ease;
     }
 
-    .stage.expanded .chevron { transform: rotate(225deg) translate(-2px, -1px); }
+    .stage.expanded .stage-toggle .chevron { transform: rotate(225deg) translate(-2px, -1px); }
 
     .stage-body {
       position: relative;
@@ -832,6 +837,7 @@
 
     .module-mini[data-tone="brand"] .module-mark,
     .module-detail-head[data-tone="brand"] .module-mark,
+    .module-section-head[data-tone="brand"] .module-mark,
     .library-card[data-tone="brand"] .module-mark {
       border-color: rgba(251, 191, 36, 0.48);
       background: linear-gradient(145deg, rgba(255, 251, 235, 0.98), #fff);
@@ -840,6 +846,7 @@
 
     .module-mini[data-tone="software"] .module-mark,
     .module-detail-head[data-tone="software"] .module-mark,
+    .module-section-head[data-tone="software"] .module-mark,
     .library-card[data-tone="software"] .module-mark {
       border-color: rgba(103, 232, 249, 0.62);
       background: linear-gradient(145deg, rgba(236, 254, 255, 0.98), #fff);
@@ -848,6 +855,7 @@
 
     .module-mini[data-tone="product"] .module-mark,
     .module-detail-head[data-tone="product"] .module-mark,
+    .module-section-head[data-tone="product"] .module-mark,
     .library-card[data-tone="product"] .module-mark {
       border-color: rgba(125, 211, 252, 0.66);
       background: linear-gradient(145deg, rgba(224, 242, 254, 0.98), #fff);
@@ -856,6 +864,7 @@
 
     .module-mini[data-tone="experience"] .module-mark,
     .module-detail-head[data-tone="experience"] .module-mark,
+    .module-section-head[data-tone="experience"] .module-mark,
     .library-card[data-tone="experience"] .module-mark {
       border-color: rgba(110, 231, 183, 0.66);
       background: linear-gradient(145deg, rgba(236, 253, 245, 0.98), #fff);
@@ -864,6 +873,7 @@
 
     .module-mini[data-tone="commercial"] .module-mark,
     .module-detail-head[data-tone="commercial"] .module-mark,
+    .module-section-head[data-tone="commercial"] .module-mark,
     .library-card[data-tone="commercial"] .module-mark {
       border-color: rgba(167, 139, 250, 0.68);
       background: linear-gradient(145deg, rgba(245, 243, 255, 0.98), #fff);
@@ -872,6 +882,7 @@
 
     .module-mini[data-tone="growth"] .module-mark,
     .module-detail-head[data-tone="growth"] .module-mark,
+    .module-section-head[data-tone="growth"] .module-mark,
     .library-card[data-tone="growth"] .module-mark {
       border-color: rgba(163, 230, 53, 0.68);
       background: linear-gradient(145deg, rgba(247, 254, 231, 0.98), #fff);
@@ -880,6 +891,7 @@
 
     .module-mini[data-tone="legal"] .module-mark,
     .module-detail-head[data-tone="legal"] .module-mark,
+    .module-section-head[data-tone="legal"] .module-mark,
     .library-card[data-tone="legal"] .module-mark {
       border-color: rgba(251, 113, 133, 0.64);
       background: linear-gradient(145deg, rgba(255, 241, 242, 0.98), #fff);
@@ -888,6 +900,7 @@
 
     .module-mini[data-tone="operations"] .module-mark,
     .module-detail-head[data-tone="operations"] .module-mark,
+    .module-section-head[data-tone="operations"] .module-mark,
     .library-card[data-tone="operations"] .module-mark {
       border-color: rgba(129, 140, 248, 0.66);
       background: linear-gradient(145deg, rgba(238, 242, 255, 0.98), #fff);
@@ -932,16 +945,18 @@
     }
 
     .module-strand {
-      display: grid;
-      grid-template-columns: repeat(var(--strand-count), minmax(0, 1fr));
-      gap: 4px;
-      min-height: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1px;
+      min-height: 6px;
     }
 
     .strand-cell {
-      height: 8px;
+      width: 6px;
+      height: 6px;
+      flex: 0 0 6px;
       border: 1px solid rgba(203, 213, 225, 0.88);
-      border-radius: 999px;
+      border-radius: 50%;
       background: rgba(255, 255, 255, 0.62);
       box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.36);
     }
@@ -957,23 +972,13 @@
     }
 
     .strand-cell.complete {
-      border-color: rgba(110, 231, 183, 0.76);
-      background: rgba(167, 243, 208, 0.95);
+      border-color: rgba(100, 116, 139, 0.86);
+      background: rgba(100, 116, 139, 0.9);
     }
 
     .strand-cell.issue {
       border-color: rgba(251, 113, 133, 0.74);
       background: rgba(255, 228, 230, 0.96);
-    }
-
-    .module-mini[data-tone="brand"] .strand-cell.drafting {
-      border-color: rgba(251, 191, 36, 0.68);
-      background: rgba(254, 243, 199, 0.94);
-    }
-
-    .module-mini[data-tone="brand"] .strand-cell.complete {
-      border-color: rgba(245, 158, 11, 0.56);
-      background: rgba(253, 230, 138, 0.88);
     }
 
     .module-selected {
@@ -1071,13 +1076,41 @@
       background: rgba(248, 250, 252, 0.65);
     }
 
-    .scope-module-head {
+    .module-section-head {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 14px;
-      font-size: 12px;
+      min-width: 0;
+    }
+
+    .module-section-identity {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .module-section-title {
+      color: var(--ink-soft);
+      font-size: 11px;
+      font-weight: 750;
+      letter-spacing: 0.08em;
+      line-height: 1.35;
+      text-transform: uppercase;
+    }
+
+    .module-section-count {
+      flex: 0 0 auto;
+      color: var(--faint);
+      font-size: 10px;
       font-weight: 650;
+      white-space: nowrap;
+    }
+
+    .scope-module .module-section-head {
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--line-soft);
     }
 
     .scope-docs {
@@ -1088,6 +1121,9 @@
     }
 
     .scope-doc {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
       padding: 5px 8px;
       border-radius: 999px;
       background: #fff;
@@ -1096,18 +1132,106 @@
       box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.9);
     }
 
+    .scope-doc.in_progress { background: rgba(241, 245, 249, 0.92); }
+
+    .scope-doc.complete {
+      background: rgba(226, 232, 240, 0.9);
+      color: var(--ink-soft);
+      font-weight: 650;
+      box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.46);
+    }
+
+    .scope-doc.complete::before {
+      content: "\2713";
+      font-size: 9px;
+      font-weight: 800;
+    }
+
+    .block-map-shell { display: grid; gap: 12px; }
+
+    .block-map-tools {
+      position: relative;
+      z-index: 4;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .status-key { position: relative; }
+
+    .status-key summary {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 32px;
+      padding: 0 10px;
+      border: 1px solid var(--line-soft);
+      border-radius: 999px;
+      background: rgba(248, 250, 252, 0.88);
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 10px;
+      font-weight: 650;
+      list-style: none;
+    }
+
+    .status-key summary::-webkit-details-marker { display: none; }
+    .status-key summary:hover,
+    .status-key summary:focus-visible { color: var(--ink-soft); }
+    .status-key[open] summary { background: #fff; color: var(--ink-soft); }
+    .status-key summary .chevron { transform: rotate(45deg) translateY(-2px); }
+    .status-key[open] summary .chevron { transform: rotate(225deg) translate(-2px, -1px); }
+
+    .status-key-panel {
+      position: absolute;
+      top: calc(100% + 7px);
+      right: 0;
+      display: grid;
+      gap: 7px;
+      width: 236px;
+      padding: 10px;
+      border: 1px solid rgba(203, 213, 225, 0.9);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.98);
+      box-shadow: 0 18px 44px rgba(15, 23, 42, 0.14);
+    }
+
+    .status-key-row {
+      display: grid;
+      grid-template-columns: 26px minmax(0, 1fr);
+      gap: 9px;
+      align-items: center;
+      min-height: 30px;
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.25;
+    }
+
+    .status-key-row strong {
+      display: block;
+      color: var(--ink-soft);
+      font-size: 10px;
+    }
+
+    .status-key-ring.block-progress-ring {
+      width: 26px;
+      height: 26px;
+      font-size: 10px;
+    }
+
+    .status-key-ring.block-progress-ring::before { inset: 4px; }
+
     .block-map { display: grid; gap: 18px; }
 
     .block-module-title {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      color: var(--ink-soft);
-      font-size: 11px;
-      font-weight: 750;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
+      margin-top: 24px;
+      padding: 16px 14px;
+      border: 1px solid var(--line-soft);
+      border-radius: 1.15rem;
+      background: rgba(248, 250, 252, 0.72);
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.035);
     }
+
+    .block-module-title:first-child { margin-top: 0; }
 
     .implementation-document {
       display: grid;
@@ -1131,14 +1255,30 @@
     }
 
     .document-title {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
       color: var(--ink-soft);
       font-size: 13px;
       font-weight: 650;
     }
 
+    .document-title.complete::before {
+      display: grid;
+      place-items: center;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: rgba(226, 232, 240, 0.92);
+      color: var(--ink-soft);
+      content: "\2713";
+      font-size: 9px;
+      font-weight: 800;
+    }
+
     .blocks {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 8px;
     }
 
@@ -1172,6 +1312,16 @@
     .dna-block.in_progress {
       border-color: rgba(148, 163, 184, 0.9);
       background: rgba(255, 255, 255, 0.92);
+    }
+
+    .dna-block.complete {
+      border-color: rgba(100, 116, 139, 0.48);
+      background: rgba(248, 250, 252, 0.96);
+    }
+
+    .dna-block.issue {
+      border-color: rgba(251, 113, 133, 0.72);
+      background: var(--rose-soft);
     }
 
     .dna-block.implemented {
@@ -1252,6 +1402,7 @@
     .block-progress-ring.working { --ring-color: #64748b; }
     .block-progress-ring.issue { --ring-color: var(--rose); color: var(--rose); }
     .block-progress-ring.muted { --ring-color: #94a3b8; color: var(--faint); }
+    .block-progress-ring.empty { --ring-color: #cbd5e1; color: var(--faint); }
 
     .block-title {
       overflow: hidden;
@@ -2103,7 +2254,9 @@
       border-radius: 50%;
       background: var(--faint);
     }
-    .status-dot.in_progress { background: var(--cyan); box-shadow: 0 0 8px rgba(6, 182, 212, 0.5); }
+    .status-dot.in_progress { background: #64748b; }
+    .status-dot.complete { background: var(--ink-soft); }
+    .status-dot.issue { background: var(--rose); }
     .status-dot.implemented { background: var(--sky); }
     .status-dot.verified { background: var(--emerald); }
     .status-dot.blocked,
@@ -2125,6 +2278,7 @@
       .view-tab { flex: 1; }
       .library-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .implementation-document { grid-template-columns: 1fr; }
+      .blocks { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 
     @media (max-width: 620px) {
@@ -2222,7 +2376,7 @@
           <span class="ui-icon state" aria-hidden="true"></span><span class="tip">State</span>
         </button>
         <button class="icon-button" type="button" data-action="refresh" aria-label="Reload dashboard snapshot">
-          <span class="ui-icon refresh" aria-hidden="true"></span><span class="tip">Reload</span>
+          <svg class="ui-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.34 5.66" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M20 4v7h-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="tip">Reload</span>
         </button>
       </nav>
     </header>
@@ -2288,17 +2442,13 @@
         { id: "brainwave_documentation_complete", label: "Implementation", action: "Ready for implementation" }
       ];
 
-      const blockStates = Object.freeze({
-        not_started: { progress: 0, ringTone: "empty", ringGlyph: "", ringLabel: "Not started" },
-        in_progress: { progress: 50, ringTone: "working", ringGlyph: "", ringLabel: "In progress" },
-        implemented: { progress: 100, ringTone: "complete", ringGlyph: "✓", ringLabel: "Complete" },
-        verified: { progress: 100, ringTone: "complete", ringGlyph: "✓", ringLabel: "Complete" },
-        blocked: { progress: 100, ringTone: "issue", ringGlyph: "!", ringLabel: "Needs attention" },
-        superseded: { progress: 100, ringTone: "muted", ringGlyph: "", ringLabel: "Superseded" },
-        not_applicable: { progress: 0, ringTone: "muted", ringGlyph: "−", ringLabel: "Not applicable" },
-        invalid: { progress: 100, ringTone: "issue", ringGlyph: "!", ringLabel: "Needs attention" }
+      const documentationStates = Object.freeze({
+        not_started: { progress: 0, ringTone: "empty", ringGlyph: "", ringLabel: "Documentation not started" },
+        in_progress: { progress: 55, ringTone: "working", ringGlyph: "", ringLabel: "Documentation in progress" },
+        complete: { progress: 100, ringTone: "complete", ringGlyph: "✓", ringLabel: "DNA documentation complete" },
+        issue: { progress: 100, ringTone: "issue", ringGlyph: "!", ringLabel: "Documentation needs attention" }
       });
-      const defaultBlockState = blockStates.not_started;
+      const defaultDocumentationState = documentationStates.not_started;
 
       // Embedded snapshot and derived indexes
       const stateElement = document.getElementById("brainwave-state");
@@ -2338,6 +2488,9 @@
             path: trackedPathByQualifiedId.get(node.qualified_id) || null
           }))
       ).sort((a, b) => a.moduleId.localeCompare(b.moduleId) || a.id.localeCompare(b.id));
+      const expressedDocumentById = new Map(
+        expressedDocuments.map((document) => [document.qualified_id, document])
+      );
       const selectedDocumentationTotals = progressModules.reduce(
         (summary, moduleProgress) => {
           if (!moduleProgress.selected) return summary;
@@ -2413,7 +2566,29 @@
         .replaceAll("_", " ")
         .replace(/\b\w/g, (character) => character.toUpperCase());
 
-      const blockState = (status) => blockStates[status] || defaultBlockState;
+      function documentDocumentationStatus(document) {
+        if (document?.processing_status === "invalid" || document?.contract_errors?.length) return "issue";
+        if (document?.processing_status === "complete") return "complete";
+        if (document?.processing_status === "in_progress") return "in_progress";
+        return "not_started";
+      }
+
+      function blockDocumentationStatus(block, document) {
+        if (block?.status === "invalid" || documentDocumentationStatus(document) === "issue") return "issue";
+        if (documentDocumentationStatus(document) === "complete") return "complete";
+        const hasContent = Object.values(block?.details || {}).some((value) => String(value || "").trim());
+        return hasContent ? "in_progress" : "not_started";
+      }
+
+      const documentationState = (status) => documentationStates[status] || defaultDocumentationState;
+
+      function documentationRing(status, className = "", ariaHidden = false) {
+        const ring = documentationState(status);
+        const accessibility = ariaHidden
+          ? 'aria-hidden="true"'
+          : `role="img" aria-label="${esc(ring.ringLabel)}"`;
+        return `<span class="block-progress-ring ${esc(ring.ringTone)} ${esc(className)}" style="--block-progress:${ring.progress}" ${accessibility}><span>${esc(ring.ringGlyph)}</span></span>`;
+      }
       const searchKindLabels = Object.freeze({
         module: "Module",
         group: "Doc group",
@@ -2430,6 +2605,21 @@
         const href = String(value || "").trim();
         if (!href || /^(?:javascript|data|vbscript):/i.test(href)) return "#";
         return href;
+      }
+
+      function routedBlockId() {
+        return new URLSearchParams(window.location.hash.slice(1)).get("block");
+      }
+
+      function setBlockRoute(blockId, { replace = false } = {}) {
+        const base = window.location.href.split("#")[0];
+        const next = blockId ? `${base}#block=${encodeURIComponent(blockId)}` : base;
+        if (window.location.href === next) return;
+        try {
+          window.history[replace ? "replaceState" : "pushState"](null, "", next);
+        } catch (_) {
+          window.location.hash = blockId ? `block=${encodeURIComponent(blockId)}` : "";
+        }
       }
 
       function normalizedSearch(value) {
@@ -2635,23 +2825,11 @@
         return "empty";
       }
 
-      function compactCells(counts, total, limit = 12) {
-        const cellCount = total > 0 ? Math.min(limit, Math.max(3, total)) : 4;
-        if (total <= 0) return Array.from({ length: cellCount }, () => "empty");
+      function documentStatusCells(counts) {
         const priorities = ["issue", "complete", "drafting", "scoped", "empty"];
-        return Array.from({ length: cellCount }, (_, index) => {
-          const low = Math.floor((index * total) / cellCount);
-          const high = Math.ceil(((index + 1) * total) / cellCount);
-          let cursor = 0;
-          const bucket = { issue: 0, complete: 0, drafting: 0, scoped: 0, empty: 0 };
-          for (const status of priorities) {
-            const next = cursor + (counts[status] || 0);
-            const overlap = Math.max(0, Math.min(high, next) - Math.max(low, cursor));
-            bucket[status] = overlap;
-            cursor = next;
-          }
-          return priorities.find((status) => bucket[status] > 0) || "empty";
-        });
+        return priorities.flatMap((status) =>
+          Array.from({ length: counts[status] || 0 }, () => status)
+        );
       }
 
       function moduleMaturity(moduleId, module) {
@@ -2684,7 +2862,7 @@
           total,
           label,
           detail,
-          cells: compactCells(counts, total)
+          cells: documentStatusCells(counts)
         };
       }
 
@@ -2722,13 +2900,19 @@
             <div class="module-mini-title">${esc(module.name)}</div>
             <div class="module-mini-state">${esc(maturity.label)}</div>
             <div class="module-mini-status" aria-label="${esc(maturity.detail)}">
-              <div class="module-strand" style="--strand-count:${maturity.cells.length}">${maturity.cells.map((cell) => `<span class="strand-cell ${esc(cell)}"></span>`).join("")}</div>
+              <div class="module-strand">${maturity.cells.map((cell) => `<span class="strand-cell ${esc(cell)}" aria-hidden="true"></span>`).join("")}</div>
               <div class="module-mini-summary"><span>${esc(maturity.detail)}</span><span>${esc(moduleCode(moduleId))}</span></div>
             </div>
           </button>`
           );
         }).join("");
         return `<div class="module-mini-grid">${cards}<div class="module-mini module-add" aria-disabled="true"><span class="plus-icon" aria-hidden="true"></span><small>More DNA modules coming soon</small></div></div>`;
+      }
+
+      function moduleSectionHeading(moduleId, moduleName, documentCount, className = "") {
+        const classes = ["module-section-head", className].filter(Boolean).join(" ");
+        const countLabel = `${documentCount} DNA document${documentCount === 1 ? "" : "s"}`;
+        return `<div class="${classes}" data-tone="${moduleTone(moduleId)}"><span class="module-section-identity"><span class="module-mark" aria-hidden="true">${esc(moduleCode(moduleId))}</span><span class="module-section-title">${esc(moduleName)}</span></span><span class="module-section-count">${esc(countLabel)}</span></div>`;
       }
 
       function scopeContent() {
@@ -2741,12 +2925,27 @@
           byModule.get(document.moduleId).push(document);
         }
         return `<div class="scope-stack">${[...byModule.entries()].map(([moduleId, docs]) =>
-          `<div class="scope-module"><div class="scope-module-head"><span>${esc(modules[moduleId]?.name || moduleId)}</span><span>${docs.length}</span></div><div class="scope-docs">${docs.map((document) => `<span class="scope-doc">${esc(document.title)}</span>`).join("")}</div></div>`
+          `<div class="scope-module">${moduleSectionHeading(moduleId, modules[moduleId]?.name || moduleId, docs.length)}<div class="scope-docs">${docs.map((document) => {
+            const status = documentDocumentationStatus(document);
+            return `<span class="scope-doc ${esc(status)}" aria-label="${esc(`${document.title}: ${documentationState(status).ringLabel}`)}">${esc(document.title)}</span>`;
+          }).join("")}</div></div>`
         ).join("")}</div>`;
       }
 
       function skeletonBlocks(count = 4) {
         return Array.from({ length: count }, () => '<span class="skeleton-block"></span>').join("");
+      }
+
+      function documentationStatusKey() {
+        const rows = [
+          ["not_started", "Not started", "No substantive documentation"],
+          ["in_progress", "In progress", "Documentation has been drafted"],
+          ["complete", "Complete", "The DNA document is complete"],
+          ["issue", "Needs attention", "Documentation requires correction"]
+        ];
+        return `<div class="block-map-tools"><details class="status-key"><summary><span class="ui-icon key" aria-hidden="true"></span><span>Status key</span><span class="chevron" aria-hidden="true"></span></summary><div class="status-key-panel">${rows.map(([status, label, detail]) =>
+          `<div class="status-key-row">${documentationRing(status, "status-key-ring", true)}<span><strong>${esc(label)}</strong>${esc(detail)}</span></div>`
+        ).join("")}</div></details></div>`;
       }
 
       function blockMap() {
@@ -2763,21 +2962,27 @@
               moduleName: documentBlocks[0]?.module_name
             }));
 
-        return `<div class="block-map">${allDocuments.map((document, index) => {
+        const documentCountsByModule = allDocuments.reduce((counts, document) => {
+          counts.set(document.moduleId, (counts.get(document.moduleId) || 0) + 1);
+          return counts;
+        }, new Map());
+
+        return `<div class="block-map-shell">${documentationStatusKey()}<div class="block-map">${allDocuments.map((document, index) => {
           const documentBlocks = blocksByDocument.get(document.qualified_id) || [];
           const moduleChanged = index === 0 || allDocuments[index - 1]?.moduleId !== document.moduleId;
-          return `${moduleChanged ? `<div class="block-module-title"><span class="module-mark">${esc(moduleCode(document.moduleId))}</span>${esc(document.moduleName || modules[document.moduleId]?.name || document.moduleId)}</div>` : ""}
+          const documentStatus = documentDocumentationStatus(document);
+          return `${moduleChanged ? moduleSectionHeading(document.moduleId, document.moduleName || modules[document.moduleId]?.name || document.moduleId, documentCountsByModule.get(document.moduleId) || 0, "block-module-title") : ""}
           <div class="implementation-document">
-            <div class="document-heading"><div class="document-title">${esc(document.title)}</div><div class="document-id">${esc(document.qualified_id)}</div></div>
+            <div class="document-heading"><div class="document-title ${esc(documentStatus)}">${esc(document.title)}</div><div class="document-id">${esc(document.qualified_id)}</div></div>
             <div class="blocks">${documentBlocks.length ? documentBlocks.map((block) => {
-              const status = blockState(block.status);
-              return `<button class="dna-block ${esc(block.status)}" type="button" data-action="block" data-block="${esc(block.id)}" title="${esc(`${block.id}: ${block.title}`)}">
+              const status = blockDocumentationStatus(block, document);
+              return `<button class="dna-block ${esc(status)}" type="button" data-action="block" data-block="${esc(block.id)}" title="${esc(`${block.id}: ${block.title}`)}">
                 <span class="block-copy"><span class="block-slice">.${esc(block.slice)}</span><span class="block-title">${esc(block.title)}</span></span>
-                <span class="block-progress-ring ${esc(status.ringTone)}" style="--block-progress:${status.progress}" aria-label="${esc(status.ringLabel)}"><span>${esc(status.ringGlyph)}</span></span>
+                ${documentationRing(status)}
               </button>`;
             }).join("") : skeletonBlocks(3)}</div>
           </div>`;
-        }).join("")}</div>`;
+        }).join("")}</div></div>`;
       }
 
       function reviewContent() {
@@ -2785,9 +2990,8 @@
           <div class="progress-ring" style="--progress:${dashboardStats.documentationCompletion}"><strong>${dashboardStats.documentationCompletion}%</strong></div>
           <div><div class="review-title">${dashboardStats.documentationCompletion === 100 && dashboardStats.expressedDocuments ? "Foundation assembled" : "Foundation review"}</div>
             <div class="review-metrics">
-              <span class="metric">✓ ${dashboardStats.completeDocuments}/${dashboardStats.expressedDocuments}</span>
+              <span class="metric">✓ ${dashboardStats.completeDocuments}/${dashboardStats.expressedDocuments} DNA documents</span>
               ${dashboardStats.contractErrors ? `<span class="metric warn">× ${dashboardStats.contractErrors}</span>` : ""}
-              ${dashboardStats.blockedBlocks ? `<span class="metric warn">! ${dashboardStats.blockedBlocks}</span>` : ""}
             </div>
           </div>
         </div>`;
@@ -2825,13 +3029,16 @@
         }
         if (index === 3) {
           return dashboardStats.documentTotal
-            ? `${dashboardStats.scopedCompleteDocuments} of ${dashboardStats.documentTotal} complete`
-            : dashboardStats.expressedDocuments || "";
+            ? `${dashboardStats.documentTotal} DNA documents scoped`
+            : dashboardStats.expressedDocuments ? `${dashboardStats.expressedDocuments} DNA documents scoped` : "";
         }
         if (index === 4) {
-          return dashboardStats.blockTotal
-            ? `${dashboardStats.completeBlocks} of ${dashboardStats.blockTotal} complete`
+          return dashboardStats.documentTotal
+            ? `${dashboardStats.scopedCompleteDocuments} of ${dashboardStats.documentTotal} DNA documents complete`
             : "";
+        }
+        if (index === 6 && currentStage === "brainwave_documentation_complete" && dashboardStats.blockTotal) {
+          return `${dashboardStats.completeBlocks} of ${dashboardStats.blockTotal} DNA blocks implemented`;
         }
         return "";
       }
@@ -2958,7 +3165,7 @@
         document.querySelector(".back-button").hidden = inspectorHistory.length === 0;
       }
 
-      function openInspector(view, { remember = false } = {}) {
+      function openInspector(view, { remember = false, syncRoute = true } = {}) {
         const inspector = document.getElementById("inspector");
         const wasOpen = inspector.classList.contains("open");
         if (!wasOpen) {
@@ -2974,6 +3181,7 @@
         document.getElementById("scrim").classList.add("open");
         document.querySelector(".shell").inert = true;
         (inspectorHistory.length ? inspector.querySelector(".back-button") : inspector.querySelector(".close-button")).focus();
+        if (syncRoute) setBlockRoute(view.blockId || null, { replace: !view.blockId });
       }
 
       function backInspector() {
@@ -2981,10 +3189,11 @@
         if (!previousView) return;
         inspectorView = previousView;
         renderInspectorView(previousView);
+        setBlockRoute(previousView.blockId || null, { replace: true });
         (inspectorHistory.length ? document.querySelector(".back-button") : document.querySelector(".close-button")).focus();
       }
 
-      function closeInspector() {
+      function closeInspector({ syncRoute = true } = {}) {
         const inspector = document.getElementById("inspector");
         inspector.classList.remove("open");
         inspector.setAttribute("aria-hidden", "true");
@@ -2995,6 +3204,7 @@
         if (inspectorReturnFocus && typeof inspectorReturnFocus.focus === "function") {
           inspectorReturnFocus.focus();
         }
+        if (syncRoute) setBlockRoute(null, { replace: true });
       }
 
       function openContent(key) {
@@ -3039,7 +3249,7 @@
             <div class="state-row"><span>North Star</span><strong>${esc(titleCase(state.north_star?.status || "Waiting"))}</strong></div>
             <div class="state-row"><span>Build outcome</span><strong>${esc(titleCase(state.settings?.build_outcome || "Not set"))}</strong></div>
             <div class="state-row"><span>DNA modules</span><strong>${esc(dashboardStats.selectedModuleNames.join(" · ") || "—")}</strong></div>
-            <div class="state-row"><span>Documents</span><strong>${dashboardStats.completeDocuments}/${dashboardStats.expressedDocuments}</strong></div>
+            <div class="state-row"><span>DNA documents</span><strong>${dashboardStats.completeDocuments}/${dashboardStats.expressedDocuments}</strong></div>
             <div class="state-row"><span>Guidance</span><strong>${esc(titleCase(state.settings?.guidance_mode || "Not set"))}</strong></div>
             <div class="state-row"><span>Snapshot</span><strong>${esc(snapshot)}</strong></div>
           </div>`
@@ -3105,9 +3315,12 @@
         });
       }
 
-      function openBlock(blockId, { remember = false } = {}) {
+      function openBlock(blockId, { remember = false, syncRoute = true } = {}) {
         const block = blockById.get(blockId);
         if (!block) return;
+        const document = expressedDocumentById.get(block.document_id);
+        const status = blockDocumentationStatus(block, document);
+        const documentation = documentationState(status);
         const detailLabels = [
           ["context", "Context"],
           ["direction", "Direction"],
@@ -3124,14 +3337,27 @@
         openInspector({
           eyebrow: block.document_title || "DNA block",
           title: block.title,
-          meta: titleCase(block.status),
-          html: `<div class="block-identity"><span class="status-dot ${esc(block.status)}"></span>${esc(block.id)}</div><div class="block-sections">${sections || emptyReader()}</div>`,
-          sourcePath: block.path
-        }, { remember });
+          meta: documentation.ringLabel,
+          html: `<div class="block-identity"><span class="status-dot ${esc(status)}"></span>${esc(block.id)}</div><div class="block-sections">${sections || emptyReader()}</div>`,
+          sourcePath: block.path,
+          blockId: block.id
+        }, { remember, syncRoute });
+      }
+
+      function syncInspectorFromRoute() {
+        const blockId = routedBlockId();
+        if (blockId && blockById.has(blockId)) {
+          if (inspectorView?.blockId !== blockId) openBlock(blockId, { syncRoute: false });
+          return;
+        }
+        if (blockId) setBlockRoute(null, { replace: true });
+        if (inspectorView?.blockId) closeInspector({ syncRoute: false });
       }
 
       // Interaction and initial render
       document.addEventListener("click", (event) => {
+        const openStatusKey = document.querySelector(".status-key[open]");
+        if (openStatusKey && !event.target.closest(".status-key")) openStatusKey.open = false;
         const target = event.target.closest("[data-view], [data-action]");
         if (!target) return;
         if (target.dataset.view) {
@@ -3164,6 +3390,14 @@
       });
 
       document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+          const openStatusKey = document.querySelector(".status-key[open]");
+          if (openStatusKey) {
+            openStatusKey.open = false;
+            openStatusKey.querySelector("summary")?.focus();
+            return;
+          }
+        }
         if (event.key === "Escape" && document.getElementById("inspector").classList.contains("open")) {
           closeInspector();
           return;
@@ -3190,6 +3424,9 @@
 
       renderJourney();
       renderLibrary();
+      window.addEventListener("popstate", syncInspectorFromRoute);
+      window.addEventListener("hashchange", syncInspectorFromRoute);
+      syncInspectorFromRoute();
     })();
   </script>
 </body>
