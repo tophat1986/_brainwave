@@ -1,0 +1,191 @@
+{
+  "schema_version": "3.0.0",
+  "dna_code": "PSTR",
+  "dna_version": "0.1.0",
+  "name": "Product Strategy and Evidence DNA",
+  "description": "A proportionate catalogue for grounding product direction in user and market evidence, making assumptions and trade-offs explicit, and defining measurable outcomes without replacing the agreed North Star or expanding into implementation, experience design, brand identity, or go-to-market execution.",
+  "documentation_label": "product strategy and evidence documentation",
+  "module_contract": {
+    "when_relevant": "Use when a concept needs evidence, product choices, validation, or measurable outcomes beyond the concise direction captured in the North Star. Apply it proportionately for real-user products, meaningful investment, uncertain demand, or venture-building intent.",
+    "selection_signals": [
+      "The user problem, audience need, value proposition, alternatives, or demand contain consequential assumptions.",
+      "The concept is intended for real users, organisational investment, public launch, or venture development.",
+      "Product priorities, success measures, validation, or learning decisions need an explicit basis."
+    ],
+    "owns": [
+      "Evidence about user problems, needs, contexts, alternatives, and material market conditions.",
+      "Product value proposition, strategic product principles, trade-offs, and outcome-led priorities.",
+      "Assumptions, validation direction, product outcomes, product metrics, and experimentation intent."
+    ],
+    "does_not_own": [
+      "The concise agreed direction and boundaries held by the North Star.",
+      "The current software build scope and completion contract owned by Software Application DNA.",
+      "Journeys, interaction, interface content, visual composition, or experience evaluation owned by Product Design and Experience DNA.",
+      "Brand identity, technical architecture, commercial model, campaign strategy, legal interpretation, or service operations."
+    ],
+    "coordinates_with": {
+      "_DNA-PDEX": "Provide evidence, audiences, value, priorities, and outcomes that experience decisions must realise and test.",
+      "_DNA-BRND": "Provide agreed product positioning and evidence from which enduring identity may be derived.",
+      "_DNA-SAPP": "Provide product priorities, assumptions, constraints, and outcomes for implementation scope and architecture without prescribing technical choices.",
+      "_DNA-COMM": "Supply user value, willingness, assumptions, and product outcomes for commercial-model and pricing decisions.",
+      "_DNA-GROW": "Supply audiences, value, alternatives, evidence, and outcomes for market-facing strategy and growth learning.",
+      "_DNA-LEGL": "Surface product claims, intended users, geographies, data use, and regulated contexts requiring obligation or market-access analysis.",
+      "_DNA-SOPS": "Supply intended user outcomes and service assumptions for operational delivery and support design."
+    },
+    "live_verification": [
+      "Verify time-sensitive claims about users, competitors, alternatives, markets, platforms, and regulation against current credible evidence when they materially affect direction.",
+      "Label inference, anecdote, hypothesis, and validated evidence distinctly; do not convert model familiarity into claimed research."
+    ],
+    "timing": {
+      "consider_early": "Consider whenever real users, organisational investment, public launch, growth, revenue, or material uncertainty makes unsupported product assumptions costly.",
+      "can_defer_when": "May be very light for a deliberately throwaway demonstration whose purpose and audience are already clear and where no product or market claim will be treated as validated.",
+      "must_not_defer_when": "Do not defer when the concept seeks real adoption, revenue, funding, regulated impact, substantial investment, or resolution of uncertain demand."
+    }
+  },
+  "nodes": {
+    "00100": {
+      "id": "00100",
+      "type": "directory",
+      "path": "00100_product_evidence",
+      "title": "Product Evidence",
+      "parent_id": null,
+      "baseline": true,
+      "when_relevant": "Use to establish the evidence and confidence behind the problem, intended audience, existing behaviour, and meaningful alternatives without delaying progress for research that would not change a decision."
+    },
+    "00101": {
+      "id": "00101",
+      "type": "file",
+      "path": "00100_product_evidence/00101_problem_and_need_evidence.md",
+      "title": "Problem and Need Evidence",
+      "intent": "Define the user problem or unmet need, its context, frequency, severity, current evidence, confidence, and important unknowns without merely restating the North Star.",
+      "parent_id": "00100",
+      "baseline": true
+    },
+    "00102": {
+      "id": "00102",
+      "type": "file",
+      "path": "00100_product_evidence/00102_audience_context.md",
+      "title": "Audience Context",
+      "intent": "Describe material audience segments, circumstances, motivations, capabilities, constraints, and behaviours needed for product decisions; avoid fictional personas unsupported by evidence.",
+      "parent_id": "00100",
+      "baseline": true
+    },
+    "00103": {
+      "id": "00103",
+      "type": "file",
+      "path": "00100_product_evidence/00103_alternatives_and_market_context.md",
+      "title": "Alternatives and Market Context",
+      "intent": "Use when current alternatives, competitors, substitutes, category expectations, or market movement materially shape differentiation, viability, or product choices; distinguish current research from assumptions.",
+      "parent_id": "00100",
+      "baseline": false
+    },
+    "00200": {
+      "id": "00200",
+      "type": "directory",
+      "path": "00200_product_strategy",
+      "title": "Product Strategy",
+      "parent_id": null,
+      "baseline": true,
+      "when_relevant": "Use when the product needs an explicit value proposition, decision principles, or outcome-led priorities that translate the North Star and evidence into coherent product choices."
+    },
+    "00201": {
+      "id": "00201",
+      "type": "file",
+      "path": "00200_product_strategy/00201_value_proposition.md",
+      "title": "Value Proposition",
+      "intent": "Define the meaningful value offered to each material audience, why it is preferable to relevant alternatives, and what must be true for that value to be credible.",
+      "parent_id": "00200",
+      "baseline": true
+    },
+    "00202": {
+      "id": "00202",
+      "type": "file",
+      "path": "00200_product_strategy/00202_product_principles_and_tradeoffs.md",
+      "title": "Product Principles and Trade-offs",
+      "intent": "Define a small set of product decision principles, the tensions they resolve, and explicit trade-offs that should guide prioritisation without becoming generic aspirations.",
+      "parent_id": "00200",
+      "baseline": true
+    },
+    "00203": {
+      "id": "00203",
+      "type": "file",
+      "path": "00200_product_strategy/00203_capability_priorities.md",
+      "title": "Capability Priorities",
+      "intent": "Use when several capabilities compete for attention. Rank them by user and product outcomes, dependencies, evidence, and uncertainty while leaving the exact current build boundary to the software scope and completion contract.",
+      "parent_id": "00200",
+      "baseline": false
+    },
+    "00300": {
+      "id": "00300",
+      "type": "directory",
+      "path": "00300_assumptions_and_validation",
+      "title": "Assumptions and Validation",
+      "parent_id": null,
+      "baseline": false,
+      "when_relevant": "Use when consequential uncertainty about desirability, usability, viability, feasibility, adoption, or behaviour should be tested or deliberately accepted before larger investment."
+    },
+    "00301": {
+      "id": "00301",
+      "type": "file",
+      "path": "00300_assumptions_and_validation/00301_assumption_map.md",
+      "title": "Assumption Map",
+      "intent": "Identify consequential assumptions, their current evidence and confidence, what failure would affect, and which assumptions require clarification, validation, monitoring, or explicit acceptance.",
+      "parent_id": "00300",
+      "baseline": true
+    },
+    "00302": {
+      "id": "00302",
+      "type": "file",
+      "path": "00300_assumptions_and_validation/00302_validation_plan.md",
+      "title": "Validation Plan",
+      "intent": "Define the smallest credible research, prototype, observation, or test needed to resolve material assumptions, including participants or evidence sources, decision thresholds, and what will change based on the result.",
+      "parent_id": "00300",
+      "baseline": true
+    },
+    "00303": {
+      "id": "00303",
+      "type": "file",
+      "path": "00300_assumptions_and_validation/00303_learning_decisions.md",
+      "title": "Learning Decisions",
+      "intent": "Use when repeated validation will shape the product. Record current evidence-backed conclusions, confidence, and resulting product implications without becoming a duplicate research repository or decision log.",
+      "parent_id": "00300",
+      "baseline": false
+    },
+    "00400": {
+      "id": "00400",
+      "type": "directory",
+      "path": "00400_outcomes_and_measurement",
+      "title": "Outcomes and Measurement",
+      "parent_id": null,
+      "baseline": true,
+      "when_relevant": "Use when product success, user value, adoption, retention, behaviour change, learning, or venture progress needs to be measured beyond software uptime and operational telemetry."
+    },
+    "00401": {
+      "id": "00401",
+      "type": "file",
+      "path": "00400_outcomes_and_measurement/00401_outcome_model.md",
+      "title": "Outcome Model",
+      "intent": "Connect product capabilities and user behaviours to intended user and product outcomes, identifying leading indicators, lagging outcomes, harmful counter-signals, and material assumptions in the chain.",
+      "parent_id": "00400",
+      "baseline": true
+    },
+    "00402": {
+      "id": "00402",
+      "type": "file",
+      "path": "00400_outcomes_and_measurement/00402_product_metrics.md",
+      "title": "Product Metrics",
+      "intent": "Define decision-useful product measures, precise meanings, segments, safeguards, ownership, and interpretation while leaving event collection and technical telemetry implementation to Software Application DNA.",
+      "parent_id": "00400",
+      "baseline": true
+    },
+    "00403": {
+      "id": "00403",
+      "type": "file",
+      "path": "00400_outcomes_and_measurement/00403_experimentation_strategy.md",
+      "title": "Experimentation Strategy",
+      "intent": "Use when controlled product experiments are appropriate. Define hypotheses, guardrails, decision rules, ethical constraints, sample considerations, and how inconclusive results will be handled.",
+      "parent_id": "00400",
+      "baseline": false
+    }
+  }
+}

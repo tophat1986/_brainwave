@@ -27,11 +27,26 @@ Each module is JSON-compatible YAML with:
 - `name` — human-readable name
 - `description` — purpose and boundaries
 - `documentation_label` — name for the generated output
+- `module_contract` — explicit relevance, timing, ownership, exclusion, coordination, and evidence-freshness boundary
 - `nodes` — DNA document groups and DNA documents available for scoping
+
+Every `module_contract` has:
+
+- `when_relevant` — the semantic domain gate for selecting the module
+- `selection_signals` — meaningful conditions that strengthen relevance; these guide judgment and are not keywords
+- `owns` — decisions and outputs for which this module is authoritative
+- `does_not_own` — adjacent concerns that must remain with another domain or future module
+- `coordinates_with` — installed `_DNA-CODE` modules whose decisions this module consumes, supplies, or translates
+- `live_verification` — topics where current authoritative evidence must replace stale model memory when material
+- `timing` — when the domain should be considered, when it may be deliberately deferred, and the conditions that make deferral unsafe
+
+Module contracts prevent a broad module from quietly absorbing a shallow version of every discipline. The agent reads all relevant contracts, selects modules semantically, and explains material omissions before the user agrees. Coordination does not create shared ownership: one module remains authoritative and the other translates or implements its direction.
 
 Every node has a module-local five-digit `id`, `type`, module-relative `path`, `title`, `parent_id`, and `baseline` boolean. A DNA document group explains `when_relevant`; a DNA document explains its `intent`.
 
 `baseline: true` means the agent should normally recommend the node when its module, or its parent DNA document group, is relevant. `baseline: false` means the node should be recommended only when its specific intent is material. Baseline is proportionate scoping guidance, not engine-forced expression: explicit user-approved scope remains authoritative.
+
+Cross-cutting concerns such as accessibility, internationalisation, privacy, mobile use, product copy, AI behaviour, and distribution may affect several modules. Do not duplicate the decision in each domain. Keep intent with the owning module, translate it into domain-specific consequences in coordinating modules, and verify the complete thread during review.
 
 ## Minimum DNA Block Contract
 

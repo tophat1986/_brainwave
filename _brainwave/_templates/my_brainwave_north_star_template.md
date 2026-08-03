@@ -16,6 +16,8 @@ The North Star is the living, current interpretation of the immutable seed. Keep
 
 ## Boundaries and Non-Goals
 
+## What We Are Building
+
 ## Success Looks Like
 
 ## Open Questions

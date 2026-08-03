@@ -31,6 +31,22 @@ function writeJson(filePath, value) {
   fs.writeFileSync(filePath, `${JSON.stringify(value, null, 2)}\n`, "utf8");
 }
 
+function moduleContract(domain) {
+  return {
+    when_relevant: `Use when ${domain} is material.`,
+    selection_signals: [`The concept requires ${domain}.`],
+    owns: [`Own ${domain} decisions.`],
+    does_not_own: ["Do not absorb adjacent domains."],
+    coordinates_with: {},
+    live_verification: [],
+    timing: {
+      consider_early: `Consider ${domain} while shaping direction.`,
+      can_defer_when: `${domain} cannot affect the confirmed outcome or likely trajectory.`,
+      must_not_defer_when: `${domain} creates a material current constraint.`
+    }
+  };
+}
+
 function softwareModule() {
   return {
     schema_version: "3.0.0",
@@ -39,6 +55,7 @@ function softwareModule() {
     name: "Software Application DNA",
     description: "Software architecture documentation for an application.",
     documentation_label: "software architecture documentation",
+    module_contract: moduleContract("software architecture"),
     nodes: {
       "00200": {
         id: "00200",
@@ -70,6 +87,7 @@ function brandModule() {
     name: "Brand Identity DNA",
     description: "Enduring verbal and visual brand identity documentation.",
     documentation_label: "brand identity documentation",
+    module_contract: moduleContract("brand identity"),
     nodes: {
       "00200": {
         id: "00200",
@@ -217,6 +235,24 @@ test("uses canonical _brainwave terminology in source and console output", (t) =
   assert.equal(decisionsLog.includes(invalidDocumentationTerm), false);
 });
 
+test("dashboard JavaScript parses and presents the expanded DNA boundaries", () => {
+  const html = fs.readFileSync(path.join(SOURCE_ROOT, "_dashboard.html"), "utf8");
+  const scripts = [...html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/gi)]
+    .filter((match) => !/type=["']application\/json["']/i.test(match[1]))
+    .map((match) => match[2]);
+
+  assert.ok(scripts.length > 0);
+  for (const script of scripts) assert.doesNotThrow(() => new Function(script));
+  assert.match(html, /Domain boundary/);
+  assert.match(html, /Consider early:/);
+  assert.match(html, /data-tone="experience"/);
+  assert.match(html, /data-tone="product"/);
+  assert.match(html, /data-tone="commercial"/);
+  assert.match(html, /data-tone="growth"/);
+  assert.match(html, /data-tone="legal"/);
+  assert.match(html, /data-tone="operations"/);
+});
+
 test("keeps user-facing lifecycle terminology aligned across surfaces", () => {
   const sources = {
     readme: fs.readFileSync(path.join(SOURCE_PROJECT_ROOT, "README.md"), "utf8"),
@@ -315,6 +351,55 @@ test("session context adapts user orientation to guidance mode", () => {
   assert.match(legacy, /Guidance mode is `concise`/);
 });
 
+test("shaping context requires an explicitly confirmed build outcome for new settings", () => {
+  const settings = {
+    schema_version: "1.2.0",
+    configured: true,
+    onboarding_status: "complete",
+    guidance_mode: "concise",
+    technical_proficiency: "beginner",
+    ideation_mode: "thought_partner",
+    verbosity_budget: "standard",
+    build_outcome: null,
+    build_outcome_confirmed_at: null,
+    allowed_values: {
+      guidance_mode: ["guided", "concise"],
+      technical_proficiency: ["beginner", "intermediate", "architect"],
+      ideation_mode: ["thought_partner", "fast_execution"],
+      verbosity_budget: ["lean", "standard", "exhaustive"],
+      build_outcome: ["demonstration", "usable_first_version", "complete_product", "custom"]
+    }
+  };
+  const baseRuntime = {
+    root: SOURCE_ROOT,
+    cwd: SOURCE_PROJECT_ROOT,
+    state: { stage: "shaping_north_star" },
+    seed: "A concept.",
+    northStar: "# North Star\n\nStatus: shaping\n",
+    settings
+  };
+
+  const pending = buildSessionContext(baseRuntime);
+  const confirmed = buildSessionContext({
+    ...baseRuntime,
+    settings: {
+      ...settings,
+      build_outcome: "usable_first_version",
+      build_outcome_confirmed_at: "2026-08-03T12:00:00.000Z"
+    }
+  });
+
+  assert.match(pending, /How far would you like us to take this idea/);
+  assert.match(pending, /Show me the idea/);
+  assert.match(pending, /Do not infer or default the answer/);
+  assert.match(pending, /What We Are Building/);
+  assert.match(pending, /adaptive conversation rather than a questionnaire/);
+  assert.match(pending, /funding and economic sustainability/);
+  assert.match(pending, /Risk overrides an early project phase/);
+  assert.match(pending, /Proportional scope changes breadth, not the quality floor/);
+  assert.doesNotMatch(confirmed, /How far would you like us to take this idea/);
+});
+
 test("incomplete profile context asks the guidance question first", () => {
   const context = buildSessionContext({
     root: SOURCE_ROOT,
@@ -391,6 +476,10 @@ test("selecting DNA context explains modules in plain language", () => {
   });
 
   assert.match(context, /curated catalogues of possible documentation for relevant domains/);
+  assert.match(context, /timing and live-verification rules/);
+  assert.match(context, /deferrals with re-entry triggers/);
+  assert.match(context, /Legal, policy, and service consequences can require early attention/);
+  assert.match(context, /state that coverage gap rather than distributing it across adjacent modules/);
   assert.match(context, /exact user-facing label is "Choose DNA modules"/);
 });
 
@@ -425,11 +514,19 @@ test("session context uses canonical DNA stage labels and artifacts", () => {
     ...baseRuntime,
     state: { stage: "building_brainwave_documentation" }
   });
+  const reviewing = buildSessionContext({
+    ...baseRuntime,
+    state: { stage: "reviewing_brainwave_documentation" }
+  });
 
   assert.match(scoping, /exact user-facing label is "Scope DNA documents"/);
   assert.match(scoping, /proportionate DNA documents from the selected DNA modules/);
+  assert.match(scoping, /grouping obvious related documents into concise approval slices/);
   assert.match(building, /exact user-facing label is "Build DNA documentation"/);
   assert.match(building, /scoped DNA documentation and its traceable DNA blocks/);
+  assert.match(building, /never legal approval or compliance/);
+  assert.match(reviewing, /reject claims of legal advice, approval, certification, or compliance/);
+  assert.match(reviewing, /launch-readiness claims while required review gates remain unresolved/);
 });
 
 test("new settings require guidance mode while legacy configured settings remain valid", (t) => {
@@ -471,6 +568,37 @@ test("new settings require guidance mode while legacy configured settings remain
     "selecting_dna"
   );
   assert.equal(guidedResult.status, 0);
+});
+
+test("new settings block DNA selection until the build outcome is confirmed", (t) => {
+  const { root } = createWorkspace(t, {
+    selected: false,
+    stage: "shaping_north_star"
+  });
+  const settingsPath = path.join(root, "_settings.yaml");
+  const settings = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
+  settings.schema_version = "1.2.0";
+  settings.guidance_mode = "concise";
+  settings.build_outcome = null;
+  settings.build_outcome_confirmed_at = null;
+  settings.allowed_values.guidance_mode = ["guided", "concise"];
+  settings.allowed_values.build_outcome = [
+    "demonstration",
+    "usable_first_version",
+    "complete_product",
+    "custom"
+  ];
+  writeJson(settingsPath, settings);
+
+  const pending = runEngine(root, "transition", "selecting_dna");
+  assert.equal(pending.status, 1);
+  assert.match(pending.stderr, /Build outcome pre-check failed/);
+
+  settings.build_outcome = "usable_first_version";
+  settings.build_outcome_confirmed_at = "2026-08-03T12:00:00.000Z";
+  writeJson(settingsPath, settings);
+  const confirmed = runEngine(root, "transition", "selecting_dna");
+  assert.equal(confirmed.status, 0);
 });
 
 test("rejects a seed changed after capture", (t) => {
@@ -873,7 +1001,16 @@ test("uses the canonical four-letter identity as the only DNA module identity", 
     .filter((fileName) => fileName.endsWith(".yaml"))
     .sort();
 
-  assert.deepEqual(files, ["_DNA-BRND.yaml", "_DNA-SAPP.yaml"]);
+  assert.deepEqual(files, [
+    "_DNA-BRND.yaml",
+    "_DNA-COMM.yaml",
+    "_DNA-GROW.yaml",
+    "_DNA-LEGL.yaml",
+    "_DNA-PDEX.yaml",
+    "_DNA-PSTR.yaml",
+    "_DNA-SAPP.yaml",
+    "_DNA-SOPS.yaml"
+  ]);
   for (const fileName of files) {
     const module = JSON.parse(
       fs.readFileSync(path.join(SOURCE_ROOT, "_dna", fileName), "utf8")
@@ -883,17 +1020,44 @@ test("uses the canonical four-letter identity as the only DNA module identity", 
   }
 });
 
-test("ships explicit baseline semantics and targeted SAPP ownership coverage", () => {
-  const sapp = JSON.parse(
-    fs.readFileSync(path.join(SOURCE_ROOT, "_dna", "_DNA-SAPP.yaml"), "utf8")
+test("ships explicit module contracts, baseline semantics, and separated product domains", () => {
+  const shipped = Object.fromEntries(
+    ["BRND", "COMM", "GROW", "LEGL", "PDEX", "PSTR", "SAPP", "SOPS"].map((code) => [
+      code,
+      JSON.parse(
+        fs.readFileSync(path.join(SOURCE_ROOT, "_dna", `_DNA-${code}.yaml`), "utf8")
+      )
+    ])
   );
-  const brand = JSON.parse(
-    fs.readFileSync(path.join(SOURCE_ROOT, "_dna", "_DNA-BRND.yaml"), "utf8")
-  );
+  const {
+    BRND: brand,
+    COMM: commercial,
+    GROW: growth,
+    LEGL: legal,
+    PDEX: experience,
+    PSTR: strategy,
+    SAPP: sapp,
+    SOPS: service
+  } = shipped;
 
-  for (const module of [sapp, brand]) {
+  assert.equal(sapp.dna_version, "1.3.0");
+  assert.equal(brand.dna_version, "1.3.0");
+  assert.equal(experience.dna_version, "0.1.0");
+  assert.equal(strategy.dna_version, "0.1.0");
+  assert.equal(commercial.dna_version, "0.1.0");
+  assert.equal(growth.dna_version, "0.1.0");
+  assert.equal(legal.dna_version, "0.1.0");
+  assert.equal(service.dna_version, "0.1.0");
+  for (const module of Object.values(shipped)) {
     assert.equal(module.schema_version, "3.0.0");
-    assert.equal(module.dna_version, "1.3.0");
+    assert.equal(typeof module.module_contract.when_relevant, "string");
+    assert.ok(module.module_contract.selection_signals.length > 0);
+    assert.ok(module.module_contract.owns.length > 0);
+    assert.ok(module.module_contract.does_not_own.length > 0);
+    assert.ok(Array.isArray(module.module_contract.live_verification));
+    assert.equal(typeof module.module_contract.timing.consider_early, "string");
+    assert.equal(typeof module.module_contract.timing.can_defer_when, "string");
+    assert.equal(typeof module.module_contract.timing.must_not_defer_when, "string");
     for (const node of Object.values(module.nodes)) {
       assert.equal(typeof node.baseline, "boolean");
       assert.equal("required" in node, false);
@@ -907,13 +1071,82 @@ test("ships explicit baseline semantics and targeted SAPP ownership coverage", (
     }
   }
 
+  assert.equal(sapp.nodes["00100"].title, "Product Definition");
+  assert.equal(sapp.nodes["00100"].baseline, true);
+  assert.equal(sapp.nodes["00101"].title, "Product Scope and Completion");
+  assert.equal(sapp.nodes["00101"].baseline, true);
+  assert.match(sapp.nodes["00101"].intent, /included capabilities/);
   assert.equal("00204" in sapp.nodes, false);
   assert.equal(sapp.nodes["00203"].baseline, false);
-  assert.equal(sapp.nodes["00405"].title, "Privacy and Data Protection");
-  assert.equal(sapp.nodes["00604"].title, "Interaction and Accessibility");
+  assert.equal(sapp.nodes["00405"].title, "Privacy Engineering");
+  assert.match(sapp.nodes["00404"].intent, /Legal, Policy and Market Access DNA/);
+  assert.equal(sapp.nodes["00600"].title, "Experience Implementation");
+  assert.equal(
+    sapp.nodes["00604"].title,
+    "Accessibility and Localisation Implementation"
+  );
   assert.equal(sapp.nodes["00604"].baseline, true);
   assert.equal(sapp.nodes["00704"].title, "Operational Readiness");
+  assert.equal(sapp.nodes["01004"].title, "Product Analytics Instrumentation");
+  assert.match(sapp.nodes["01004"].intent, /decision purpose/);
   assert.equal(sapp.nodes["01101"].title, "Performance and Scalability Model");
+  assert.equal(sapp.nodes["01102"].title, "Technical Cost Model and Controls");
+  assert.equal(sapp.nodes["01102"].baseline, true);
+  assert.equal(experience.name, "Product Design and Experience DNA");
+  assert.equal(experience.nodes["00104"].title, "Design Exploration and References");
+  assert.match(experience.nodes["00104"].intent, /two materially different/);
+  assert.equal(experience.nodes["00402"].title, "Interface Copy");
+  assert.match(experience.nodes["00402"].intent, /developer notes/);
+  assert.equal(experience.nodes["00501"].title, "Visual Hierarchy and Composition");
+  assert.equal(experience.nodes["00601"].title, "Locale Strategy");
+  assert.equal(experience.nodes["00701"].title, "Experience Acceptance Criteria");
+  assert.equal(strategy.nodes["00101"].title, "Problem and Need Evidence");
+  assert.equal(strategy.nodes["00402"].title, "Product Metrics");
+  assert.equal(commercial.nodes["00501"].title, "Cost and Unit Economics");
+  assert.match(commercial.module_contract.timing.consider_early, /venture-intent/);
+  assert.equal(commercial.nodes["00301"].title, "Purchases, Subscriptions, Usage and Entitlements");
+  assert.match(commercial.nodes["00502"].intent, /working capital.*runway/);
+  assert.equal(commercial.nodes["00503"].baseline, true);
+  assert.match(commercial.module_contract.live_verification.join(" "), /tax advice/);
+  assert.equal(growth.nodes["00104"].title, "Responsible Growth Boundaries");
+  assert.match(growth.nodes["00104"].intent, /deceptive or coercive conversion/);
+  assert.equal(growth.nodes["00302"].title, "App Store Presence");
+  assert.equal(growth.nodes["00701"].title, "Funnel and Channel Measurement");
+  assert.equal(growth.nodes["00801"].title, "Sales Motion and Pipeline");
+  assert.equal(growth.nodes["00802"].title, "Partnership Strategy");
+  assert.doesNotMatch(growth.module_contract.does_not_own.join(" "), /Legal approval/);
+  assert.match(growth.module_contract.does_not_own.join(" "), /Operational service-support communications owned by Service Operations/);
+  assert.match(legal.description, /does not provide legal advice/);
+  assert.match(legal.module_contract.live_verification.join(" "), /current primary or authoritative/);
+  assert.match(legal.module_contract.timing.must_not_defer_when, /initial detection/);
+  assert.match(legal.module_contract.does_not_own.join(" "), /specialist owners/);
+  assert.equal(legal.nodes["00103"].baseline, false);
+  assert.equal(legal.nodes["00205"].title, "Incident, Breach and Notification Requirements");
+  assert.equal(legal.nodes["00500"].title, "Claims and Promotions");
+  assert.equal(legal.nodes["00600"].baseline, false);
+  assert.equal(legal.nodes["00700"].title, "Content, Data and Intellectual Property");
+  assert.equal(service.nodes["00101"].title, "Service Blueprint");
+  assert.equal(service.nodes["00302"].title, "Scheduling, Queues and Capacity");
+  assert.match(service.module_contract.timing.must_not_defer_when, /depends on people or partners/);
+  assert.match(service.module_contract.does_not_own.join(" "), /moderation-system governance/);
+  assert.equal(service.nodes["00500"].baseline, false);
+  assert.equal(service.nodes["00600"].baseline, false);
+  assert.equal(service.nodes["00701"].title, "Customer Success Model");
+  assert.match(service.module_contract.selection_signals.join(" "), /manage account success/);
+  assert.match(service.module_contract.owns.join(" "), /proactive value realisation/);
+});
+
+test("rejects a DNA module without an explicit module contract", (t) => {
+  const { root } = createWorkspace(t, { selected: false });
+  const dnaPath = path.join(root, "_dna", "_DNA-SAPP.yaml");
+  const dna = JSON.parse(fs.readFileSync(dnaPath, "utf8"));
+  delete dna.module_contract;
+  writeJson(dnaPath, dna);
+
+  const result = runEngine(root, "dna");
+
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /must define module_contract/);
 });
 
 test("rejects the retired required flag even when baseline guidance exists", (t) => {
@@ -1009,6 +1242,8 @@ test("integrates a nested _brainwave without replacing existing project guidance
   assert.match(second.stdout, /already current/);
   assert.match(agents, /^# Existing project guidance/m);
   assert.match(claudeGuide, /^# Existing Claude guidance/m);
+  assert.match(agents, /all user-facing output must follow the accepted Product Design and Experience and Brand documentation/);
+  assert.match(claudeGuide, /all user-facing output must follow the accepted Product Design and Experience and Brand documentation/);
   assert.equal((agents.match(/_brainwave:project-bridge:start/g) || []).length, 1);
   assert.equal((claudeGuide.match(/_brainwave:project-bridge:start/g) || []).length, 1);
   assert.deepEqual(
@@ -1182,16 +1417,30 @@ test("ships a clean template and installs into an empty repository", (t) => {
   const sourceSettings = JSON.parse(
     fs.readFileSync(path.join(SOURCE_ROOT, "_settings.yaml"), "utf8")
   );
-  assert.equal(sourceSettings.schema_version, "1.1.0");
+  assert.equal(sourceSettings.schema_version, "1.2.0");
   assert.equal(sourceSettings.guidance_mode, null);
+  assert.equal(sourceSettings.build_outcome, null);
+  assert.equal(sourceSettings.build_outcome_confirmed_at, null);
   assert.deepEqual(sourceSettings.allowed_values.guidance_mode, ["guided", "concise"]);
+  assert.deepEqual(sourceSettings.allowed_values.build_outcome, [
+    "demonstration",
+    "usable_first_version",
+    "complete_product",
+    "custom"
+  ]);
   assert.match(sourceSettings.onboarding_questions[0], /first time using _brainwave/);
+  assert.equal(sourceSettings.onboarding_questions.some((question) => /build outcome/i.test(question)), false);
   const seedTemplate = fs.readFileSync(
     path.join(SOURCE_ROOT, "_templates", "my_brainwave_seed_template.md"),
     "utf8"
   );
   assert.doesNotMatch(seedTemplate, /^## /m);
   assert.match(seedTemplate, /Preserve the user's supplied wording and meaning/);
+  const northStarTemplate = fs.readFileSync(
+    path.join(SOURCE_ROOT, "_templates", "my_brainwave_north_star_template.md"),
+    "utf8"
+  );
+  assert.match(northStarTemplate, /^## What We Are Building$/m);
   const sourcePackage = JSON.parse(
     fs.readFileSync(path.join(SOURCE_PROJECT_ROOT, "package.json"), "utf8")
   );

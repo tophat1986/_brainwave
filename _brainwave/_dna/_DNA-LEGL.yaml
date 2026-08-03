@@ -1,0 +1,275 @@
+{
+  "schema_version": "3.0.0",
+  "dna_code": "LEGL",
+  "dna_version": "0.1.0",
+  "name": "Legal, Policy and Market Access DNA",
+  "description": "A guarded, consequence-activated catalogue for detecting legal, regulatory, privacy, platform-policy, and market-access constraints early; maintaining source-linked obligations and review gates; and preparing focused questions and evidence for qualified review. It does not provide legal advice, decide that a product is compliant, or replace a suitably qualified professional.",
+  "documentation_label": "legal, policy and market access documentation",
+  "module_contract": {
+    "when_relevant": "Use when intended users, data, claims, content, money movement, distribution, geography, sector, or service model may create legal, regulatory, privacy, consumer, intellectual-property, accessibility, or platform-policy consequences. Initial detection is deliberately lightweight; depth follows risk and consequence rather than project size or maturity.",
+    "selection_signals": [
+      "The product will launch publicly, enter an app store or marketplace, operate across countries, or make eligibility, safety, performance, financial, health, professional, environmental, or comparative claims.",
+      "The product involves personal or sensitive data, tracking, children or vulnerable people, health, finance, education, employment, identity, location, communications, user-generated content, AI decisions, or regulated goods or services.",
+      "Users will pay, subscribe, transact, receive credit or payouts, accept terms, upload licensed material, encounter advertising, or rely on consequential information or recommendations."
+    ],
+    "owns": [
+      "Jurisdiction and market-access map, regulatory and policy classification, consequence triage, review gates, and qualified-review plan.",
+      "Source-linked obligation and evidence register covering privacy, consumer, accessibility, claims, content, intellectual property, distribution, and other applicable domains.",
+      "Legal-policy inputs for notices, consent, rights, terms, disclosures, claims, records, retention, and review cadence.",
+      "Explicit uncertainty, assumptions, source dates, unresolved questions, and matters requiring qualified professional judgment."
+    ],
+    "does_not_own": [
+      "Technical security, privacy, payment, data, accessibility, or compliance-control implementation owned by Software Application DNA.",
+      "User-facing disclosure and consent experience owned by Product Design and Experience DNA.",
+      "Commercial choices and customer promises owned by Commercial and Economics DNA or market strategy and campaign execution owned by Market Presence and Growth DNA.",
+      "Product strategy, brand identity, service operations, or a declaration that the product is legally compliant.",
+      "Trust and safety strategy, abuse or moderation policy, marketplace or network integrity, AI product assurance, clinical or professional safety, and sector-specific regulated practice. This module detects and routes those needs but does not replace their specialist owners."
+    ],
+    "coordinates_with": {
+      "_DNA-PSTR": "Receive intended users, claims, outcomes, evidence, geography, data use, and risk assumptions that may trigger obligations or review.",
+      "_DNA-PDEX": "Supply verified requirements for notice, consent, rights, accessibility, disclosures, controls, and comprehensible user-facing policy experiences.",
+      "_DNA-BRND": "Review naming, identity assets, endorsements, claims, and protected or licensed brand material where consequential.",
+      "_DNA-SAPP": "Supply current obligation and evidence requirements for technical controls, data handling, platform submission, testing, and auditability.",
+      "_DNA-COMM": "Review payment, subscription, cancellation, refund, promotion, tax, marketplace, and other customer-commercial obligations without choosing the model.",
+      "_DNA-GROW": "Review marketing claims, comparisons, endorsements, tracking, consent, direct communication, promotions, and distribution policy without choosing the campaign.",
+      "_DNA-SOPS": "Supply requirements for service records, safeguarding, complaints, escalation, accessibility, fulfilment, and customer-rights execution."
+    },
+    "live_verification": [
+      "Use current primary or authoritative sources for every material obligation, regulator position, platform policy, filing, deadline, or market-access decision; record jurisdiction, source link, publication or update date, retrieval date, and uncertainty.",
+      "Do not rely on model memory, generic templates, unsourced summaries, or outdated research for a consequential conclusion. Escalate ambiguity, conflict, or high impact to a suitably qualified professional.",
+      "Never describe generated analysis, wording, controls, or documents as legal advice, certification, approval, or proof of compliance."
+    ],
+    "timing": {
+      "consider_early": "Run a short consequence screen for any product intended for real people or public distribution; expand the module only when users, data, claims, money, geography, sector, content, or platform rules create a material trigger.",
+      "can_defer_when": "Detailed analysis may be deferred for a closed, disposable feasibility demonstration using no real personal data, money, regulated claims, public distribution, vulnerable users, or contractual commitment, provided the deferral and re-entry trigger are recorded.",
+      "must_not_defer_when": "Do not defer initial detection or the relevant review gate when real personal or sensitive data, children or vulnerable users, regulated or high-consequence activity, payments or subscriptions, public claims, user-generated content, app-store distribution, contractual commitments, or multi-market launch are planned."
+    }
+  },
+  "nodes": {
+    "00100": {
+      "id": "00100",
+      "type": "directory",
+      "path": "00100_consequence_and_market_access",
+      "title": "Consequence and Market Access",
+      "parent_id": null,
+      "baseline": true,
+      "when_relevant": "Use first to identify jurisdictions, distribution paths, regulated contexts, affected people, and the smallest safe review path before detailed work is scoped."
+    },
+    "00101": {
+      "id": "00101",
+      "type": "file",
+      "path": "00100_consequence_and_market_access/00101_market_and_jurisdiction_map.md",
+      "title": "Market and Jurisdiction Map",
+      "intent": "Identify launch, operation, user, customer, data, entity, payment, and distribution locations; record why each may matter, what is unknown, and which markets are explicitly excluded or gated.",
+      "parent_id": "00100",
+      "baseline": true
+    },
+    "00102": {
+      "id": "00102",
+      "type": "file",
+      "path": "00100_consequence_and_market_access/00102_regulatory_and_policy_classification.md",
+      "title": "Regulatory and Policy Classification",
+      "intent": "Screen the intended product, claims, users, data, transactions, content, and distribution against current authoritative sources; record possible classifications, consequences, confidence, and unresolved questions without asserting a legal conclusion.",
+      "parent_id": "00100",
+      "baseline": true
+    },
+    "00103": {
+      "id": "00103",
+      "type": "file",
+      "path": "00100_consequence_and_market_access/00103_review_gates_and_qualified_review.md",
+      "title": "Review Gates and Qualified Review",
+      "intent": "Define decisions or releases that must pause, the evidence and questions needed, the appropriate type of qualified reviewer or authority, ownership, timing, and criteria for recording—not fabricating—a review outcome. A proportionate low-risk screen may record that no qualified review is required at the current stage, with its rationale and re-entry trigger.",
+      "parent_id": "00100",
+      "baseline": false
+    },
+    "00200": {
+      "id": "00200",
+      "type": "directory",
+      "path": "00200_privacy_and_data_governance",
+      "title": "Privacy and Data Governance",
+      "parent_id": null,
+      "baseline": false,
+      "when_relevant": "Use when personal data, sensitive data, tracking, identity, communications, children, automated decisions, profiling, cross-border handling, or third-party processing is planned."
+    },
+    "00201": {
+      "id": "00201",
+      "type": "file",
+      "path": "00200_privacy_and_data_governance/00201_processing_purposes_roles_and_bases.md",
+      "title": "Processing Purposes, Roles and Bases",
+      "intent": "Map data subjects, data categories, purposes, necessity, organisational and third-party roles, possible legal bases or permissions, transfers, retention inputs, and questions requiring qualified review before technical design treats processing as permitted.",
+      "parent_id": "00200",
+      "baseline": true
+    },
+    "00202": {
+      "id": "00202",
+      "type": "file",
+      "path": "00200_privacy_and_data_governance/00202_notices_consent_and_rights_requirements.md",
+      "title": "Notices, Consent and Rights Requirements",
+      "intent": "Define source-backed requirements and accountable inputs for transparency, consent where applicable, withdrawal, access, correction, deletion, objection, portability, complaints, and contact routes; do not substitute generated copy for required review.",
+      "parent_id": "00200",
+      "baseline": true
+    },
+    "00203": {
+      "id": "00203",
+      "type": "file",
+      "path": "00200_privacy_and_data_governance/00203_high_risk_data_assessment.md",
+      "title": "High-risk Data Assessment",
+      "intent": "Use when sensitive data, children, vulnerable people, monitoring, profiling, biometrics, location, large-scale processing, automated consequential decisions, novel technology, or another high-risk pattern may require additional assessment, safeguards, consultation, or prohibition.",
+      "parent_id": "00200",
+      "baseline": false
+    },
+    "00204": {
+      "id": "00204",
+      "type": "file",
+      "path": "00200_privacy_and_data_governance/00204_tracking_and_marketing_permissions.md",
+      "title": "Tracking and Marketing Permissions",
+      "intent": "Use when cookies, SDKs, device identifiers, attribution, profiling, advertising, email, SMS, push, or similar communications require source-backed consent, preference, disclosure, suppression, record, and withdrawal requirements by market and channel.",
+      "parent_id": "00200",
+      "baseline": false
+    },
+    "00205": {
+      "id": "00205",
+      "type": "file",
+      "path": "00200_privacy_and_data_governance/00205_incident_breach_and_notification_requirements.md",
+      "title": "Incident, Breach and Notification Requirements",
+      "intent": "Use when a security, privacy, confidentiality, safety, or service incident may trigger legal or policy duties to assess, preserve evidence, document decisions, notify an authority, affected person, customer, insurer, partner, or platform, or act within a deadline. Supply current jurisdiction-specific requirements to Software Application incident response and Service Operations escalation without owning their execution.",
+      "parent_id": "00200",
+      "baseline": false
+    },
+    "00300": {
+      "id": "00300",
+      "type": "directory",
+      "path": "00300_customer_and_service_obligations",
+      "title": "Customer and Service Obligations",
+      "parent_id": null,
+      "baseline": false,
+      "when_relevant": "Use when people register, pay, subscribe, buy digital or physical goods, book services, rely on service commitments, or need complaint and redress routes."
+    },
+    "00301": {
+      "id": "00301",
+      "type": "file",
+      "path": "00300_customer_and_service_obligations/00301_terms_disclosures_and_acceptance_requirements.md",
+      "title": "Terms, Disclosures and Acceptance Requirements",
+      "intent": "Identify required agreements, disclosures, contracting parties, acceptance evidence, versioning, eligibility, notices, accessible presentation, and review ownership; prepare a brief for qualified drafting rather than declaring generated terms enforceable.",
+      "parent_id": "00300",
+      "baseline": true
+    },
+    "00302": {
+      "id": "00302",
+      "type": "file",
+      "path": "00300_customer_and_service_obligations/00302_consumer_payment_and_subscription_requirements.md",
+      "title": "Consumer, Payment and Subscription Requirements",
+      "intent": "Use when customers pay or subscribe to identify current requirements affecting price presentation, renewal, trials, cancellation, refunds, receipts, delivery, complaints, disputes, promotions, digital content, marketplaces, and vulnerable customers.",
+      "parent_id": "00300",
+      "baseline": false
+    },
+    "00303": {
+      "id": "00303",
+      "type": "file",
+      "path": "00300_customer_and_service_obligations/00303_accessibility_and_equal_access_requirements.md",
+      "title": "Accessibility and Equal-access Requirements",
+      "intent": "Use when jurisdiction, sector, distribution, employment, public-service, or customer context creates specific accessibility, non-discrimination, reasonable-adjustment, language, or equal-access duties beyond the product's general accessibility direction.",
+      "parent_id": "00300",
+      "baseline": false
+    },
+    "00400": {
+      "id": "00400",
+      "type": "directory",
+      "path": "00400_distribution_and_platform_policy",
+      "title": "Distribution and Platform Policy",
+      "parent_id": null,
+      "baseline": false,
+      "when_relevant": "Use when an app store, marketplace, payment platform, social platform, identity provider, API, embedded SDK, or other gatekeeper can constrain launch or ongoing access."
+    },
+    "00401": {
+      "id": "00401",
+      "type": "file",
+      "path": "00400_distribution_and_platform_policy/00401_platform_policy_and_submission_requirements.md",
+      "title": "Platform Policy and Submission Requirements",
+      "intent": "Map current platform rules, declarations, metadata, privacy disclosures, account or deletion expectations, payment constraints, review evidence, test access, age or content ratings, SDK responsibilities, and re-verification dates for each intended distribution route.",
+      "parent_id": "00400",
+      "baseline": true
+    },
+    "00402": {
+      "id": "00402",
+      "type": "file",
+      "path": "00400_distribution_and_platform_policy/00402_third_party_terms_and_dependencies.md",
+      "title": "Third-party Terms and Dependencies",
+      "intent": "Use when platforms, APIs, models, datasets, open-source software, content, vendors, or partners impose terms, attribution, usage, territorial, data, brand, audit, continuity, or termination constraints that affect the product.",
+      "parent_id": "00400",
+      "baseline": false
+    },
+    "00500": {
+      "id": "00500",
+      "type": "directory",
+      "path": "00500_claims_and_promotions",
+      "title": "Claims and Promotions",
+      "parent_id": null,
+      "baseline": false,
+      "when_relevant": "Use when product or marketing claims, advice, comparisons, endorsements, testimonials, influencers, pricing, availability, or promotions could create material consequences."
+    },
+    "00501": {
+      "id": "00501",
+      "type": "file",
+      "path": "00500_claims_and_promotions/00501_claims_and_promotional_review.md",
+      "title": "Claims and Promotional Review",
+      "intent": "Inventory consequential product, health, financial, professional, performance, environmental, comparative, testimonial, influencer, price, or availability claims; link evidence and limitations; and define approval, placement, monitoring, and withdrawal gates.",
+      "parent_id": "00500",
+      "baseline": true
+    },
+    "00600": {
+      "id": "00600",
+      "type": "directory",
+      "path": "00600_obligations_and_evidence_governance",
+      "title": "Obligations and Evidence Governance",
+      "parent_id": null,
+      "baseline": false,
+      "when_relevant": "Maintain traceable, current, owned legal and policy inputs without turning the module into a false certification system."
+    },
+    "00601": {
+      "id": "00601",
+      "type": "file",
+      "path": "00600_obligations_and_evidence_governance/00601_obligations_and_evidence_register.md",
+      "title": "Obligations and Evidence Register",
+      "intent": "Record each material question or obligation, jurisdiction, applicability basis, authoritative source and dates, uncertainty, accountable owner, required control or evidence, qualified-review status, decision, and next review trigger.",
+      "parent_id": "00600",
+      "baseline": true
+    },
+    "00602": {
+      "id": "00602",
+      "type": "file",
+      "path": "00600_obligations_and_evidence_governance/00602_change_monitoring_and_review_cadence.md",
+      "title": "Change Monitoring and Review Cadence",
+      "intent": "Define which laws, regulator guidance, platform policies, classifications, claims, markets, vendors, and product changes must be rechecked, by whom, at what cadence or trigger, and how affected decisions are reopened.",
+      "parent_id": "00600",
+      "baseline": true
+    },
+    "00700": {
+      "id": "00700",
+      "type": "directory",
+      "path": "00700_content_data_and_intellectual_property",
+      "title": "Content, Data and Intellectual Property",
+      "parent_id": null,
+      "baseline": false,
+      "when_relevant": "Use when user content, generated content, datasets, names, logos, domains, software, media, licences, or third-party intellectual property could constrain creation, distribution, training, reuse, ownership, or market entry."
+    },
+    "00701": {
+      "id": "00701",
+      "type": "file",
+      "path": "00700_content_data_and_intellectual_property/00701_content_data_and_ip_rights.md",
+      "title": "Content, Data and Intellectual-property Rights",
+      "intent": "Map ownership, permission, licence, provenance, attribution, permitted use, training or generation rights, territorial limits, user grants, takedown, expiry, and evidence for content, data, software, media, and generated material.",
+      "parent_id": "00700",
+      "baseline": true
+    },
+    "00702": {
+      "id": "00702",
+      "type": "file",
+      "path": "00700_content_data_and_intellectual_property/00702_naming_and_trade_mark_review.md",
+      "title": "Naming and Trade-mark Review",
+      "intent": "Use when a public product or venture name, logo, domain, store listing, or market expansion warrants clearance inputs, ownership evidence, registration strategy questions, conflicts, territories, and qualified review.",
+      "parent_id": "00700",
+      "baseline": false
+    }
+  }
+}

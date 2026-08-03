@@ -75,12 +75,27 @@ function hasAllowedValue(settings, key) {
     : Boolean(value);
 }
 
-function settingsRequireGuidanceMode(settings) {
+function settingsSchemaAtLeast(settings, minimumMajor, minimumMinor) {
   const match = String(settings.schema_version || "").match(/^(\d+)\.(\d+)/);
   if (!match) return false;
   const major = Number(match[1]);
   const minor = Number(match[2]);
-  return major > 1 || (major === 1 && minor >= 1);
+  return major > minimumMajor || (major === minimumMajor && minor >= minimumMinor);
+}
+
+function settingsRequireGuidanceMode(settings) {
+  return settingsSchemaAtLeast(settings, 1, 1);
+}
+
+function settingsRequireBuildOutcome(settings) {
+  return settingsSchemaAtLeast(settings, 1, 2);
+}
+
+function buildOutcomeIsReady(settings) {
+  return Boolean(
+    !settingsRequireBuildOutcome(settings) ||
+      (hasAllowedValue(settings, "build_outcome") && settings.build_outcome_confirmed_at)
+  );
 }
 
 function settingsAreConfigured(settings) {
@@ -160,23 +175,28 @@ function buildSessionContext(runtime) {
     );
   } else if (stage === "shaping_north_star") {
     lines.push(
-      `The North Star status is \`${northStarStatus(runtime.northStar)}\`. Read ${at("_my_brainwave_north_star.md")} first, use the seed only for provenance, and ask one to three material questions at a time.`
+      `The North Star status is \`${northStarStatus(runtime.northStar)}\`. Read ${at("_my_brainwave_north_star.md")} first, use the seed only for provenance, and treat discovery as an adaptive conversation rather than a questionnaire. Interpret existing answers before asking one to three high-leverage questions, route follow-ups only where material, and give compact progress reflections at natural checkpoints. At the appropriate moment, resolve the smallest consequential branch across funding and economic sustainability, discovery and adoption, legal or policy exposure from users/data/claims/money/markets/distribution, and human service or support dependencies. Risk overrides an early project phase; record the reason and re-entry trigger for any material deferral. Proportional scope changes breadth, not the quality floor.`
     );
+    if (settingsConfigured && !buildOutcomeIsReady(runtime.settings)) {
+      lines.push(
+        `Once the concept is understood well enough for the choice to be meaningful, ask "How far would you like us to take this idea?" Offer "Show me the idea" (\`demonstration\`), "Build a usable first version" (\`usable_first_version\`), and "Build the complete product" (\`complete_product\`), with the host's normal free-form choice for a custom outcome. Do not infer or default the answer. Explain what the choice means for this concept, obtain explicit confirmation, record it and its confirmation time in ${at("_settings.yaml")}, and capture the concise agreed interpretation under "What We Are Building" in the North Star before agreement.`
+      );
+    }
   } else if (stage === "selecting_dna") {
     lines.push(
-      `Explain that DNA modules are curated catalogues of possible documentation for relevant domains. Recommend modules from ${at("_dna/")} using semantic judgment and obtain explicit agreement before recording selection.`
+      `Explain that DNA modules are curated catalogues of possible documentation for relevant domains. Silently review material coverage, read each module's complete \`module_contract\` including its timing and live-verification rules, and recommend modules from ${at("_dna/")} using semantic judgment rather than keywords. Explain material selections, omissions, and deferrals with re-entry triggers. Legal, policy, and service consequences can require early attention even for a small build. If a material concern requires specialist coverage not provided by the installed DNA—such as trust and safety, marketplace or network integrity, AI product assurance, or regulated-sector practice—state that coverage gap rather than distributing it across adjacent modules, then obtain agreement to add the specialist module or accept the explicit limitation. Obtain explicit agreement before recording selection.`
     );
   } else if (stage === "scoping_brainwave_documentation") {
     lines.push(
-      `Propose only proportionate DNA documents from the selected DNA modules and obtain explicit agreement before recording DNA document scope in ${at("_brainwave_state.yaml")}.`
+      `Propose only proportionate DNA documents from the selected DNA modules, grouping obvious related documents into concise approval slices so scoping does not become a long form. Obtain explicit agreement before recording DNA document scope in ${at("_brainwave_state.yaml")}.`
     );
   } else if (stage === "building_brainwave_documentation") {
     lines.push(
-      "Build only the scoped DNA documentation and its traceable DNA blocks in coherent, dependency-aware slices using the North Star as direction."
+      "Build only the scoped DNA documentation and its traceable DNA blocks in coherent, dependency-aware slices using the North Star as direction. For user-facing output, require real-user copy, strong visual hierarchy, distinctive agreed direction, and rendered-experience verification; never permit development narration or generic agent defaults to leak into the product. In Legal, Policy and Market Access documentation, completion means the source-linked consequence screen and review route are documented, never legal approval or compliance; preserve jurisdiction, source dates, uncertainty, and qualified-review gates for every material issue."
     );
   } else if (stage === "reviewing_brainwave_documentation") {
     lines.push(
-      "Review every expressed document for gaps, contradictions, cross-module consistency, and downstream readiness."
+      "Review every expressed document for gaps, contradictions, cross-module consistency, and downstream readiness. Verify that product-facing criteria prevent verbose developer-facing copy, weak hierarchy, generic visual defaults, and untested claims of experience quality. When Legal, Policy and Market Access DNA is selected, reject claims of legal advice, approval, certification, or compliance; material obligations without jurisdiction and current authoritative sources and dates; hidden uncertainty; fabricated qualified-review outcomes; and launch-readiness claims while required review gates remain unresolved."
     );
   }
 

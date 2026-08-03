@@ -1,0 +1,292 @@
+{
+  "schema_version": "3.0.0",
+  "dna_code": "SOPS",
+  "dna_version": "0.1.0",
+  "name": "Service Operations and Support DNA",
+  "description": "A proportionate catalogue for designing and operating the human and organisational work surrounding a product: service delivery, support, fulfilment, scheduling, capacity, quality, complaints, escalation, readiness, and improvement. It connects the customer experience to real operational ownership without absorbing technical operations, commercial policy, or legal interpretation.",
+  "documentation_label": "service operations and support documentation",
+  "module_contract": {
+    "when_relevant": "Use when customer value or safety depends on people, support, human-led onboarding, customer success, adoption guidance, teaching, coaching, execution of an established moderation policy, review, fulfilment, bookings, appointments, partners, vendors, complaints, manual intervention, or a service promise. Use lightly for self-service products unless meaningful support or human escalation is required.",
+    "selection_signals": [
+      "People will onboard, implement, guide adoption, manage account success, teach, advise, coach, review, approve, moderate, match, fulfil, schedule, deliver, investigate, or intervene as part of the product outcome.",
+      "Customers need support channels, response expectations, complaints, disputes, safeguarding, exception handling, recovery, or a handoff between digital and human service.",
+      "Staffing, availability, capacity, quality, partners, operating hours, queues, service cost, or operational readiness could limit launch or growth."
+    ],
+    "owns": [
+      "Service blueprint, operational roles and ownership, fulfilment workflow, handoffs, scheduling, queues, capacity, and service quality.",
+      "Support channels, intake, case lifecycle, knowledge, service communication, escalation, complaint, dispute, and recovery operations.",
+      "Staffing and partner readiness, service procedures, launch-readiness evidence, service measures, feedback, and operational improvement.",
+      "Human-led onboarding, implementation support, adoption guidance, account-health operations, proactive value realisation, at-risk recovery, and renewal or expansion handoffs."
+    ],
+    "does_not_own": [
+      "Infrastructure operations, technical incident response, observability, deployment, or technical reliability owned by Software Application DNA. This module owns customer and service incident coordination and serious human escalation.",
+      "User-facing product journeys and interface content owned by Product Design and Experience DNA.",
+      "Commercial promises, pricing, refund and cancellation policy, or service economics owned by Commercial and Economics DNA. This module owns operational execution of confirmed policy.",
+      "Legal rights, safeguarding obligations, regulatory interpretation, product strategy, brand identity, or growth strategy.",
+      "Trust and safety strategy, abuse policy, moderation-system governance, marketplace or network integrity, AI product assurance, clinical or professional safety, and sector-specific regulated practice. This module may execute confirmed human workflows but does not replace their specialist owners."
+    ],
+    "coordinates_with": {
+      "_DNA-PSTR": "Use intended outcomes, audiences, assumptions, and evidence to define the service contribution to product value.",
+      "_DNA-PDEX": "Connect digital journeys to human handoffs, support, fulfilment, recovery, and service communication as one experience.",
+      "_DNA-BRND": "Apply the enduring voice and behavioural identity to human service and support without scripting away judgment or empathy.",
+      "_DNA-SAPP": "Supply roles, queues, records, permissions, notifications, tooling, integrations, audit, and operational-control requirements for implementation.",
+      "_DNA-COMM": "Translate service promises, delivery cost, cancellation, refund, dispute, partner, and capacity assumptions into executable operations.",
+      "_DNA-GROW": "Align launch, campaigns, lifecycle communication, and growth pace with actual service availability, quality, and capacity.",
+      "_DNA-LEGL": "Apply current obligations and review gates for safeguarding, complaints, records, accessibility, customer rights, regulated delivery, and escalation."
+    },
+    "live_verification": [
+      "Verify current sector standards, safeguarding routes, professional requirements, service benchmarks, labour or partner constraints, channel capabilities, and vendor commitments when material.",
+      "Validate workflows with the people who will deliver and receive the service; do not treat an agent-generated process map as evidence that the operation is workable."
+    ],
+    "timing": {
+      "consider_early": "Consider whenever value, safety, trust, or delivery depends on human work, support, scheduling, fulfilment, moderation, partners, or operational capacity—even if the software itself is still an early proof.",
+      "can_defer_when": "May be light or deferred for a private self-service feasibility demonstration with no real customers, service commitment, human delivery, complaint handling, safety escalation, booking, payment, or partner dependency.",
+      "must_not_defer_when": "Do not defer when the product promise depends on people or partners, real bookings or paid services will occur, service capacity constrains growth, vulnerable users need escalation, or failures require a human recovery path."
+    }
+  },
+  "nodes": {
+    "00100": {
+      "id": "00100",
+      "type": "directory",
+      "path": "00100_service_model",
+      "title": "Service Model",
+      "parent_id": null,
+      "baseline": true,
+      "when_relevant": "Establish how digital, human, partner, and customer actions combine to deliver the promised outcome and who owns each part."
+    },
+    "00101": {
+      "id": "00101",
+      "type": "file",
+      "path": "00100_service_model/00101_service_blueprint.md",
+      "title": "Service Blueprint",
+      "intent": "Map the customer journey to visible service interactions, backstage work, people, partners, systems, evidence, dependencies, wait states, handoffs, exceptions, and recovery without duplicating the interface journey.",
+      "parent_id": "00100",
+      "baseline": true
+    },
+    "00102": {
+      "id": "00102",
+      "type": "file",
+      "path": "00100_service_model/00102_roles_ownership_and_authority.md",
+      "title": "Roles, Ownership and Authority",
+      "intent": "Define operational roles, responsibilities, permissions, decision authority, segregation where needed, coverage, escalation, supervision, and accountable ownership across internal teams and partners.",
+      "parent_id": "00100",
+      "baseline": true
+    },
+    "00103": {
+      "id": "00103",
+      "type": "file",
+      "path": "00100_service_model/00103_service_promise_and_availability.md",
+      "title": "Service Promise and Availability",
+      "intent": "Use when customers rely on hours, response, delivery, coverage, languages, channels, locations, professional availability, or service levels to define a realistic promise, exclusions, dependencies, communication, and measurement.",
+      "parent_id": "00100",
+      "baseline": false
+    },
+    "00200": {
+      "id": "00200",
+      "type": "directory",
+      "path": "00200_support_experience",
+      "title": "Support Experience",
+      "parent_id": null,
+      "baseline": false,
+      "when_relevant": "Use when customers or operators need help, questions answered, cases tracked, exceptions handled, or problems escalated beyond self-service product recovery."
+    },
+    "00201": {
+      "id": "00201",
+      "type": "file",
+      "path": "00200_support_experience/00201_support_channels_and_intake.md",
+      "title": "Support Channels and Intake",
+      "intent": "Define who can seek help, channel roles, discoverability, availability, accessibility, language, identity and context capture, privacy boundaries, acknowledgements, routing, expected response, and unsupported routes.",
+      "parent_id": "00200",
+      "baseline": true
+    },
+    "00202": {
+      "id": "00202",
+      "type": "file",
+      "path": "00200_support_experience/00202_case_lifecycle_and_escalation.md",
+      "title": "Case Lifecycle and Escalation",
+      "intent": "Define case states, priority, ownership, queues, service targets, handoffs, customer updates, notes, evidence, permissions, escalation, resolution, closure, reopening, and quality checks.",
+      "parent_id": "00200",
+      "baseline": true
+    },
+    "00203": {
+      "id": "00203",
+      "type": "file",
+      "path": "00200_support_experience/00203_knowledge_and_self_service.md",
+      "title": "Knowledge and Self-service",
+      "intent": "Use when customers or staff need reusable guidance to define audience, content ownership, source of truth, search and navigation, accessibility, safe automation boundaries, feedback, review cadence, expiry, and escalation from failed self-service.",
+      "parent_id": "00200",
+      "baseline": false
+    },
+    "00300": {
+      "id": "00300",
+      "type": "directory",
+      "path": "00300_fulfilment_and_delivery",
+      "title": "Fulfilment and Delivery",
+      "parent_id": null,
+      "baseline": false,
+      "when_relevant": "Use when value depends on work being scheduled, assigned, performed, reviewed, delivered, confirmed, or handed between people, systems, locations, or partners."
+    },
+    "00301": {
+      "id": "00301",
+      "type": "file",
+      "path": "00300_fulfilment_and_delivery/00301_fulfilment_workflow.md",
+      "title": "Fulfilment Workflow",
+      "intent": "Define the operational lifecycle from request or order through validation, assignment, preparation, delivery, confirmation, records, exception, cancellation, and completion with ownership and acceptance evidence.",
+      "parent_id": "00300",
+      "baseline": true
+    },
+    "00302": {
+      "id": "00302",
+      "type": "file",
+      "path": "00300_fulfilment_and_delivery/00302_scheduling_queues_and_capacity.md",
+      "title": "Scheduling, Queues and Capacity",
+      "intent": "Use when appointments, shifts, classes, inventory, queues, skills, locations, time zones, buffers, no-shows, cancellations, overbooking, or demand peaks require explicit allocation and capacity rules.",
+      "parent_id": "00300",
+      "baseline": false
+    },
+    "00303": {
+      "id": "00303",
+      "type": "file",
+      "path": "00300_fulfilment_and_delivery/00303_partner_and_vendor_handoffs.md",
+      "title": "Partner and Vendor Handoffs",
+      "intent": "Use when another organisation helps deliver value to define responsibilities, inputs, outputs, status, data boundaries, service expectations, evidence, failure handling, communication, dependencies, and exit paths.",
+      "parent_id": "00300",
+      "baseline": false
+    },
+    "00304": {
+      "id": "00304",
+      "type": "file",
+      "path": "00300_fulfilment_and_delivery/00304_service_quality_controls.md",
+      "title": "Service Quality Controls",
+      "intent": "Define observable quality criteria, preparation, competency checks, supervision, sampling, review, calibration, customer evidence, defect handling, corrective action, and ownership proportionate to the service consequence.",
+      "parent_id": "00300",
+      "baseline": true
+    },
+    "00400": {
+      "id": "00400",
+      "type": "directory",
+      "path": "00400_resolution_and_safeguarding",
+      "title": "Resolution and Safeguarding",
+      "parent_id": null,
+      "baseline": false,
+      "when_relevant": "Use when complaints, disputes, harm, vulnerable users, misconduct, urgent cases, refunds, or serious service failures require controlled human judgment and recovery."
+    },
+    "00401": {
+      "id": "00401",
+      "type": "file",
+      "path": "00400_resolution_and_safeguarding/00401_complaints_and_disputes.md",
+      "title": "Complaints and Disputes",
+      "intent": "Define accessible intake, acknowledgement, classification, independence, investigation, evidence, communication, resolution authority, timescales, redress, external escalation inputs, records, and learning for complaints and disputes.",
+      "parent_id": "00400",
+      "baseline": true
+    },
+    "00402": {
+      "id": "00402",
+      "type": "file",
+      "path": "00400_resolution_and_safeguarding/00402_cancellation_and_refund_execution.md",
+      "title": "Cancellation and Refund Execution",
+      "intent": "Use when commercial or legal policy must become an operational process covering eligibility inputs, authority, customer communication, supplier effects, payment action, evidence, reconciliation, exceptions, abuse, and completion.",
+      "parent_id": "00400",
+      "baseline": false
+    },
+    "00403": {
+      "id": "00403",
+      "type": "file",
+      "path": "00400_resolution_and_safeguarding/00403_safety_and_serious_incident_escalation.md",
+      "title": "Safety and Serious-incident Escalation",
+      "intent": "Use when harm, abuse, safeguarding, clinical or professional risk, threats, emergencies, vulnerable people, or serious misconduct may occur to define recognition, immediate action, specialist or authority escalation, records, communication limits, staff support, and review under qualified guidance.",
+      "parent_id": "00400",
+      "baseline": false
+    },
+    "00500": {
+      "id": "00500",
+      "type": "directory",
+      "path": "00500_operational_readiness",
+      "title": "Operational Readiness",
+      "parent_id": null,
+      "baseline": false,
+      "when_relevant": "Establish whether the people, knowledge, capacity, tools, partners, controls, and fallback paths needed for the agreed service scope are actually ready."
+    },
+    "00501": {
+      "id": "00501",
+      "type": "file",
+      "path": "00500_operational_readiness/00501_staffing_skills_and_capacity.md",
+      "title": "Staffing, Skills and Capacity",
+      "intent": "Define role volumes, skills, checks, training, supervision, availability, coverage, utilisation, demand assumptions, constraints, contingency, ownership, and thresholds for adding or reducing capacity.",
+      "parent_id": "00500",
+      "baseline": true
+    },
+    "00502": {
+      "id": "00502",
+      "type": "file",
+      "path": "00500_operational_readiness/00502_service_procedures_and_runbooks.md",
+      "title": "Service Procedures and Runbooks",
+      "intent": "Define the smallest set of usable, owned, versioned procedures for recurring, exceptional, high-risk, opening, closing, handover, and fallback work; include decision authority and verification without documenting trivial actions.",
+      "parent_id": "00500",
+      "baseline": true
+    },
+    "00503": {
+      "id": "00503",
+      "type": "file",
+      "path": "00500_operational_readiness/00503_service_launch_readiness.md",
+      "title": "Service Launch Readiness",
+      "intent": "Use before real service begins to verify people, training, capacity, channels, permissions, tools, suppliers, communications, data handling, escalation, fallback, tests, open risks, owners, and go-or-hold authority.",
+      "parent_id": "00500",
+      "baseline": false
+    },
+    "00600": {
+      "id": "00600",
+      "type": "directory",
+      "path": "00600_service_measurement_and_improvement",
+      "title": "Service Measurement and Improvement",
+      "parent_id": null,
+      "baseline": false,
+      "when_relevant": "Define how the service will learn from outcomes, quality, demand, effort, failure, complaints, and frontline experience without rewarding speed or volume at the expense of users."
+    },
+    "00601": {
+      "id": "00601",
+      "type": "file",
+      "path": "00600_service_measurement_and_improvement/00601_service_measures.md",
+      "title": "Service Measures",
+      "intent": "Define a balanced set of outcome, quality, timeliness, accessibility, demand, capacity, effort, cost, complaint, safety, and recovery measures with definitions, sources, owners, segments, caveats, thresholds, and actions.",
+      "parent_id": "00600",
+      "baseline": true
+    },
+    "00602": {
+      "id": "00602",
+      "type": "file",
+      "path": "00600_service_measurement_and_improvement/00602_feedback_learning_and_improvement.md",
+      "title": "Feedback, Learning and Improvement",
+      "intent": "Define how customer, frontline, partner, quality, complaint, and incident signals become prioritised learning and controlled changes, including ownership, feedback closure, verification, and protection against anecdote-driven churn.",
+      "parent_id": "00600",
+      "baseline": true
+    },
+    "00700": {
+      "id": "00700",
+      "type": "directory",
+      "path": "00700_customer_success_and_adoption",
+      "title": "Customer Success and Adoption",
+      "parent_id": null,
+      "baseline": false,
+      "when_relevant": "Use when people proactively help customers implement, onboard, adopt, realise continuing value, recover an at-risk relationship, or prepare for a renewal or expansion handoff beyond reactive support."
+    },
+    "00701": {
+      "id": "00701",
+      "type": "file",
+      "path": "00700_customer_success_and_adoption/00701_customer_success_model.md",
+      "title": "Customer Success Model",
+      "intent": "Define eligible customers, human-led onboarding and implementation boundaries, intended value milestones, account health inputs, proactive interventions, roles, capacity, product and support handoffs, renewal or expansion handoff, measures, and safeguards against confusing customer success with sales pressure.",
+      "parent_id": "00700",
+      "baseline": true
+    },
+    "00702": {
+      "id": "00702",
+      "type": "file",
+      "path": "00700_customer_success_and_adoption/00702_managed_account_plans_and_reviews.md",
+      "title": "Managed Account Plans and Reviews",
+      "intent": "Use when named or high-touch accounts need shared outcomes, stakeholders, implementation dependencies, adoption evidence, risks, actions, review cadence, ownership, escalation, and an explicit boundary between service guidance, commercial negotiation, and product commitments.",
+      "parent_id": "00700",
+      "baseline": false
+    }
+  }
+}

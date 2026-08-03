@@ -3,9 +3,64 @@
   "dna_code": "SAPP",
   "dna_version": "1.3.0",
   "name": "Software Application DNA",
-  "description": "Architecture documentation for AI-built software products and digital services, with an emphasis on web applications.",
-  "documentation_label": "software architecture documentation",
+  "description": "Implementation-scope and architecture documentation for AI-built software products and digital services, with an emphasis on web applications.",
+  "documentation_label": "software product and architecture documentation",
+  "module_contract": {
+    "when_relevant": "Use when a concept will be implemented as a software application or digital service and needs an explicit completion boundary plus a production-capable technical foundation.",
+    "selection_signals": [
+      "The concept includes software behaviour, persistent data, integrations, user accounts, or deployable digital interfaces.",
+      "The build needs explicit architecture, security, quality, operational, scale, or continuity decisions.",
+      "The confirmed build outcome needs a verifiable implementation scope and completion contract."
+    ],
+    "owns": [
+      "The software build boundary and implementation completion contract.",
+      "System architecture, data design, security controls, interfaces, technical delivery, quality, operations, scale, and continuity.",
+      "Technical implementation of experience, brand, product, and policy direction supplied by their owning domains."
+    ],
+    "does_not_own": [
+      "User and market evidence, product strategy, or outcome selection owned by Product Strategy and Evidence DNA.",
+      "User journeys, interaction intent, interface hierarchy, UX content, visual composition, or experience evaluation owned by Product Design and Experience DNA.",
+      "Enduring verbal and visual identity owned by Brand Identity DNA.",
+      "Commercial and economic strategy owned by Commercial and Economics DNA; market-facing growth owned by Market Presence and Growth DNA; legal and distribution-policy interpretation owned by Legal, Policy and Market Access DNA; and customer-service operation owned by Service Operations and Support DNA."
+    ],
+    "coordinates_with": {
+      "_DNA-PSTR": "Translate agreed product evidence, priorities, and outcomes into a bounded implementation without redefining them.",
+      "_DNA-PDEX": "Implement the agreed experience, content, accessibility, adaptation, and localisation direction as reliable software.",
+      "_DNA-BRND": "Translate brand primitives and application rules into technical assets, tokens, and delivery constraints.",
+      "_DNA-COMM": "Implement payments, subscriptions, entitlements, billing events, and commercial controls without deciding the business model.",
+      "_DNA-GROW": "Implement technical discovery, attribution, store, campaign, and lifecycle capabilities without owning growth strategy.",
+      "_DNA-LEGL": "Implement current confirmed obligations, disclosures, privacy controls, distribution requirements, and evidence without making legal determinations.",
+      "_DNA-SOPS": "Implement internal tools, integrations, case flows, fulfilment support, and service-operating controls without owning the service model."
+    },
+    "live_verification": [
+      "Verify current platform, runtime, security, privacy, accessibility-implementation, and distribution requirements when they materially constrain the build.",
+      "Prefer current authoritative standards and platform policies over static model memory."
+    ],
+    "timing": {
+      "consider_early": "Consider whenever the concept will be implemented as software; scope and architecture must reflect the confirmed outcome and likely trajectory before code establishes accidental constraints.",
+      "can_defer_when": "Only optional document groups may be deferred where their concerns cannot affect the confirmed outcome or likely evolution; the module itself is not deferrable for a software build.",
+      "must_not_defer_when": "Do not defer the implementation boundary, architecture baseline, or material security, data, quality, cost, platform, or continuity concerns exposed by the concept."
+    }
+  },
   "nodes": {
+    "00100": {
+      "id": "00100",
+      "type": "directory",
+      "path": "00100_product_definition",
+      "title": "Product Definition",
+      "parent_id": null,
+      "baseline": true,
+      "when_relevant": "Establish what is being built and what completion means for every software application, using the confirmed build outcome and North Star without redefining either."
+    },
+    "00101": {
+      "id": "00101",
+      "type": "file",
+      "path": "00100_product_definition/00101_product_scope_and_completion.md",
+      "title": "Product Scope and Completion",
+      "intent": "Define the included capabilities, deliberately postponed or excluded capabilities, permitted simplifications, and verifiable completion conditions for the confirmed build outcome without duplicating detailed journeys, architecture, or test strategy.",
+      "parent_id": "00100",
+      "baseline": true
+    },
     "00200": {
       "id": "00200",
       "type": "directory",
@@ -119,7 +174,7 @@
       "type": "file",
       "path": "00400_security/00404_compliance_controls.md",
       "title": "Compliance Controls",
-      "intent": "Define applicable obligations and the technical or operational controls that satisfy them; evidence readiness remains owned by Audit Readiness.",
+      "intent": "Translate obligations and review gates supplied by Legal, Policy and Market Access DNA into technical or operational controls, ownership, tests, and evidence. When that module is absent and an obligation may be material, flag the need for current qualified review rather than making the legal determination inside Software Application DNA.",
       "parent_id": "00400",
       "baseline": false
     },
@@ -127,8 +182,8 @@
       "id": "00405",
       "type": "file",
       "path": "00400_security/00405_privacy_data_protection.md",
-      "title": "Privacy and Data Protection",
-      "intent": "Use when personal, sensitive, or regulated data requires explicit decisions about classification, minimisation, permitted processing and sharing, rights handling, deletion, residency, or privacy boundaries.",
+      "title": "Privacy Engineering",
+      "intent": "Translate agreed processing purposes, roles, legal bases, notices, consent, and rights requirements into data classification, minimisation, collection, storage, access, sharing, deletion, residency, and rights-handling mechanisms. Legal, Policy and Market Access DNA owns the underlying obligation and policy interpretation.",
       "parent_id": "00400",
       "baseline": false
     },
@@ -171,45 +226,45 @@
     "00600": {
       "id": "00600",
       "type": "directory",
-      "path": "00600_ui_ux",
-      "title": "UI UX",
+      "path": "00600_experience_implementation",
+      "title": "Experience Implementation",
       "parent_id": null,
       "baseline": false,
-      "when_relevant": "Use when an interactive experience requires journeys, navigation, information architecture, accessible interaction behaviour, or reusable visual rules."
+      "when_relevant": "Use when an interactive client must translate Product Design and Experience and Brand direction into a maintainable technical architecture, reusable interface system, accessible semantics, or locale-aware implementation."
     },
     "00601": {
       "id": "00601",
       "type": "file",
-      "path": "00600_ui_ux/00601_user_journeys.md",
-      "title": "User Journeys",
-      "intent": "Map critical user goals, end-to-end flows, alternate paths, failure states, and recovery journeys.",
+      "path": "00600_experience_implementation/00601_client_architecture.md",
+      "title": "Client Architecture",
+      "intent": "Define client-side boundaries, rendering and state responsibilities, navigation implementation, data synchronisation, offline behaviour, and platform-specific technical constraints without redefining the intended experience.",
       "parent_id": "00600",
       "baseline": false
     },
     "00602": {
       "id": "00602",
       "type": "file",
-      "path": "00600_ui_ux/00602_information_architecture.md",
-      "title": "Information Architecture",
-      "intent": "Define content, feature and route hierarchy, navigation, labelling, findability, and orientation across the experience.",
+      "path": "00600_experience_implementation/00602_experience_contract_mapping.md",
+      "title": "Experience Contract Mapping",
+      "intent": "Map agreed journeys, interaction states, content rules, adaptation requirements, and experience acceptance criteria to implementing components and technical boundaries without duplicating Product Design and Experience documentation.",
       "parent_id": "00600",
       "baseline": false
     },
     "00603": {
       "id": "00603",
       "type": "file",
-      "path": "00600_ui_ux/00603_design_system_tokens.md",
-      "title": "Design System Tokens",
-      "intent": "Translate any selected brand primitives into implementation-ready product tokens and define software-owned consistency rules without duplicating brand identity guidance.",
+      "path": "00600_experience_implementation/00603_design_system_implementation.md",
+      "title": "Design System Implementation",
+      "intent": "Translate approved brand and experience primitives into implementation-ready tokens, components, variants, documentation, ownership, and regression controls without choosing the visual or interaction direction.",
       "parent_id": "00600",
       "baseline": false
     },
     "00604": {
       "id": "00604",
       "type": "file",
-      "path": "00600_ui_ux/00604_interaction_accessibility.md",
-      "title": "Interaction and Accessibility",
-      "intent": "Define software-owned interaction behaviour, interface states, input, keyboard and focus rules, semantic accessibility, error recovery, and adaptive or reduced-motion behaviour without duplicating brand expression.",
+      "path": "00600_experience_implementation/00604_accessibility_and_localisation_implementation.md",
+      "title": "Accessibility and Localisation Implementation",
+      "intent": "Define technical semantics, input and focus handling, assistive-technology support, reduced-motion behaviour, locale resources, formatting, bidirectional rendering, and verification needed to implement the owning experience direction.",
       "parent_id": "00600",
       "baseline": true
     },
@@ -337,7 +392,7 @@
       "title": "Observability",
       "parent_id": null,
       "baseline": false,
-      "when_relevant": "Use when logs, metrics, traces, service objectives, alerts, or operational dashboards are important to safe operation."
+      "when_relevant": "Use when logs, metrics, traces, product events, service objectives, alerts, or decision-supporting dashboards are important to learning or safe operation."
     },
     "01001": {
       "id": "01001",
@@ -366,6 +421,15 @@
       "parent_id": "01000",
       "baseline": false
     },
+    "01004": {
+      "id": "01004",
+      "type": "file",
+      "path": "01000_observability/01004_product_analytics_instrumentation.md",
+      "title": "Product Analytics Instrumentation",
+      "intent": "Implement the product events and measures defined by Product Strategy and Evidence DNA through explicit event and data contracts, identity boundaries, consent controls, schema evolution, validation, quality monitoring, lineage, and retention. Keep behavioural measurement distinct from operational telemetry and avoid collecting data without a named decision purpose.",
+      "parent_id": "01000",
+      "baseline": true
+    },
     "01100": {
       "id": "01100",
       "type": "directory",
@@ -373,7 +437,7 @@
       "title": "Scalability and FinOps",
       "parent_id": null,
       "baseline": false,
-      "when_relevant": "Use when growth, performance, capacity, or infrastructure cost could materially shape the design."
+      "when_relevant": "Review proportionately for every hosted or externally usable product, and use in depth when setup cost, recurring infrastructure, storage, egress, AI or third-party APIs, performance, capacity, or growth could materially shape technical or commercial viability."
     },
     "01101": {
       "id": "01101",
@@ -388,10 +452,10 @@
       "id": "01102",
       "type": "file",
       "path": "01100_scalability_finops/01102_cost_controls.md",
-      "title": "Cost Controls",
-      "intent": "Define infrastructure cost drivers, allocation expectations, budgets, measurement, and engineering guardrails.",
+      "title": "Technical Cost Model and Controls",
+      "intent": "Model initial setup and recurring technical costs across hosting, compute, storage, egress, AI, APIs, vendors, environments, per-user and per-transaction usage, and expected scaling curves; define budgets, attribution, measurement, caps, alerts, and engineering guardrails. Commercial and Economics DNA owns the complete venture and unit-economics model.",
       "parent_id": "01100",
-      "baseline": false
+      "baseline": true
     },
     "01103": {
       "id": "01103",

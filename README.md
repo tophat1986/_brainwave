@@ -22,17 +22,43 @@ The idea moves through seven stages:
 
 The AI agent provides the judgment: it interprets the concept, asks material questions, and develops the foundation with the user. The local engine preserves the process, identities, versions, and agreed scope. Once the foundation is accepted, _brainwave becomes passive while the North Star and DNA documentation continue guiding implementation.
 
+Discovery is progressive rather than a long setup form. The agent interprets what is already known, asks one to three high-leverage questions at a time, and uses early answers about intended outcome, users, reach, platforms, languages, risk, operations, and business intent to route only the follow-ups that matter. A smaller build has a narrower boundary, not a lower quality floor.
+
 ## Bundled DNA modules
 
-Two DNA modules are included. Their persistent IDs carry through to their documents and blocks.
+Eight DNA modules are included. Their persistent IDs carry through to their documents and blocks.
+
+- **`_DNA-PSTR` — Product Strategy and Evidence DNA**
+  Evidence, value proposition, product principles, assumptions, validation, outcomes, and product measurement without replacing the North Star.
+
+- **`_DNA-PDEX` — Product Design and Experience DNA**
+  Journeys, interaction, interface content, hierarchy, accessibility, responsive and localised behaviour, visual composition, distinctiveness, and experience evaluation.
 
 - **`_DNA-SAPP` — Software Application DNA**
-  Architecture guidance for applications and digital services, including data, security, APIs, interfaces, operations, quality, scale, and continuity.
+  Implementation-scope and architecture guidance for applications and digital services, including completion expectations, data, security, APIs, experience implementation, operations, quality, scale, and continuity.
 
 - **`_DNA-BRND` — Brand Identity DNA**
   Enduring verbal and visual identity guidance, including direction, voice, terminology, visual foundations, accessibility, and application.
 
-DNA modules are menus, not checklists. The agent recommends only the documents that are material to the project. More domains can be added through future modules.
+- **`_DNA-COMM` — Commercial and Economics DNA**
+  Funding, revenue, payer, pricing, packaging, monetisation, payment policy, cost, cash requirements, runway, unit economics, measurement, and commercial viability.
+
+- **`_DNA-GROW` — Market Presence and Growth DNA**
+  Positioning application, launch, channels, SEO, ASO, acquisition, conversion, sales, partnerships, lifecycle, referral, content, responsible-growth boundaries, and measurement.
+
+- **`_DNA-LEGL` — Legal, Policy and Market Access DNA**
+  Guarded detection, source-linked obligations, market and platform access, review gates, and qualified-review preparation—not legal advice or a compliance declaration.
+
+- **`_DNA-SOPS` — Service Operations and Support DNA**
+  Human service delivery, support, customer success, fulfilment, scheduling, capacity, complaints, escalation, readiness, quality, and improvement.
+
+DNA modules are menus, not checklists. Their explicit contracts state what each domain owns, excludes, coordinates with, and must verify using current evidence. The agent recommends only the modules and documents that are material to the project.
+
+For a typical public venture, the agent normally considers Product Strategy, Product Design and Experience, Software Application, Brand Identity, Commercial and Economics, and Market Presence and Growth together. Legal, Policy and Market Access always receives a short consequence screen and expands only when triggered. Service Operations and Support expands when people, partners, support, customer success, fulfilment, scheduling, execution of established moderation policy, or escalation help deliver the value. These are routing heuristics, not an automatic requirement to select all eight modules.
+
+The core library can grow through specialist overlays for trust and safety, marketplaces and networks, AI product assurance, and regulated sectors. Venture-building is a selectable profile across clear domains rather than one oversized module or a compulsory company-building questionnaire.
+
+When an idea materially needs one of those uninstalled specialist owners, _brainwave must state that specialist coverage is required. It cannot silently spread that responsibility across neighbouring modules or present the foundation as comprehensive.
 
 ## Which model should I use?
 
@@ -86,7 +112,7 @@ Recommended when you have not created your project repository yet.
 
      > `build concept` using the seed file exactly as written.
 
-5. Shape and explicitly agree the North Star.
+5. Shape the North Star, explicitly agree how far the current idea should be taken, and then agree the resulting direction.
 6. Choose the relevant DNA modules and scope only the DNA documents the project needs.
 7. Let the engine scaffold the scoped DNA documents beneath `_brainwave/_documentation/_DNA-CODE/`, then build their content and traceable DNA blocks.
 8. Review the foundation before accepting `brainwave_documentation_complete`.

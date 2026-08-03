@@ -1,11 +1,13 @@
 {
-  "schema_version": "1.1.0",
+  "schema_version": "1.2.0",
   "configured": false,
   "onboarding_status": "pending",
   "guidance_mode": null,
   "technical_proficiency": null,
   "ideation_mode": "thought_partner",
   "verbosity_budget": "standard",
+  "build_outcome": null,
+  "build_outcome_confirmed_at": null,
   "profile_last_updated": null,
   "onboarding_questions": [
     "Is this your first time using _brainwave? (yes — guide me / no — keep it concise)",
@@ -17,7 +19,8 @@
     "guidance_mode": ["guided", "concise"],
     "technical_proficiency": ["beginner", "intermediate", "architect"],
     "ideation_mode": ["thought_partner", "fast_execution"],
-    "verbosity_budget": ["lean", "standard", "exhaustive"]
+    "verbosity_budget": ["lean", "standard", "exhaustive"],
+    "build_outcome": ["demonstration", "usable_first_version", "complete_product", "custom"]
   },
   "engine": {
     "max_files_per_cycle": 120

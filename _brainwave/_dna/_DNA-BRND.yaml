@@ -5,6 +5,41 @@
   "name": "Brand Identity DNA",
   "description": "A proportionate catalogue for defining the enduring brand identity of a product or organisation. It translates an agreed North Star into recognisable verbal and visual direction without redefining product strategy or expanding into campaigns, acquisition, or go-to-market planning.",
   "documentation_label": "brand identity documentation",
+  "module_contract": {
+    "when_relevant": "Use when a product, organisation, service, or public-facing initiative needs a recognisable and coherent identity across verbal, visual, and applied touchpoints.",
+    "selection_signals": [
+      "People need to recognise, remember, trust, or distinguish the product or organisation.",
+      "The concept needs deliberate naming, voice, visual identity, imagery, iconography, or brand application rules.",
+      "Multiple surfaces or contributors need a consistent identity rather than agent-selected generic styling."
+    ],
+    "owns": [
+      "Enduring brand positioning and intended perception derived from the agreed North Star.",
+      "Stable verbal identity, visual identity, art direction, and brand asset governance.",
+      "Brand-level accessibility and inclusive-expression constraints across touchpoints."
+    ],
+    "does_not_own": [
+      "Product strategy, user or market evidence, product outcomes, or prioritisation owned by Product Strategy and Evidence DNA.",
+      "User journeys, interface hierarchy, interaction behaviour, UX content structure, or usability owned by Product Design and Experience DNA.",
+      "Software implementation, interface components, runtime assets, or technical delivery owned by Software Application DNA.",
+      "Campaign concepts, acquisition channels, SEO, ASO, launch planning, or wider go-to-market strategy."
+    ],
+    "coordinates_with": {
+      "_DNA-PSTR": "Derive identity direction from agreed product positioning and evidence without redefining the product strategy.",
+      "_DNA-PDEX": "Supply verbal and visual primitives that Product Design and Experience applies to user-facing journeys, content, and interface composition.",
+      "_DNA-SAPP": "Supply approved primitives and asset constraints for technical implementation and governance.",
+      "_DNA-GROW": "Supply enduring identity and expression rules for launch, acquisition, store, content, and campaign applications without owning channel strategy.",
+      "_DNA-LEGL": "Supply names, marks, identity assets, claims, and intended markets for current clearance, licensing, cultural, and accessibility review where material."
+    },
+    "live_verification": [
+      "Verify trademark, naming, cultural, licensing, and jurisdiction-specific accessibility constraints when they materially affect an identity decision.",
+      "Do not present availability or clearance as current fact without checking an authoritative source."
+    ],
+    "timing": {
+      "consider_early": "Consider when recognition, trust, public presentation, differentiation, multiple touchpoints, or multiple contributors will matter to the product's likely trajectory.",
+      "can_defer_when": "May be deferred for a private disposable proof where naming and visual identity cannot shape learning, implementation, or later reuse.",
+      "must_not_defer_when": "Do not defer when the build is public-facing, intended to grow, needs a distinctive interface, or will create reusable customer-facing assets."
+    }
+  },
   "nodes": {
     "00100": {
       "id": "00100",

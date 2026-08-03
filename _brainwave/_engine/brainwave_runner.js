@@ -212,13 +212,15 @@ function blockSectionMarkdown(section, heading) {
 
 function defaultSettings() {
   return {
-    schema_version: "1.1.0",
+    schema_version: "1.2.0",
     configured: false,
     onboarding_status: "pending",
     guidance_mode: null,
     technical_proficiency: null,
     ideation_mode: "thought_partner",
     verbosity_budget: "standard",
+    build_outcome: null,
+    build_outcome_confirmed_at: null,
     profile_last_updated: null,
     onboarding_questions: [
       "Is this your first time using _brainwave? (yes — guide me / no — keep it concise)",
@@ -230,7 +232,8 @@ function defaultSettings() {
       guidance_mode: ["guided", "concise"],
       technical_proficiency: ["beginner", "intermediate", "architect"],
       ideation_mode: ["thought_partner", "fast_execution"],
-      verbosity_budget: ["lean", "standard", "exhaustive"]
+      verbosity_budget: ["lean", "standard", "exhaustive"],
+      build_outcome: ["demonstration", "usable_first_version", "complete_product", "custom"]
     },
     engine: {
       max_files_per_cycle: 120
@@ -289,7 +292,9 @@ function defaultManifestSkeleton() {
       guidance_mode: null,
       technical_proficiency: null,
       ideation_mode: null,
-      verbosity_budget: null
+      verbosity_budget: null,
+      build_outcome: null,
+      build_outcome_confirmed_at: null
     },
     engine: {
       status: "idle",
@@ -374,6 +379,18 @@ function isPlainObject(value) {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
+function validateStringArray(value, label, options = {}) {
+  const allowEmpty = Boolean(options.allowEmpty);
+  if (!Array.isArray(value) || (!allowEmpty && value.length === 0)) {
+    throw new Error(`${label} must be ${allowEmpty ? "an" : "a non-empty"} array.`);
+  }
+  for (const entry of value) {
+    if (typeof entry !== "string" || !entry.trim()) {
+      throw new Error(`${label} must contain only non-empty strings.`);
+    }
+  }
+}
+
 function isSafeModulePath(value) {
   if (typeof value !== "string" || !value.trim() || value.includes("\\")) return false;
   if (path.posix.isAbsolute(value)) return false;
@@ -407,6 +424,60 @@ function validateDnaModule(module, sourcePath) {
   for (const key of ["name", "description", "documentation_label"]) {
     if (typeof module[key] !== "string" || !module[key].trim()) {
       throw new Error(`${source} must define ${key}.`);
+    }
+  }
+  if (!isPlainObject(module.module_contract)) {
+    throw new Error(`${source} must define module_contract.`);
+  }
+  if (
+    typeof module.module_contract.when_relevant !== "string" ||
+    !module.module_contract.when_relevant.trim()
+  ) {
+    throw new Error(`${source} module_contract must define when_relevant.`);
+  }
+  validateStringArray(
+    module.module_contract.selection_signals,
+    `${source} module_contract selection_signals`
+  );
+  validateStringArray(module.module_contract.owns, `${source} module_contract owns`);
+  validateStringArray(
+    module.module_contract.does_not_own,
+    `${source} module_contract does_not_own`
+  );
+  validateStringArray(
+    module.module_contract.live_verification,
+    `${source} module_contract live_verification`,
+    { allowEmpty: true }
+  );
+  if (!isPlainObject(module.module_contract.timing)) {
+    throw new Error(`${source} module_contract timing must be an object.`);
+  }
+  for (const key of ["consider_early", "can_defer_when", "must_not_defer_when"]) {
+    if (
+      typeof module.module_contract.timing[key] !== "string" ||
+      !module.module_contract.timing[key].trim()
+    ) {
+      throw new Error(`${source} module_contract timing must define ${key}.`);
+    }
+  }
+  if (!isPlainObject(module.module_contract.coordinates_with)) {
+    throw new Error(`${source} module_contract coordinates_with must be an object.`);
+  }
+  for (const [moduleId, relationship] of Object.entries(
+    module.module_contract.coordinates_with
+  )) {
+    if (!/^_DNA-[A-Z]{4}$/.test(moduleId)) {
+      throw new Error(
+        `${source} module_contract coordinates_with contains an invalid DNA module reference: ${moduleId}.`
+      );
+    }
+    if (moduleId === `_DNA-${module.dna_code}`) {
+      throw new Error(`${source} module_contract must not coordinate with itself.`);
+    }
+    if (typeof relationship !== "string" || !relationship.trim()) {
+      throw new Error(
+        `${source} module_contract relationship for ${moduleId} must be a non-empty string.`
+      );
     }
   }
   if (!isPlainObject(module.nodes) || Object.keys(module.nodes).length === 0) {
@@ -524,6 +595,15 @@ function loadDnaModules() {
       ...module,
       source_path: relativePath(sourcePath)
     };
+  }
+  for (const module of Object.values(modules)) {
+    for (const coordinatedModuleId of Object.keys(module.module_contract.coordinates_with)) {
+      if (!modules[coordinatedModuleId]) {
+        throw new Error(
+          `${module.source_path} coordinates with unavailable DNA module ${coordinatedModuleId}.`
+        );
+      }
+    }
   }
   return modules;
 }
@@ -939,6 +1019,9 @@ function buildManifest(workspace, command, taskPlan = [], prior = null) {
   manifest.settings.technical_proficiency = workspace.settings.technical_proficiency ?? null;
   manifest.settings.ideation_mode = workspace.settings.ideation_mode ?? null;
   manifest.settings.verbosity_budget = workspace.settings.verbosity_budget ?? null;
+  manifest.settings.build_outcome = workspace.settings.build_outcome ?? null;
+  manifest.settings.build_outcome_confirmed_at =
+    workspace.settings.build_outcome_confirmed_at ?? null;
 
   manifest.presentation.project_title = firstMeaningfulTitle(
     workspace.northStarText,
@@ -1080,6 +1163,7 @@ function buildManifest(workspace, command, taskPlan = [], prior = null) {
       canonical_id: canonicalModuleId(module),
       name: module.name,
       description: module.description,
+      module_contract: module.module_contract,
       version: module.dna_version,
       schema_version: module.schema_version,
       documentation_label: module.documentation_label,
@@ -1183,12 +1267,20 @@ function hasAllowedSetting(settings, key) {
   return Array.isArray(allowed) && allowed.length > 0 ? allowed.includes(value) : Boolean(value);
 }
 
-function settingsRequireGuidanceMode(settings) {
+function settingsSchemaAtLeast(settings, minimumMajor, minimumMinor) {
   const match = String(settings.schema_version || "").match(/^(\d+)\.(\d+)/);
   if (!match) return false;
   const major = Number(match[1]);
   const minor = Number(match[2]);
-  return major > 1 || (major === 1 && minor >= 1);
+  return major > minimumMajor || (major === minimumMajor && minor >= minimumMinor);
+}
+
+function settingsRequireGuidanceMode(settings) {
+  return settingsSchemaAtLeast(settings, 1, 1);
+}
+
+function settingsRequireBuildOutcome(settings) {
+  return settingsSchemaAtLeast(settings, 1, 2);
 }
 
 function isSettingsConfigured(settings) {
@@ -1208,6 +1300,17 @@ function assertSettingsReady(settings) {
   if (!isSettingsConfigured(settings)) {
     throw new Error(
       "Profile pre-check failed: `_settings.yaml` is incomplete. Complete onboarding before progressing DNA documentation."
+    );
+  }
+}
+
+function assertBuildOutcomeReady(settings) {
+  if (
+    settingsRequireBuildOutcome(settings) &&
+    (!hasAllowedSetting(settings, "build_outcome") || !settings.build_outcome_confirmed_at)
+  ) {
+    throw new Error(
+      "Build outcome pre-check failed: ask how far the user wants to take this idea, confirm what that means for this concept, and record the outcome in `_settings.yaml` before agreeing the North Star."
     );
   }
 }
@@ -1292,6 +1395,7 @@ function persistWorkspaceManifest(workspace, command, prior = null) {
 function assertReconciliationReady(workspace) {
   assertSeedIntegrity(workspace.state, workspace.seedText);
   assertSettingsReady(workspace.settings);
+  assertBuildOutcomeReady(workspace.settings);
   assertNorthStarAgreed(workspace.northStarText);
   assertSelectedDna(workspace.state);
   if (!ACTIVE_RECONCILIATION_STAGES.has(workspace.state.stage)) {
@@ -1359,6 +1463,7 @@ function selectDnaModules(moduleRefs) {
   const workspace = loadWorkspace({ allowVersionMismatch: true });
   assertSeedIntegrity(workspace.state, workspace.seedText);
   assertSettingsReady(workspace.settings);
+  assertBuildOutcomeReady(workspace.settings);
   assertNorthStarAgreed(workspace.northStarText);
   if (workspace.state.stage !== "selecting_dna") {
     throw new Error(
@@ -1406,6 +1511,7 @@ function mutateExpression(nodeRefs, expressedValue) {
   const workspace = loadWorkspace();
   assertSeedIntegrity(workspace.state, workspace.seedText);
   assertSettingsReady(workspace.settings);
+  assertBuildOutcomeReady(workspace.settings);
   assertNorthStarAgreed(workspace.northStarText);
   if (workspace.state.stage !== "scoping_brainwave_documentation") {
     throw new Error(
@@ -1507,6 +1613,7 @@ function transitionStage(targetStage) {
   ]);
   if (directionReadyStages.has(targetStage)) {
     assertSettingsReady(workspace.settings);
+    assertBuildOutcomeReady(workspace.settings);
     assertNorthStarAgreed(workspace.northStarText);
   }
   if (

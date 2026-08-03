@@ -7,7 +7,7 @@ _brainwave turns an original idea into an agreed North Star and a proportionate 
 `_brainwave_state.yaml` owns one authoritative stage:
 
 1. `awaiting_seed` — **Capture the idea:** discuss and preserve the immutable _brainwave Seed.
-2. `shaping_north_star` — **Agree the direction:** develop and explicitly agree the living North Star.
+2. `shaping_north_star` — **Agree the direction:** develop the living North Star, confirm how far the current idea should be taken, and explicitly agree the result.
 3. `selecting_dna` — **Choose DNA modules:** recommend relevant domains and record the agreed modules.
 4. `scoping_brainwave_documentation` — **Scope DNA documents:** agree the proportionate documents needed from those modules.
 5. `building_brainwave_documentation` — **Build DNA documentation:** complete the scoped documents and their traceable DNA blocks.
@@ -44,12 +44,36 @@ The user can choose either route:
 
 For the direct-file route, save the concept and tell the agent: `build concept using the seed file exactly as written`. Saving the file does not lock it. The engine locks its hash only after confirmation and transition to `shaping_north_star`.
 
+## Agreeing What Will Be Built
+
+During North Star shaping, _brainwave asks **How far would you like us to take this idea?** after the concept is understood well enough for the choice to be meaningful:
+
+- **Show me the idea** — create something people can see and try; sample data and simulated behaviour are acceptable, and it is not intended for real use.
+- **Build a usable first version** — the agreed essential capabilities work properly for real users, and anything saved for later is identified and agreed upfront.
+- **Build the complete product** — everything agreed as part of the current product direction works properly for its intended users, with nothing inside that boundary left as a mock-up, placeholder, or unfinished future task.
+- A user-defined outcome when none of these expresses the intended result.
+
+There is no default. The agent explains the selected outcome in the context of the concept and obtains confirmation before recording it in `_settings.yaml`. The North Star summarises the agreed meaning under **What We Are Building**. Detailed included, postponed, and excluded capabilities and their completion conditions belong in the relevant DNA documentation rather than turning the North Star into a feature catalogue.
+
+The chosen outcome changes the breadth of what is built, not the care applied inside that boundary. A demonstration may deliberately use simulated behaviour; a usable or complete product requires real behaviour within its agreed scope. If a prototype may later become the product, _brainwave considers that trajectory before accepting a shortcut that would make the next step unnecessarily expensive.
+
+## Progressive Discovery
+
+_brainwave does not present a long setup questionnaire. It interprets what the user has already supplied, asks one to three high-leverage questions at a time, and uses each answer to decide which branch is relevant next.
+
+Early questions concentrate on decisions that reshape many later choices: intended outcome and trajectory, users and use context, platforms and reach, countries and languages, identity and experience expectations, data and interaction risk, and AI behaviour. The agent also routes four venture-and-launch lenses without reciting them as a form: who funds the product and what could make it uneconomic; how people will discover and adopt it; whether users, data, claims, money, markets, sectors, or distribution create legal or policy consequences; and whether human or partner service, support, scheduling, fulfilment, or escalation delivers part of the value. Deeper details stay with their owning DNA documents.
+
+At natural checkpoints the agent briefly reflects what is understood, what material area comes next, and what has safely been deferred. Before agreeing the North Star or recommending DNA, it checks that every material concern is understood as relevant, deliberately deferred, not applicable, or still unknown. Module timing distinguishes concerns that should shape the foundation now from those that can wait. Risk overrides phase: an early prototype does not justify overlooking real personal data, vulnerable users, regulated activity, payments, public claims, platform distribution, contracts, or human-dependent service. A material deferral records why it is safe and what event must reopen it. Only unknowns requiring the user's attention are surfaced.
+
+Some concepts require **specialist coverage** that the installed DNA does not provide. If trust and safety, marketplace or network integrity, AI product assurance, or regulated-sector practice needs a specialist owner that is not installed, the agent says so. It does not hide the gap inside a neighbouring module or call the foundation comprehensive; the user agrees either to add the specialist domain or to accept the explicit limitation and re-entry trigger.
+
 ## Core Terms
 
 - **_brainwave Seed:** The user's explicitly approved concept, preserved in its supplied wording and natural shape. It becomes immutable after capture and is never a working-notes document.
 - **North Star:** The living current direction derived from the seed. It may evolve without altering the original seed.
 - **DNA Library:** The installed collection of DNA modules available to the project.
 - **DNA module:** A versioned, data-only catalogue of possible documentation for one domain.
+- **Module contract:** A module's explicit relevance, timing, ownership, exclusions, coordination relationships, and current-evidence needs. It keeps domain boundaries clear as the library grows.
 - **DNA document group:** A coherent folder of related DNA documents.
 - **DNA document:** One expressed document such as system context, schema strategy, or voice and tone.
 - **Baseline:** A DNA module or DNA document the agent should normally recommend when its module or parent DNA document group is relevant. It guides proportionate scoping but never overrides explicit user agreement.
@@ -144,19 +168,33 @@ node _brainwave/_engine/brainwave_runner.js refresh
 
 ## Bundled DNA
 
-- **`_DNA-SAPP` — Software Application DNA** produces software architecture documentation for applications and digital services.
+- **`_DNA-SAPP` — Software Application DNA** produces software product and architecture documentation for applications and digital services.
 - **`_DNA-BRND` — Brand Identity DNA** produces enduring verbal and visual identity guidance without expanding into campaigns, acquisition, or go-to-market planning.
+- **`_DNA-PSTR` — Product Strategy and Evidence DNA** grounds product value, assumptions, priorities, validation, outcomes, and product measurement in explicit evidence.
+- **`_DNA-PDEX` — Product Design and Experience DNA** defines deliberate journeys, interaction, interface content, hierarchy, accessibility, adaptation, localisation, distinctiveness, and experience verification.
+- **`_DNA-COMM` — Commercial and Economics DNA** defines funding, revenue, payer, pricing, packaging, monetisation, payment policy, costs, cash requirements, runway, unit economics, measurement, and commercial viability.
+- **`_DNA-GROW` — Market Presence and Growth DNA** defines market-facing positioning, channels, launch, discoverability, acquisition, conversion, sales, partnerships, lifecycle, content, responsible-growth boundaries, and measurement.
+- **`_DNA-LEGL` — Legal, Policy and Market Access DNA** detects consequential obligations, records current authoritative sources and review gates, and prepares qualified review without claiming to provide legal advice or compliance.
+- **`_DNA-SOPS` — Service Operations and Support DNA** defines human service delivery, support, customer success, fulfilment, capacity, complaints, escalation, readiness, quality, and improvement.
 
-The agent may recommend either or both. Counts and document names are read directly from the module files and dashboard, so this handbook does not duplicate their catalogues.
+The agent may recommend any relevant combination. Counts and document names are read directly from the module files and dashboard, so this handbook does not duplicate their catalogues.
+
+For a typical public venture, the agent normally considers PSTR, PDEX, SAPP, BRND, COMM, and GROW as a coherent profile. LEGL always receives a short consequence screen and expands only when users, data, claims, money, markets, sectors, content, contracts, or distribution trigger it. SOPS expands when people, partners, support, customer success, fulfilment, scheduling, execution of established moderation policy, complaints, or escalation help deliver the product's value. These are routing heuristics rather than a preset: the user still agrees the modules and the proportionate document scope.
+
+The library direction is concentric rather than monolithic. A venture-building experience is a profile that selects several clear domains, not one module that owns an entire company. Specialist overlays may later cover trust and safety, marketplaces and networks, AI product assurance, product experimentation where it outgrows PSTR, and regulated sectors.
 
 ## Working Agreement
 
 - Preserve the user's wording and natural structure when capturing the seed. Do not expand it to fill a template or infer missing content; obtain approval before any material paraphrase or restructuring.
 - Preserve `_my_brainwave_seed.md` exactly after capture.
 - Read `_my_brainwave_north_star.md` first for current direction.
-- Ask one to three focused questions at a time while shaping direction.
+- Ask one to three high-leverage questions at a time, interpret existing answers first, and route only material follow-ups.
+- Confirm how far the user wants to take the current idea before agreeing the North Star; do not infer or default the outcome.
 - Do not require exhaustive answers; resolve or explicitly mark only materially important gaps.
+- Treat proportionality as a scope decision, not permission for weak foundations or unfinished behaviour inside the confirmed boundary.
 - Let the AI agent recommend DNA modules and DNA documents using semantic judgment. The engine validates and scaffolds; it does not interpret the idea.
+- Use each module contract to preserve timing, ownership, exclusions, coordination, and live-verification needs; use current authoritative sources for volatile external requirements.
+- In Legal, Policy and Market Access documentation, completion means the source-linked detection, questions, evidence, and review route are documented; it never means legal approval, professional advice, certification, or compliance. Preserve jurisdictions, source dates, uncertainty, and qualified-review gates.
 - Use each DNA document group's `when_relevant` as the domain gate, its baseline documents as the normal starting point, and each file's `intent` to decide which optional documents are material.
 - Obtain explicit user agreement before recording DNA module selection or DNA document scope.
 - Keep DNA definitions unchanged during a project. Project selection belongs in `_brainwave_state.yaml`.

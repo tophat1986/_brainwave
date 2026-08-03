@@ -1,0 +1,319 @@
+{
+  "schema_version": "3.0.0",
+  "dna_code": "GROW",
+  "dna_version": "0.1.0",
+  "name": "Market Presence and Growth DNA",
+  "description": "A proportionate catalogue for making a product discoverable, credible, adoptable, and capable of responsible growth. It translates product evidence, brand, commercial direction, and experience intent into positioning, launch, search, store, acquisition, conversion, lifecycle, referral, content, and growth measurement without owning the product itself.",
+  "documentation_label": "market presence and growth documentation",
+  "module_contract": {
+    "when_relevant": "Use when a product must be found, understood, launched, adopted, retained, shared, or grown beyond a known private audience. Consider it for most public-launch and venture-intent products even when the first growth plan is deliberately small.",
+    "selection_signals": [
+      "The product will have a public website, app-store presence, search surface, launch, campaign, sales path, community, or acquisition channel.",
+      "Audience positioning, messaging, discoverability, conversion, onboarding handoff, retention, referral, or re-engagement could determine adoption.",
+      "The concept needs market tests, channel learning, growth targets, or attribution to avoid building without a credible route to users."
+    ],
+    "owns": [
+      "Priority market-facing audiences, channel strategy, public positioning application, message architecture, and launch sequencing.",
+      "SEO, ASO, public landing, acquisition, conversion, lifecycle, referral, content, campaign, and creative direction.",
+      "Growth funnels, channel measures, attribution intent, growth experimentation, and responsible-growth guardrails across market-facing activity."
+    ],
+    "does_not_own": [
+      "Core user problem, product value, product priorities, or evidence owned by Product Strategy and Evidence DNA.",
+      "Enduring identity owned by Brand Identity DNA or in-product journeys and interface content owned by Product Design and Experience DNA.",
+      "Pricing and commercial policy owned by Commercial and Economics DNA or technical implementation owned by Software Application DNA.",
+      "Legal, policy, and regulatory interpretation affecting claims, consent, or distribution rules owned by Legal, Policy and Market Access DNA.",
+      "Operational service-support communications owned by Service Operations and Support DNA."
+    ],
+    "coordinates_with": {
+      "_DNA-PSTR": "Use evidence, audiences, alternatives, value, assumptions, and product outcomes as the basis for market-facing choices and learning.",
+      "_DNA-BRND": "Apply the enduring identity, voice, and visual direction consistently across public and campaign touchpoints.",
+      "_DNA-PDEX": "Coordinate landing, acquisition, referral, store, onboarding, and lifecycle touchpoints as one coherent user journey.",
+      "_DNA-COMM": "Align offers, channel economics, acquisition cost, conversion, packaging, and commercial measurement.",
+      "_DNA-SAPP": "Supply discoverability, analytics, experimentation, metadata, performance, and integration requirements for implementation.",
+      "_DNA-LEGL": "Verify public claims, endorsements, tracking, consent, promotions, direct marketing, platform policy, and market-specific constraints before launch.",
+      "_DNA-SOPS": "Coordinate support, service availability, fulfilment capacity, and customer communication with launch and growth promises."
+    },
+    "live_verification": [
+      "Verify current search and store guidance, channel capabilities, platform policies, market language, competitor presence, audience behaviour, and acquisition benchmarks when material.",
+      "Distinguish sourced market evidence and measured product data from hypotheses; do not invent demand, rankings, traffic, conversion, or channel performance.",
+      "Use current platform rules for ratings, reviews, referrals, messaging, advertising, and discovery. Reject deception, coercion, fabricated proof, spam, exploitative targeting, review or ranking manipulation, and engagement pursued without user value."
+    ],
+    "timing": {
+      "consider_early": "Consider whenever the product needs real users, a public launch, revenue, validation of demand, or a route to adoption so discoverability and channel constraints can shape the foundation.",
+      "can_defer_when": "May be light or deferred for a private proof intended only to validate feasibility with a known audience and no public claim, launch commitment, or route-to-market decision.",
+      "must_not_defer_when": "Do not defer when public discovery, app-store presence, market testing, acquisition, launch sequencing, or growth economics are necessary to prove the concept or meet the agreed outcome."
+    }
+  },
+  "nodes": {
+    "00100": {
+      "id": "00100",
+      "type": "directory",
+      "path": "00100_market_and_channel_direction",
+      "title": "Market and Channel Direction",
+      "parent_id": null,
+      "baseline": true,
+      "when_relevant": "Establish where the product should appear, which audiences and contexts matter first, and how launch and learning should be sequenced."
+    },
+    "00101": {
+      "id": "00101",
+      "type": "file",
+      "path": "00100_market_and_channel_direction/00101_market_and_audience_focus.md",
+      "title": "Market and Audience Focus",
+      "intent": "Translate validated product audiences into a prioritised market-facing focus, including context, geography, readiness, reachability, exclusions, evidence, and reasons for sequencing.",
+      "parent_id": "00100",
+      "baseline": true
+    },
+    "00102": {
+      "id": "00102",
+      "type": "file",
+      "path": "00100_market_and_channel_direction/00102_channel_strategy.md",
+      "title": "Channel Strategy",
+      "intent": "Choose a focused set of owned, earned, paid, partner, community, sales, search, or store channels based on audience behaviour, fit, cost, capability, evidence, and learning value.",
+      "parent_id": "00100",
+      "baseline": true
+    },
+    "00103": {
+      "id": "00103",
+      "type": "file",
+      "path": "00100_market_and_channel_direction/00103_launch_sequence.md",
+      "title": "Launch Sequence",
+      "intent": "Use when staged access, geography, waitlists, beta groups, partners, stores, campaigns, or capacity constraints require a deliberate sequence, readiness criteria, dependencies, and stop-or-expand decisions.",
+      "parent_id": "00100",
+      "baseline": false
+    },
+    "00104": {
+      "id": "00104",
+      "type": "file",
+      "path": "00100_market_and_channel_direction/00104_responsible_growth_boundaries.md",
+      "title": "Responsible Growth Boundaries",
+      "intent": "Define the user, audience, brand, evidence, consent, frequency, fairness, and platform-policy guardrails growth activity must preserve. Explicitly prohibit deceptive or coercive conversion, fabricated proof, spam, exploitative targeting, engagement for its own sake, and manipulation of ratings, reviews, rankings, referrals, or discovery.",
+      "parent_id": "00100",
+      "baseline": true
+    },
+    "00200": {
+      "id": "00200",
+      "type": "directory",
+      "path": "00200_positioning_and_messaging",
+      "title": "Positioning and Messaging",
+      "parent_id": null,
+      "baseline": true,
+      "when_relevant": "Define how intended audiences should quickly understand the product, its relevance, credible difference, and next action across market-facing touchpoints."
+    },
+    "00201": {
+      "id": "00201",
+      "type": "file",
+      "path": "00200_positioning_and_messaging/00201_market_facing_proposition.md",
+      "title": "Market-facing Proposition",
+      "intent": "Express the audience, situation, value, credible difference, and reason to act in market-facing terms grounded in Product Strategy and Evidence DNA rather than inventing a new product promise.",
+      "parent_id": "00200",
+      "baseline": true
+    },
+    "00202": {
+      "id": "00202",
+      "type": "file",
+      "path": "00200_positioning_and_messaging/00202_message_architecture.md",
+      "title": "Message Architecture",
+      "intent": "Define the hierarchy of proposition, supporting messages, proof, objections, calls to action, and audience or channel adaptations while applying the approved brand voice.",
+      "parent_id": "00200",
+      "baseline": true
+    },
+    "00203": {
+      "id": "00203",
+      "type": "file",
+      "path": "00200_positioning_and_messaging/00203_proof_and_claims_inputs.md",
+      "title": "Proof and Claims Inputs",
+      "intent": "Create a source-linked inventory of evidence, demonstrations, testimonials, comparisons, outcomes, credentials, and limitations available to support messages; route consequential claims through Legal, Policy and Market Access DNA.",
+      "parent_id": "00200",
+      "baseline": false
+    },
+    "00300": {
+      "id": "00300",
+      "type": "directory",
+      "path": "00300_search_and_store_discovery",
+      "title": "Search and Store Discovery",
+      "parent_id": null,
+      "baseline": false,
+      "when_relevant": "Use when the product or its content should be discovered through web search, app stores, marketplaces, directories, assistants, or other indexed surfaces."
+    },
+    "00301": {
+      "id": "00301",
+      "type": "file",
+      "path": "00300_search_and_store_discovery/00301_search_discovery_strategy.md",
+      "title": "Search Discovery Strategy",
+      "intent": "Use for web-search discovery to define search intent, helpful content opportunities, information architecture, page roles, metadata direction, structured-data opportunities, authority signals, and measurement without keyword stuffing or search-first degradation of user value.",
+      "parent_id": "00300",
+      "baseline": false
+    },
+    "00302": {
+      "id": "00302",
+      "type": "file",
+      "path": "00300_search_and_store_discovery/00302_app_store_presence.md",
+      "title": "App Store Presence",
+      "intent": "Use for native distribution to define store positioning, title and metadata direction, screenshots or previews, category, localisation, a policy-compliant ratings and review-quality approach, update communication, and store-specific measurement subject to current platform policy and anti-manipulation rules.",
+      "parent_id": "00300",
+      "baseline": false
+    },
+    "00303": {
+      "id": "00303",
+      "type": "file",
+      "path": "00300_search_and_store_discovery/00303_discoverable_content_architecture.md",
+      "title": "Discoverable Content Architecture",
+      "intent": "Use when durable public content, listings, profiles, categories, locations, resources, or user-generated pages need a coherent discoverability model, quality threshold, lifecycle, canonical ownership, and protection from empty or duplicate surfaces.",
+      "parent_id": "00300",
+      "baseline": false
+    },
+    "00400": {
+      "id": "00400",
+      "type": "directory",
+      "path": "00400_acquisition_and_conversion",
+      "title": "Acquisition and Conversion",
+      "parent_id": null,
+      "baseline": true,
+      "when_relevant": "Use when a person must move from a market or channel touchpoint into a meaningful product action, lead, enquiry, booking, registration, install, or purchase."
+    },
+    "00401": {
+      "id": "00401",
+      "type": "file",
+      "path": "00400_acquisition_and_conversion/00401_acquisition_journeys.md",
+      "title": "Acquisition Journeys",
+      "intent": "Map the promise, context, destination, decision, friction, continuity, and handoff from each priority channel into product onboarding or another meaningful outcome.",
+      "parent_id": "00400",
+      "baseline": true
+    },
+    "00402": {
+      "id": "00402",
+      "type": "file",
+      "path": "00400_acquisition_and_conversion/00402_landing_and_conversion_strategy.md",
+      "title": "Landing and Conversion Strategy",
+      "intent": "Define the job, hierarchy, evidence, objections, calls to action, reassurance, accessibility, performance expectations, and measurement for high-consequence landing or conversion surfaces without turning every screen into a sales page.",
+      "parent_id": "00400",
+      "baseline": true
+    },
+    "00403": {
+      "id": "00403",
+      "type": "file",
+      "path": "00400_acquisition_and_conversion/00403_campaign_plan.md",
+      "title": "Campaign Plan",
+      "intent": "Use for a time-bound campaign to define objective, audience, proposition, channel roles, creative requirements, budget inputs, sequence, landing continuity, measurement, decision points, and owners.",
+      "parent_id": "00400",
+      "baseline": false
+    },
+    "00500": {
+      "id": "00500",
+      "type": "directory",
+      "path": "00500_lifecycle_and_referral",
+      "title": "Lifecycle and Referral",
+      "parent_id": null,
+      "baseline": false,
+      "when_relevant": "Use when communication, re-engagement, sharing, invitations, advocacy, or referrals can help people reach continuing product value."
+    },
+    "00501": {
+      "id": "00501",
+      "type": "file",
+      "path": "00500_lifecycle_and_referral/00501_lifecycle_communication.md",
+      "title": "Lifecycle Communication",
+      "intent": "Define purposeful event-driven communication across activation, progress, reminders, changes, risk, renewal, lapse, and return, including channel, timing, consent, frequency, suppression, ownership, and user control.",
+      "parent_id": "00500",
+      "baseline": true
+    },
+    "00502": {
+      "id": "00502",
+      "type": "file",
+      "path": "00500_lifecycle_and_referral/00502_referral_and_sharing.md",
+      "title": "Referral and Sharing",
+      "intent": "Use when users can invite, refer, recommend, gift, or share to define genuine value, sender and recipient experience, incentives, attribution, privacy, abuse prevention, and success criteria.",
+      "parent_id": "00500",
+      "baseline": false
+    },
+    "00503": {
+      "id": "00503",
+      "type": "file",
+      "path": "00500_lifecycle_and_referral/00503_retention_and_reengagement.md",
+      "title": "Retention and Re-engagement",
+      "intent": "Use when repeated value matters to identify meaningful return behaviours, barriers, value reminders, product and communication interventions, user protections, and evidence needed before optimising frequency.",
+      "parent_id": "00500",
+      "baseline": false
+    },
+    "00600": {
+      "id": "00600",
+      "type": "directory",
+      "path": "00600_content_and_creative",
+      "title": "Content and Creative",
+      "parent_id": null,
+      "baseline": false,
+      "when_relevant": "Use when ongoing content or multiple creative outputs are needed to build awareness, trust, education, demand, or channel performance."
+    },
+    "00601": {
+      "id": "00601",
+      "type": "file",
+      "path": "00600_content_and_creative/00601_content_strategy.md",
+      "title": "Content Strategy",
+      "intent": "Define audience needs, content roles, themes, formats, channels, editorial quality, evidence, accessibility, ownership, cadence, lifecycle, reuse, and measurement for useful content rather than volume for its own sake.",
+      "parent_id": "00600",
+      "baseline": true
+    },
+    "00602": {
+      "id": "00602",
+      "type": "file",
+      "path": "00600_content_and_creative/00602_campaign_and_creative_briefs.md",
+      "title": "Campaign and Creative Briefs",
+      "intent": "Use when creative production needs a concise brief covering objective, audience, single-minded message, evidence, brand application, mandatory content, channel constraints, variants, handoff, and acceptance criteria.",
+      "parent_id": "00600",
+      "baseline": false
+    },
+    "00700": {
+      "id": "00700",
+      "type": "directory",
+      "path": "00700_growth_measurement",
+      "title": "Growth Measurement",
+      "parent_id": null,
+      "baseline": true,
+      "when_relevant": "Define how market presence and growth decisions will be measured without confusing reach, activity, conversion, retention, commercial value, and product outcomes."
+    },
+    "00701": {
+      "id": "00701",
+      "type": "file",
+      "path": "00700_growth_measurement/00701_funnel_and_channel_measurement.md",
+      "title": "Funnel and Channel Measurement",
+      "intent": "Define decision-relevant acquisition, activation-handoff, conversion, lifecycle, and channel measures with calculation boundaries, source, segmentation, cadence, owner, caveats, and intended action.",
+      "parent_id": "00700",
+      "baseline": true
+    },
+    "00702": {
+      "id": "00702",
+      "type": "file",
+      "path": "00700_growth_measurement/00702_attribution_and_growth_experiments.md",
+      "title": "Attribution and Growth Experiments",
+      "intent": "Use when causal learning or channel credit matters to define attribution limitations, privacy boundaries, experiment hypotheses, guardrails, exposure, success criteria, decision rules, and learning capture without claiming certainty the design cannot support.",
+      "parent_id": "00700",
+      "baseline": false
+    },
+    "00800": {
+      "id": "00800",
+      "type": "directory",
+      "path": "00800_sales_and_partnerships",
+      "title": "Sales and Partnerships",
+      "parent_id": null,
+      "baseline": false,
+      "when_relevant": "Use when adoption depends on a human-led, sales-assisted, procurement, reseller, affiliate, channel-partner, platform-partner, or strategic-partnership motion rather than only self-service acquisition."
+    },
+    "00801": {
+      "id": "00801",
+      "type": "file",
+      "path": "00800_sales_and_partnerships/00801_sales_motion_and_pipeline.md",
+      "title": "Sales Motion and Pipeline",
+      "intent": "Define buyer and influencing roles, self-serve versus sales-assisted boundaries, qualification, stages, evidence, procurement and security handoffs, ownership, product or service handoff, measurement, and learning without redefining product value, pricing, contracts, or customer-success operations.",
+      "parent_id": "00800",
+      "baseline": true
+    },
+    "00802": {
+      "id": "00802",
+      "type": "file",
+      "path": "00800_sales_and_partnerships/00802_partnership_strategy.md",
+      "title": "Partnership Strategy",
+      "intent": "Define each partner type, reciprocal value, audience and channel fit, responsibilities, dependencies, lead or customer ownership, handoffs, attribution, incentives, measurement, conflicts, review gates, and exit conditions in coordination with commercial, legal, and service owners.",
+      "parent_id": "00800",
+      "baseline": true
+    }
+  }
+}

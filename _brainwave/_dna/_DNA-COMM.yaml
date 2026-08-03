@@ -1,0 +1,229 @@
+{
+  "schema_version": "3.0.0",
+  "dna_code": "COMM",
+  "dna_version": "0.1.0",
+  "name": "Commercial and Economics DNA",
+  "description": "A proportionate catalogue for defining how a product is funded, earns or sustains value, packages access, handles commercial relationships, and remains economically viable. It connects product value to pricing, monetisation, payments, cost, and commercial measurement without owning product strategy, growth execution, legal interpretation, or technical implementation.",
+  "documentation_label": "commercial and economics documentation",
+  "module_contract": {
+    "when_relevant": "Use when a concept needs revenue, funding, pricing, paid access, transactions, advertising, costly delivery, or an explicit sustainability model. Consider it for most public-launch and venture-intent products, including products funded indirectly rather than by their end users.",
+    "selection_signals": [
+      "The product may use subscriptions, purchases, commission, fees, advertising, sponsorship, licensing, donations, grants, or another funding mechanism.",
+      "Pricing, packaging, entitlements, trials, refunds, billing, or payer-versus-user distinctions could shape the product or architecture.",
+      "Setup cost, human delivery, AI usage, infrastructure, third-party services, or growth could materially affect viability."
+    ],
+    "owns": [
+      "Funding and revenue model, customer and payer model, commercial assumptions, and viability thresholds.",
+      "Pricing, packaging, paid boundaries, commercial entitlement policy, and monetisation mechanics.",
+      "Commercial payment, billing, cancellation, refund, and chargeback policy.",
+      "Complete cost and cash model, upfront capital requirements, working-capital and runway constraints, unit economics, commercial scenarios, viability thresholds, and economic measures."
+    ],
+    "does_not_own": [
+      "User need, product value, prioritisation, or evidence owned by Product Strategy and Evidence DNA.",
+      "Pricing, payment, cancellation, or entitlement experience owned by Product Design and Experience DNA.",
+      "Payment integration, entitlement enforcement, security, infrastructure, or technical cost controls owned by Software Application DNA.",
+      "Audience acquisition and growth execution, legal and tax interpretation, or service fulfilment operations."
+    ],
+    "coordinates_with": {
+      "_DNA-PSTR": "Use evidence about user value, demand, alternatives, and outcomes to ground commercial assumptions and willingness-to-pay learning.",
+      "_DNA-PDEX": "Supply pricing, packaging, entitlement, payment, cancellation, and refund rules for clear customer journeys.",
+      "_DNA-BRND": "Keep commercial presentation and perceived value consistent with the enduring identity and promise.",
+      "_DNA-SAPP": "Supply commercial rules and volume assumptions for payment, entitlement, metering, billing, and cost implementation.",
+      "_DNA-GROW": "Align acquisition economics, offers, channels, conversion measures, and lifecycle growth with sustainable value.",
+      "_DNA-LEGL": "Obtain current market, tax, consumer-rights, subscription, payment, advertising, and disclosure obligations before treating a commercial policy as launch-ready.",
+      "_DNA-SOPS": "Translate customer promises, refunds, disputes, fulfilment cost, and service commitments into executable operations."
+    },
+    "live_verification": [
+      "Verify current market prices, platform commissions, payment-provider fees, tax treatment, competitor packaging, and third-party service costs when they materially affect a decision.",
+      "Separate sourced facts, estimates, scenarios, and user-approved assumptions; do not present model familiarity as current commercial evidence.",
+      "When tax, accounting classification, revenue recognition, filing, or financial reporting is consequential, obtain current qualified tax or accounting review. Never present generated analysis as tax advice, an accounting determination, or filing assurance."
+    ],
+    "timing": {
+      "consider_early": "Consider for most venture-intent or public-launch products because funding, payer, price, entitlement, delivery cost, and usage economics can change the product and architecture.",
+      "can_defer_when": "May be light or deferred for a private, deliberately disposable demonstration with no real payment, costly delivery, funding decision, or claim of commercial viability.",
+      "must_not_defer_when": "Do not defer when monetisation changes access or scope, real payments or financial commitments are planned, paid promises affect user rights, or cost could make the concept unviable."
+    }
+  },
+  "nodes": {
+    "00100": {
+      "id": "00100",
+      "type": "directory",
+      "path": "00100_commercial_model",
+      "title": "Commercial Model",
+      "parent_id": null,
+      "baseline": true,
+      "when_relevant": "Establish who funds the product, who receives and pays for value, and which assumptions must hold for the model to be viable."
+    },
+    "00101": {
+      "id": "00101",
+      "type": "file",
+      "path": "00100_commercial_model/00101_funding_and_revenue_model.md",
+      "title": "Funding and Revenue Model",
+      "intent": "Define direct and indirect sources of funding or revenue, the value exchange behind each, timing, dependencies, and material constraints; explicitly describe sustainability for products that do not intend to make a profit.",
+      "parent_id": "00100",
+      "baseline": true
+    },
+    "00102": {
+      "id": "00102",
+      "type": "file",
+      "path": "00100_commercial_model/00102_customer_and_payer_model.md",
+      "title": "Customer and Payer Model",
+      "intent": "Identify users, customers, buyers, budget holders, beneficiaries, partners, and payers; define where these roles differ and how that affects value, trust, purchasing, and account relationships.",
+      "parent_id": "00100",
+      "baseline": true
+    },
+    "00103": {
+      "id": "00103",
+      "type": "file",
+      "path": "00100_commercial_model/00103_commercial_assumptions_and_viability.md",
+      "title": "Commercial Assumptions and Viability",
+      "intent": "Record consequential commercial hypotheses, supporting evidence, confidence, validation ownership, learning method, and the observations that would support, change, or invalidate them. Keep quantified financial scenarios and decision thresholds in Economic Scenarios and Thresholds.",
+      "parent_id": "00100",
+      "baseline": true
+    },
+    "00200": {
+      "id": "00200",
+      "type": "directory",
+      "path": "00200_pricing_and_packaging",
+      "title": "Pricing and Packaging",
+      "parent_id": null,
+      "baseline": false,
+      "when_relevant": "Use when a product has a one-time price or paid unlock, or when access, capability, usage, service level, audience, or value will be divided into free, paid, sponsored, or negotiated packages."
+    },
+    "00201": {
+      "id": "00201",
+      "type": "file",
+      "path": "00200_pricing_and_packaging/00201_pricing_and_packaging.md",
+      "title": "Pricing and Packaging",
+      "intent": "Define the pricing basis, packages, included value, limits, currencies, regions, billing periods, and rationale; distinguish validated decisions from hypotheses to test.",
+      "parent_id": "00200",
+      "baseline": true
+    },
+    "00202": {
+      "id": "00202",
+      "type": "file",
+      "path": "00200_pricing_and_packaging/00202_free_trial_and_paid_boundaries.md",
+      "title": "Free, Trial and Paid Boundaries",
+      "intent": "Define what is free, trialled, paid, limited, grandfathered, or unavailable, including transition rules and the customer value or commercial reason for each boundary.",
+      "parent_id": "00200",
+      "baseline": true
+    },
+    "00203": {
+      "id": "00203",
+      "type": "file",
+      "path": "00200_pricing_and_packaging/00203_offers_discounts_and_promotions.md",
+      "title": "Offers, Discounts and Promotions",
+      "intent": "Use when introductory offers, coupons, discounts, bundles, regional offers, partner benefits, or promotional periods need eligibility, stacking, expiry, abuse, and measurement rules.",
+      "parent_id": "00200",
+      "baseline": false
+    },
+    "00300": {
+      "id": "00300",
+      "type": "directory",
+      "path": "00300_monetisation_mechanics",
+      "title": "Monetisation Mechanics",
+      "parent_id": null,
+      "baseline": false,
+      "when_relevant": "Use for the commercial rules behind paid downloads, one-time purchases or unlocks, lifetime licences, subscriptions, usage, transactions, commission, advertising, sponsorship, licensing, or other monetisation mechanisms."
+    },
+    "00301": {
+      "id": "00301",
+      "type": "file",
+      "path": "00300_monetisation_mechanics/00301_purchases_subscriptions_usage_and_entitlements.md",
+      "title": "Purchases, Subscriptions, Usage and Entitlements",
+      "intent": "Use when a paid download, one-time purchase or unlock, lifetime licence, recurring subscription, or usage-based access needs commercial rules for purchase, activation, restoration, metering, renewal, upgrade, downgrade, pause, expiry, grace periods, and entitlement recovery.",
+      "parent_id": "00300",
+      "baseline": false
+    },
+    "00302": {
+      "id": "00302",
+      "type": "file",
+      "path": "00300_monetisation_mechanics/00302_transactions_commission_and_payouts.md",
+      "title": "Transactions, Commission and Payouts",
+      "intent": "Use when money moves between participants to define transaction value, fees, commission, settlement, reserves, payout timing, reversals, disputes, reconciliation, and economic responsibility.",
+      "parent_id": "00300",
+      "baseline": false
+    },
+    "00303": {
+      "id": "00303",
+      "type": "file",
+      "path": "00300_monetisation_mechanics/00303_advertising_sponsorship_and_licensing.md",
+      "title": "Advertising, Sponsorship and Licensing",
+      "intent": "Use when third parties fund access or distribution to define inventory or licensed value, commercial boundaries, conflicts, measurement, concentration risk, and protections for user trust.",
+      "parent_id": "00300",
+      "baseline": false
+    },
+    "00400": {
+      "id": "00400",
+      "type": "directory",
+      "path": "00400_customer_commercial_policies",
+      "title": "Customer Commercial Policies",
+      "parent_id": null,
+      "baseline": false,
+      "when_relevant": "Use when customers will pay, commit, cancel, receive refunds, dispute charges, or rely on a commercial promise."
+    },
+    "00401": {
+      "id": "00401",
+      "type": "file",
+      "path": "00400_customer_commercial_policies/00401_payment_and_billing_model.md",
+      "title": "Payment and Billing Model",
+      "intent": "Define charged parties, payment moments, billing ownership, invoices or receipts, currencies, failed-payment handling, dunning, credits, reconciliation, and commercial dependencies without prescribing the technical integration.",
+      "parent_id": "00400",
+      "baseline": true
+    },
+    "00402": {
+      "id": "00402",
+      "type": "file",
+      "path": "00400_customer_commercial_policies/00402_cancellation_refund_and_chargeback_policy.md",
+      "title": "Cancellation, Refund and Chargeback Policy",
+      "intent": "Define the intended commercial rules, customer promises, exceptional handling, cost ownership, and operational consequences for cancellation, refunds, credits, disputes, and chargebacks, subject to current legal review.",
+      "parent_id": "00400",
+      "baseline": true
+    },
+    "00403": {
+      "id": "00403",
+      "type": "file",
+      "path": "00400_customer_commercial_policies/00403_billing_and_revenue_operations.md",
+      "title": "Billing and Revenue Operations",
+      "intent": "Use when invoicing, taxation inputs, collections, reconciliation, revenue recognition inputs, partner settlement, or finance-system handoffs need operating ownership and controls.",
+      "parent_id": "00400",
+      "baseline": false
+    },
+    "00500": {
+      "id": "00500",
+      "type": "directory",
+      "path": "00500_economics_and_measurement",
+      "title": "Economics and Measurement",
+      "parent_id": null,
+      "baseline": true,
+      "when_relevant": "Establish whether acquisition, usage, delivery, support, infrastructure, and revenue can form a sustainable model under realistic scenarios."
+    },
+    "00501": {
+      "id": "00501",
+      "type": "file",
+      "path": "00500_economics_and_measurement/00501_cost_and_unit_economics.md",
+      "title": "Cost and Unit Economics",
+      "intent": "Combine setup, fixed, variable, infrastructure, AI, vendor, acquisition, fulfilment, support, payment, and overhead assumptions into decision-relevant unit economics with sources, confidence, and ownership.",
+      "parent_id": "00500",
+      "baseline": true
+    },
+    "00502": {
+      "id": "00502",
+      "type": "file",
+      "path": "00500_economics_and_measurement/00502_economic_scenarios_and_thresholds.md",
+      "title": "Economic Scenarios and Thresholds",
+      "intent": "Quantify plausible downside, expected, and upside scenarios; expose sensitivity to scale, price, conversion, retention, utilisation, and cost; model upfront capital, cash timing, working capital, funding gaps, runway, reserves, and budget ceilings; and define thresholds that trigger a decision rather than false precision.",
+      "parent_id": "00500",
+      "baseline": true
+    },
+    "00503": {
+      "id": "00503",
+      "type": "file",
+      "path": "00500_economics_and_measurement/00503_commercial_metrics.md",
+      "title": "Commercial Metrics",
+      "intent": "Define the smallest set of commercial measures needed for decisions, their calculation boundaries, source, cadence, owner, and interpretation alongside product and growth outcomes.",
+      "parent_id": "00500",
+      "baseline": true
+    }
+  }
+}

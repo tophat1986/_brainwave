@@ -1,0 +1,300 @@
+{
+  "schema_version": "3.0.0",
+  "dna_code": "PDEX",
+  "dna_version": "0.1.0",
+  "name": "Product Design and Experience DNA",
+  "description": "A proportionate catalogue for defining the complete human experience of a digital product: purposeful journeys, interaction, hierarchy, interface content, accessibility, adaptation, localisation, visual composition, distinctiveness, and experience verification. It converts the North Star, product evidence, and brand identity into build-ready experience direction without owning technical implementation.",
+  "documentation_label": "product experience documentation",
+  "module_contract": {
+    "when_relevant": "Use when people will interact with a digital product, interface, workflow, or service touchpoint and the intended experience should be deliberate rather than inferred from generic agent defaults.",
+    "selection_signals": [
+      "The concept contains screens, journeys, onboarding, navigation, input, decisions, system feedback, or user-facing content.",
+      "Mobile, responsive, accessible, multilingual, cross-device, or emotionally sensitive use could shape the experience.",
+      "Clarity, trust, personality, visual distinctiveness, usability, or reduced cognitive load materially affect success."
+    ],
+    "owns": [
+      "End-to-end journeys, information architecture, interaction behaviour, interface states, user control, and recovery.",
+      "UX content purpose, hierarchy, density, terminology application, and concise real-user interface copy.",
+      "Responsive and adaptive experience, accessibility direction, localisation experience, visual composition, product design-system intent, and signature experience choices.",
+      "Experience acceptance criteria, usability evaluation, and verification that rendered behaviour matches agreed direction."
+    ],
+    "does_not_own": [
+      "User and market evidence, product value, product outcomes, or prioritisation owned by Product Strategy and Evidence DNA.",
+      "Stable brand voice, logo, colour, typography, and enduring art direction owned by Brand Identity DNA.",
+      "Client architecture, component implementation, data, security, deployment, or technical testing owned by Software Application DNA.",
+      "Campaign messaging, acquisition content, SEO, ASO, commercial strategy, legal interpretation, or customer-service operations."
+    ],
+    "coordinates_with": {
+      "_DNA-PSTR": "Translate evidence, product value, priorities, and outcomes into an experience that can be evaluated against them.",
+      "_DNA-BRND": "Apply approved brand voice and visual primitives while preserving product clarity, accessibility, and interaction needs.",
+      "_DNA-SAPP": "Provide build-ready experience contracts and acceptance criteria for technical implementation and verification.",
+      "_DNA-COMM": "Translate pricing, packaging, entitlements, payments, and commercial policies into clear and trustworthy customer experiences.",
+      "_DNA-GROW": "Coordinate acquisition, landing, store, referral, and lifecycle touchpoints without letting conversion goals weaken user clarity or control.",
+      "_DNA-LEGL": "Translate disclosure, consent, rights, policy, and market-access requirements into comprehensible user-facing behaviour.",
+      "_DNA-SOPS": "Connect the product journey with support, fulfilment, handoff, complaint, and recovery experiences."
+    },
+    "live_verification": [
+      "Verify current accessibility standards, platform interaction conventions, distribution requirements, device constraints, and internationalisation guidance when they materially affect the experience.",
+      "Use current authoritative references and rendered-product evaluation; do not rely only on a generated design rationale or the model's remembered conventions."
+    ],
+    "timing": {
+      "consider_early": "Consider for every user-facing interactive product so journeys, hierarchy, content, platforms, accessibility, localisation, and design character shape the foundation rather than decorate finished code.",
+      "can_defer_when": "Only individual document groups may be deferred when the confirmed outcome genuinely does not expose that experience concern; the module itself may be omitted for software with no meaningful human-facing interaction.",
+      "must_not_defer_when": "Do not defer for a user-facing build, even a demonstration, because the intended experience determines what should be built and prevents generic or developer-facing output."
+    }
+  },
+  "nodes": {
+    "00100": {
+      "id": "00100",
+      "type": "directory",
+      "path": "00100_experience_direction",
+      "title": "Experience Direction",
+      "parent_id": null,
+      "baseline": true,
+      "when_relevant": "Establish the experience qualities, distinctive choices, and use contexts that should guide every user-facing decision without repeating product strategy or brand identity."
+    },
+    "00101": {
+      "id": "00101",
+      "type": "file",
+      "path": "00100_experience_direction/00101_experience_principles.md",
+      "title": "Experience Principles",
+      "intent": "Define a small set of specific, consequential experience principles and the trade-offs they resolve. Avoid generic claims such as simple, modern, intuitive, or delightful unless made concrete and verifiable.",
+      "parent_id": "00100",
+      "baseline": true
+    },
+    "00102": {
+      "id": "00102",
+      "type": "file",
+      "path": "00100_experience_direction/00102_signature_experience.md",
+      "title": "Signature Experience",
+      "intent": "Define the memorable moments, interaction ideas, content treatments, or compositional choices that make this product recognisably itself and serve its users, including patterns the experience should deliberately avoid.",
+      "parent_id": "00100",
+      "baseline": true
+    },
+    "00103": {
+      "id": "00103",
+      "type": "file",
+      "path": "00100_experience_direction/00103_platform_and_use_context.md",
+      "title": "Platform and Use Context",
+      "intent": "Use when device, environment, mobility, connectivity, posture, frequency, urgency, privacy, or input method materially changes what the experience should prioritise.",
+      "parent_id": "00100",
+      "baseline": false
+    },
+    "00104": {
+      "id": "00104",
+      "type": "file",
+      "path": "00100_experience_direction/00104_design_exploration_and_references.md",
+      "title": "Design Exploration and References",
+      "intent": "Gather relevant product, visual, interaction, cultural, and adjacent-category references; identify what should be learned rather than copied; develop at least two materially different experience directions when visual or interaction choices are consequential; compare them against the North Star, evidence, brand, accessibility, and technical constraints; and record the deliberate convergence before scaling one direction.",
+      "parent_id": "00100",
+      "baseline": true
+    },
+    "00200": {
+      "id": "00200",
+      "type": "directory",
+      "path": "00200_journeys_and_structure",
+      "title": "Journeys and Structure",
+      "parent_id": null,
+      "baseline": true,
+      "when_relevant": "Use when people must move through goals, decisions, content, navigation, setup, recovery, or repeated workflows and need a coherent end-to-end structure."
+    },
+    "00201": {
+      "id": "00201",
+      "type": "file",
+      "path": "00200_journeys_and_structure/00201_critical_user_journeys.md",
+      "title": "Critical User Journeys",
+      "intent": "Map the smallest set of critical goals and end-to-end flows, including entry, progress, decisions, alternate paths, failure, recovery, completion, and return use without turning every screen into prose.",
+      "parent_id": "00200",
+      "baseline": true
+    },
+    "00202": {
+      "id": "00202",
+      "type": "file",
+      "path": "00200_journeys_and_structure/00202_information_architecture.md",
+      "title": "Information Architecture",
+      "intent": "Define the hierarchy, grouping, navigation, labelling, findability, orientation, and progressive disclosure of content and capabilities across the experience.",
+      "parent_id": "00200",
+      "baseline": true
+    },
+    "00203": {
+      "id": "00203",
+      "type": "file",
+      "path": "00200_journeys_and_structure/00203_onboarding_and_adoption.md",
+      "title": "Onboarding and Adoption",
+      "intent": "Use when first use, setup, activation, migration, permissions, education, or habit formation materially affects success. Minimise upfront effort, reveal complexity progressively, and define meaningful progress and escape routes.",
+      "parent_id": "00200",
+      "baseline": false
+    },
+    "00300": {
+      "id": "00300",
+      "type": "directory",
+      "path": "00300_interaction_design",
+      "title": "Interaction Design",
+      "parent_id": null,
+      "baseline": true,
+      "when_relevant": "Use when input, feedback, system state, permissions, errors, responsive behaviour, accessibility, or user control requires deliberate interaction direction."
+    },
+    "00301": {
+      "id": "00301",
+      "type": "file",
+      "path": "00300_interaction_design/00301_interaction_patterns_and_states.md",
+      "title": "Interaction Patterns and States",
+      "intent": "Define behaviour for inputs, actions, selection, feedback, loading, empty, success, error, interruption, undo, destructive actions, permissions, and recovery at a level ready for implementation.",
+      "parent_id": "00300",
+      "baseline": true
+    },
+    "00302": {
+      "id": "00302",
+      "type": "file",
+      "path": "00300_interaction_design/00302_responsive_and_adaptive_experience.md",
+      "title": "Responsive and Adaptive Experience",
+      "intent": "Define how priority, layout, navigation, input, density, content, and capability adapt across relevant viewport sizes, devices, orientations, and contexts rather than merely specifying breakpoints.",
+      "parent_id": "00300",
+      "baseline": true
+    },
+    "00303": {
+      "id": "00303",
+      "type": "file",
+      "path": "00300_interaction_design/00303_accessible_interaction.md",
+      "title": "Accessible Interaction",
+      "intent": "Define inclusive interaction requirements for semantics, keyboard and switch access, focus, reading order, touch targets, contrast use, motion, time limits, errors, alternatives, and assistive technologies using current applicable standards.",
+      "parent_id": "00300",
+      "baseline": true
+    },
+    "00400": {
+      "id": "00400",
+      "type": "directory",
+      "path": "00400_ux_content",
+      "title": "UX Content",
+      "parent_id": null,
+      "baseline": true,
+      "when_relevant": "Use when visible language, labels, guidance, status, errors, empty states, or content density influence comprehension, trust, decision-making, or task completion."
+    },
+    "00401": {
+      "id": "00401",
+      "type": "file",
+      "path": "00400_ux_content/00401_content_hierarchy_and_density.md",
+      "title": "Content Hierarchy and Density",
+      "intent": "Define what each surface must communicate, the order of attention, what should be visual rather than textual, and what should be removed, deferred, or progressively disclosed. Prevent repeated titles, labels, subtitles, chips, helper text, and annotations from competing for attention.",
+      "parent_id": "00400",
+      "baseline": true
+    },
+    "00402": {
+      "id": "00402",
+      "type": "file",
+      "path": "00400_ux_content/00402_interface_copy.md",
+      "title": "Interface Copy",
+      "intent": "Define concise, purposeful real-user copy for navigation, headings, actions, inputs, onboarding, guidance, and confirmation. Every visible string must help the user decide or act; exclude build narration, developer notes, implementation promises, and explanations of controls that are already clear.",
+      "parent_id": "00400",
+      "baseline": true
+    },
+    "00403": {
+      "id": "00403",
+      "type": "file",
+      "path": "00400_ux_content/00403_system_messages_and_recovery_copy.md",
+      "title": "System Messages and Recovery Copy",
+      "intent": "Use when status, validation, warnings, permissions, empty states, failures, destructive actions, or recovery need consistent content rules that are accurate, calm, actionable, and proportionate to user stakes.",
+      "parent_id": "00400",
+      "baseline": false
+    },
+    "00500": {
+      "id": "00500",
+      "type": "directory",
+      "path": "00500_visual_interface",
+      "title": "Visual Interface",
+      "parent_id": null,
+      "baseline": true,
+      "when_relevant": "Use when visual hierarchy, composition, density, component character, media, or motion must turn product and brand direction into a coherent, distinctive, usable interface."
+    },
+    "00501": {
+      "id": "00501",
+      "type": "file",
+      "path": "00500_visual_interface/00501_visual_hierarchy_and_composition.md",
+      "title": "Visual Hierarchy and Composition",
+      "intent": "Define focal points, grouping, whitespace, density, scale, rhythm, contrast, imagery, and compositional rules for representative surfaces. Require clear task priority and avoid generic dashboard, card-grid, gradient, or decoration defaults unless they serve the product direction.",
+      "parent_id": "00500",
+      "baseline": true
+    },
+    "00502": {
+      "id": "00502",
+      "type": "file",
+      "path": "00500_visual_interface/00502_product_design_system.md",
+      "title": "Product Design System",
+      "intent": "Define interface components, variants, behaviour, composition rules, density modes, states, and product-level tokens that apply approved brand primitives without duplicating brand identity or prescribing implementation technology.",
+      "parent_id": "00500",
+      "baseline": true
+    },
+    "00503": {
+      "id": "00503",
+      "type": "file",
+      "path": "00500_visual_interface/00503_imagery_media_and_data_display.md",
+      "title": "Imagery, Media, and Data Display",
+      "intent": "Use when photography, illustration, video, maps, charts, user media, generated imagery, or data visualisation materially shapes comprehension, trust, emotion, or distinctiveness. Apply Brand art direction while defining product-use rules.",
+      "parent_id": "00500",
+      "baseline": false
+    },
+    "00504": {
+      "id": "00504",
+      "type": "file",
+      "path": "00500_visual_interface/00504_motion_and_transition.md",
+      "title": "Motion and Transition",
+      "intent": "Use when motion communicates hierarchy, continuity, progress, causality, spatial relationships, or personality. Define purpose, timing character, interruption, performance, and reduced-motion alternatives; exclude decorative motion without user value.",
+      "parent_id": "00500",
+      "baseline": false
+    },
+    "00600": {
+      "id": "00600",
+      "type": "directory",
+      "path": "00600_internationalisation_and_localisation",
+      "title": "Internationalisation and Localisation",
+      "parent_id": null,
+      "baseline": false,
+      "when_relevant": "Use when the product will launch, operate, or plausibly expand across languages, locales, writing directions, cultures, currencies, regional formats, or content-governance boundaries. Consider likely expansion early even when only one locale launches first."
+    },
+    "00601": {
+      "id": "00601",
+      "type": "file",
+      "path": "00600_internationalisation_and_localisation/00601_locale_strategy.md",
+      "title": "Locale Strategy",
+      "intent": "Define launch and likely-next locales, language and region relationships, fallback behaviour, user choice, translation ownership, transcreation needs, content sources, and quality expectations without assuming language equals country.",
+      "parent_id": "00600",
+      "baseline": true
+    },
+    "00602": {
+      "id": "00602",
+      "type": "file",
+      "path": "00600_internationalisation_and_localisation/00602_localised_content_and_layout.md",
+      "title": "Localised Content and Layout",
+      "intent": "Define expansion, truncation, bidirectional layout, names, addresses, dates, numbers, currencies, units, imagery, sorting, pluralisation, tone, and culturally sensitive adaptation needed for relevant locales.",
+      "parent_id": "00600",
+      "baseline": true
+    },
+    "00700": {
+      "id": "00700",
+      "type": "directory",
+      "path": "00700_experience_evaluation",
+      "title": "Experience Evaluation",
+      "parent_id": null,
+      "baseline": true,
+      "when_relevant": "Use to make the intended experience verifiable and to check rendered screens and working behaviour rather than accepting generated rationale, attractive screenshots, or functional completion as sufficient evidence."
+    },
+    "00701": {
+      "id": "00701",
+      "type": "file",
+      "path": "00700_experience_evaluation/00701_experience_acceptance_criteria.md",
+      "title": "Experience Acceptance Criteria",
+      "intent": "Define observable criteria for critical journeys, hierarchy, copy, interaction states, responsiveness, accessibility, localisation, personality, and recovery. Include explicit anti-criteria for generic, verbose, misleading, or developer-facing output.",
+      "parent_id": "00700",
+      "baseline": true
+    },
+    "00702": {
+      "id": "00702",
+      "type": "file",
+      "path": "00700_experience_evaluation/00702_evaluation_plan.md",
+      "title": "Evaluation Plan",
+      "intent": "Define proportionate review through representative rendered surfaces, critical-flow walkthroughs, content review, accessibility checks, device and locale coverage, user evaluation, and expert critique, with owners and decision thresholds.",
+      "parent_id": "00700",
+      "baseline": true
+    }
+  }
+}
