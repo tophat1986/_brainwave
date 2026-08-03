@@ -35,6 +35,15 @@ The user-facing journey is:
 6. Review the foundation.
 7. Ready for implementation.
 
+## Working Modes
+
+Working mode changes how _brainwave shapes direction, not its quality or approval gates:
+
+- `thought_partner` — interprets, challenges, recommends, and runs one bounded opportunity scan before North Star agreement. It surfaces only strong, testable hypotheses and never adds them to the direction without approval.
+- `fast_execution` — proposes the strongest supported direction directly, uses reversible working assumptions, and limits questions or alternatives to material decisions.
+
+Guidance mode controls process explanation. Working mode controls decision collaboration. Detail level controls depth.
+
 ## Providing the Seed
 
 The user can choose either route:

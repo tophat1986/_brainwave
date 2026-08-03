@@ -6,6 +6,10 @@ Do not over-generate. Do not guess. Use natural-language discussion to resolve m
 
 All artifact paths in this directive are relative to the `_brainwave/` directory containing this file.
 
+## Canonical Name
+
+The framework's canonical name is `_brainwave`. Always write it exactly as `_brainwave`, including the leading underscore and lowercase letters, in user-facing prose, headings, prompts, documentation, and status messages. Do not normalise it to “Brainwave”, “brainwave”, or another variation, even when the user does so, unless quoting the user verbatim.
+
 ## Lifecycle Authority
 
 Read `_brainwave_state.yaml` first. Its `stage` must be one of:
@@ -45,6 +49,13 @@ Use `technical_proficiency` to calibrate language and technical detail throughou
 - In `guided` mode, state the exact next action, explain the next unfamiliar _brainwave term in one concise sentence, and mention `_brainwave_handbook.md` and `_dashboard.html` once near the start.
 - In `concise` mode, state the current step and immediate next action without the full journey block. Explain a term only when needed for the decision.
 - Do not repeat the journey block during routine shaping questions. Guided mode means clearer signposting, not longer general answers.
+
+## Working Mode
+
+Use `_settings.yaml` `ideation_mode` while shaping the North Star. Both modes preserve the same coverage, risk, build-outcome, and approval gates.
+
+- `thought_partner` — interpret, challenge, and recommend rather than only reflect. Once the core value, interaction, and naturally created assets are clear, run one silent opportunity scan before North Star agreement. Test whether the product's data, content, entities, transactions, signals, workflows, or relationships could create disproportionate user, discovery, retention, commercial, partner, or learning value, including a useful public or partner-facing surface. Surface at most two model-generated hypotheses only when they reuse core assets, have a clear causal loop, could change direction, and have a small reversible test. State the upside, assumptions, risks, and test, then ask the user to adopt, defer, or reject each one. Do not manufacture novelty or expand direction or scope without approval.
+- `fast_execution` — propose the strongest supported direction directly. Use labelled working assumptions for reversible gaps and ask only when a decision is consequential, difficult to reverse, preference-dependent, or requires approval. Present alternatives only when their trade-off is material or the user asks.
 
 ## Progressive Discovery and Coverage
 
@@ -92,6 +103,7 @@ When the user says `build concept`:
    - `configured: true`
    - `onboarding_status: complete`
    - `profile_last_updated: <ISO timestamp>`
+   - Apply the selected working mode immediately.
 4. If the stage is `awaiting_seed`, follow the Seed Input Routes. For conversational capture, preserve the user's supplied wording and natural structure. Do not complete the optional template as a schema or infer missing content. If materially paraphrasing or restructuring, show the exact proposed seed and obtain approval before writing it. For a directly saved seed, obtain confirmation to use the file exactly as written. Transition to `shaping_north_star`; this locks the seed hash.
 5. During `shaping_north_star`, ask one to three targeted questions at a time. Establish:
    - why the idea should exist

@@ -139,6 +139,9 @@ function buildSessionContext(runtime) {
   const guidanceMode = hasAllowedValue(runtime.settings, "guidance_mode")
     ? runtime.settings.guidance_mode
     : "concise";
+  const ideationMode = hasAllowedValue(runtime.settings, "ideation_mode")
+    ? runtime.settings.ideation_mode
+    : null;
   const displayStage = STAGE_DISPLAY_LABELS[stage] || stage;
   const lines = [
     `_brainwave is active at stage \`${stage}\`. The exact user-facing label is "${displayStage}". Follow ${at("AGENTS.md")} and ${at("_brainwave_handbook.md")}.`,
@@ -147,7 +150,7 @@ function buildSessionContext(runtime) {
 
   if (!settingsConfigured) {
     lines.push(
-      `The profile is incomplete. Ask whether this is the user's first time with _brainwave before the other three concise profile questions. Map "Yes — guide me" to \`guided\` and "No — keep it concise" to \`concise\`, prefer the host's native structured-choice UI when available, and update ${at("_settings.yaml")} after the user answers. Do not infer profile values from keywords.`
+      `The profile is incomplete. Ask whether this is the user's first time with _brainwave before the other three concise profile questions. Map "Yes — guide me" to \`guided\` and "No — keep it concise" to \`concise\`, prefer the host's native structured-choice UI when available, and update ${at("_settings.yaml")} after the user answers. Apply the selected working mode immediately. Do not infer profile values from keywords.`
     );
   } else if (guidanceMode === "guided") {
     lines.push(
@@ -177,6 +180,15 @@ function buildSessionContext(runtime) {
     lines.push(
       `The North Star status is \`${northStarStatus(runtime.northStar)}\`. Read ${at("_my_brainwave_north_star.md")} first, use the seed only for provenance, and treat discovery as an adaptive conversation rather than a questionnaire. Interpret existing answers before asking one to three high-leverage questions, route follow-ups only where material, and give compact progress reflections at natural checkpoints. At the appropriate moment, resolve the smallest consequential branch across funding and economic sustainability, discovery and adoption, legal or policy exposure from users/data/claims/money/markets/distribution, and human service or support dependencies. Risk overrides an early project phase; record the reason and re-entry trigger for any material deferral. Proportional scope changes breadth, not the quality floor.`
     );
+    if (settingsConfigured && ideationMode === "thought_partner") {
+      lines.push(
+        "Working mode is `thought_partner`. Interpret, challenge, and recommend rather than only reflect. Once core value, interaction, and natural assets are clear, run one silent opportunity scan before North Star agreement. Test whether data, content, entities, transactions, signals, workflows, or relationships could create disproportionate user, discovery, retention, commercial, partner, or learning value, including a useful public or partner-facing surface. Surface at most two model-generated hypotheses only when they reuse core assets, have a clear causal loop, could change direction, and have a small reversible test. State the upside, assumptions, risks, and test; ask the user to adopt, defer, or reject each one. Do not manufacture novelty or expand direction or scope without approval."
+      );
+    } else if (settingsConfigured && ideationMode === "fast_execution") {
+      lines.push(
+        "Working mode is `fast_execution`. Propose the strongest supported direction directly, use labelled working assumptions for reversible gaps, and ask only when a decision is consequential, difficult to reverse, preference-dependent, or requires approval. Present alternatives only when their trade-off is material or the user asks."
+      );
+    }
     if (settingsConfigured && !buildOutcomeIsReady(runtime.settings)) {
       lines.push(
         `Once the concept is understood well enough for the choice to be meaningful, ask "How far would you like us to take this idea?" Offer "Show me the idea" (\`demonstration\`), "Build a usable first version" (\`usable_first_version\`), and "Build the complete product" (\`complete_product\`), with the host's normal free-form choice for a custom outcome. Do not infer or default the answer. Explain what the choice means for this concept, obtain explicit confirmation, record it and its confirmation time in ${at("_settings.yaml")}, and capture the concise agreed interpretation under "What We Are Building" in the North Star before agreement.`

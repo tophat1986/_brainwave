@@ -351,6 +351,66 @@ test("session context adapts user orientation to guidance mode", () => {
   assert.match(legacy, /Guidance mode is `concise`/);
 });
 
+test("shaping context applies the selected working mode", () => {
+  const baseRuntime = {
+    root: SOURCE_ROOT,
+    cwd: SOURCE_PROJECT_ROOT,
+    state: { stage: "shaping_north_star" },
+    seed: "A concept.",
+    northStar: "# North Star\n\nStatus: shaping\n"
+  };
+  const configured = {
+    configured: true,
+    onboarding_status: "complete",
+    guidance_mode: "concise",
+    technical_proficiency: "intermediate",
+    verbosity_budget: "standard",
+    allowed_values: {
+      guidance_mode: ["guided", "concise"],
+      technical_proficiency: ["beginner", "intermediate", "architect"],
+      ideation_mode: ["thought_partner", "fast_execution"],
+      verbosity_budget: ["lean", "standard", "exhaustive"]
+    }
+  };
+
+  const thoughtPartner = buildSessionContext({
+    ...baseRuntime,
+    settings: { ...configured, ideation_mode: "thought_partner" }
+  });
+  const fastExecution = buildSessionContext({
+    ...baseRuntime,
+    settings: { ...configured, ideation_mode: "fast_execution" }
+  });
+  const selecting = buildSessionContext({
+    ...baseRuntime,
+    state: { stage: "selecting_dna" },
+    settings: { ...configured, ideation_mode: "thought_partner" }
+  });
+
+  assert.notEqual(thoughtPartner, fastExecution);
+  assert.match(thoughtPartner, /one silent opportunity scan/);
+  assert.match(thoughtPartner, /public or partner-facing surface/);
+  assert.match(thoughtPartner, /at most two model-generated hypotheses/);
+  assert.match(thoughtPartner, /adopt, defer, or reject/);
+  assert.match(thoughtPartner, /Do not manufacture novelty or expand direction or scope without approval/);
+  assert.doesNotMatch(thoughtPartner, /Working mode is `fast_execution`/);
+  assert.match(fastExecution, /Working mode is `fast_execution`/);
+  assert.match(fastExecution, /strongest supported direction directly/);
+  assert.doesNotMatch(fastExecution, /opportunity scan/);
+  assert.doesNotMatch(selecting, /opportunity scan/);
+});
+
+test("working mode contracts stay aligned across agent and user guidance", () => {
+  const directive = fs.readFileSync(path.join(SOURCE_ROOT, "AGENTS.md"), "utf8");
+  const handbook = fs.readFileSync(path.join(SOURCE_ROOT, "_brainwave_handbook.md"), "utf8");
+
+  for (const content of [directive, handbook]) {
+    assert.match(content, /thought_partner/);
+    assert.match(content, /fast_execution/);
+    assert.match(content, /opportunity scan/);
+  }
+});
+
 test("shaping context requires an explicitly confirmed build outcome for new settings", () => {
   const settings = {
     schema_version: "1.2.0",
@@ -418,6 +478,7 @@ test("incomplete profile context asks the guidance question first", () => {
   assert.match(context, /first time with _brainwave before the other three/);
   assert.match(context, /native structured-choice UI/);
   assert.match(context, /"Yes — guide me" to `guided`/);
+  assert.match(context, /Apply the selected working mode immediately/);
   assert.match(context, /Offer two equal seed routes/);
   assert.match(context, /preserve the user's supplied wording and natural structure/);
 });
@@ -1242,6 +1303,8 @@ test("integrates a nested _brainwave without replacing existing project guidance
   assert.match(second.stdout, /already current/);
   assert.match(agents, /^# Existing project guidance/m);
   assert.match(claudeGuide, /^# Existing Claude guidance/m);
+  assert.match(agents, /canonical name, `_brainwave`/);
+  assert.match(claudeGuide, /canonical name, `_brainwave`/);
   assert.match(agents, /all user-facing output must follow the accepted Product Design and Experience and Brand documentation/);
   assert.match(claudeGuide, /all user-facing output must follow the accepted Product Design and Experience and Brand documentation/);
   assert.equal((agents.match(/_brainwave:project-bridge:start/g) || []).length, 1);
@@ -1328,6 +1391,7 @@ test("nested adapters emit platform-correct context pointing to _brainwave artif
 
   assert.equal(cursorResult.status, 0);
   assert.match(cursorResponse.additional_context, /`_brainwave\/AGENTS\.md`/);
+  assert.match(cursorResponse.additional_context, /one silent opportunity scan/);
   assert.match(
     cursorResponse.additional_context,
     /`_brainwave\/_my_brainwave_north_star\.md`/
@@ -1350,6 +1414,7 @@ test("nested adapters emit platform-correct context pointing to _brainwave artif
       response.hookSpecificOutput.additionalContext,
       /`_brainwave\/_brainwave_handbook\.md`/
     );
+    assert.match(response.hookSpecificOutput.additionalContext, /one silent opportunity scan/);
   }
 });
 
@@ -1398,6 +1463,9 @@ test("aborts nested integration before writing when host Cursor configuration is
 });
 
 test("ships a clean template and installs into an empty repository", (t) => {
+  const governingDirective = fs.readFileSync(path.join(SOURCE_ROOT, "AGENTS.md"), "utf8");
+  assert.match(governingDirective, /^## Canonical Name$/m);
+  assert.match(governingDirective, /Always write it exactly as `_brainwave`/);
   const sourceState = JSON.parse(
     fs.readFileSync(path.join(SOURCE_ROOT, "_brainwave_state.yaml"), "utf8")
   );
