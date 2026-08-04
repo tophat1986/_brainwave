@@ -30,7 +30,8 @@ When the user explicitly asks to maintain, review, test, package, or release the
 
 - `_my_brainwave_seed.md` preserves the user's approved concept in its supplied wording and natural shape, then becomes immutable. Do not expand it for completeness, fit it to template headings, append working notes, or place decisions in it.
 - `_my_brainwave_north_star.md` is the living current direction. Read it before the seed in routine work.
-- `_settings.yaml` owns the user profile and the explicitly confirmed build outcome. Treat the build outcome as a project decision, independently of profile onboarding.
+- `_settings.yaml` owns the user profile, the lightweight project profile, and the explicitly confirmed build outcome. Treat the build outcome as a project decision, independently of profile onboarding.
+- `_assets/project_profile/`, when created, contains project-owned logos or other supplied project-profile assets. Keep file references in `_settings.yaml`; never embed binary assets in YAML.
 - `_dna/` contains versioned, immutable DNA-module definitions. It does not contain project selection state.
 - `_brainwave_state.yaml` owns lifecycle, selected DNA-module versions, and expressed entries.
 - `_documentation/_DNA-CODE/` contains generated DNA documentation, separated by its registered four-letter module code.
@@ -46,9 +47,22 @@ Use `technical_proficiency` to calibrate language and technical detail throughou
 
 - For settings schema `1.1` or newer, if `guidance_mode` is unset, ask first: **Is this your first time using _brainwave?** Offer `Yes — guide me` (`guided`) and `No — keep it concise` (`concise`). Prefer the host's native structured-choice UI when available; otherwise ask plainly. Do not infer the answer.
 - In `guided` mode, at the first orientation, a status request, and lifecycle approval points, show a compact seven-step journey. Mark completed steps with `✓`, the current step with `→`, and future steps with `○`. Use the user-facing labels exactly: Capture the idea; Agree the direction; Choose DNA modules; Scope DNA documents; Build DNA documentation; Review the foundation; Ready for implementation.
-- In `guided` mode, state the exact next action, explain the next unfamiliar _brainwave term in one concise sentence, and mention `_brainwave_handbook.md` and `_dashboard.html` once near the start.
+- In `guided` mode, state the exact next action, explain the next unfamiliar _brainwave term in one concise sentence, and mention `_brainwave_handbook.md` once near the start.
 - In `concise` mode, state the current step and immediate next action without the full journey block. Explain a term only when needed for the decision.
 - Do not repeat the journey block during routine shaping questions. Guided mode means clearer signposting, not longer general answers.
+
+## Experience Protocol
+
+Preserve a natural conversation while delivering a small, consistent set of intentional service moments. Keep these separate from approval gates and adaptive discovery questions.
+
+- After the user answers whether this is their first time, introduce `_dashboard.html` in both guidance modes before the remaining profile questions, seed routes, or concept questions. Use friendly, simple language: explain that it is the visual place to follow the journey, decisions, documents, and progress, and that it can be opened now or anytime. Do not add technical caveats. Record `dashboard_introduced_at` in `_brainwave_state.yaml` only after delivering the introduction.
+- After reading the approved Seed and any supplied materials, infer any project basics already present, then ask once: **Do you already have any project basics you'd like us to carry forward—such as a name, a short description or tagline, a logo, colours, or a general style direction? Share whatever you have, or say “not yet” and we can shape it later.** Do not split this into separate questions or repeat known details. `not_yet` and `deferred` are complete, non-blocking answers.
+- Save project basics in `_settings.yaml` `project_profile`. Mark supplied items as `working` or `confirmed`; never treat a rough idea as final. Save actual files beneath `_assets/project_profile/` and record their relative paths. Record `project_basics_checked_at` in `_brainwave_state.yaml` after the response is captured.
+- Represent each supplied colour with its own name, value, optional free-form role, optional usage, `featured` flag, and working or confirmed status. Roles are repeatable: a palette may contain several primary, secondary, supporting, neutral, semantic, or custom-role colours. Never force colours into unique primary/secondary/tertiary slots. `featured` controls which colours subtly influence the dashboard overview without changing their brand role.
+- A supplied logo, palette, name, or style is an input to later Brand Identity DNA work, not automatic evidence that brand documentation is unnecessary. Reuse it, avoid reinvention, and ask only for material gaps later.
+- Only the Seed is immutable. Project-profile information remains living and may move from working to confirmed or be deliberately replaced.
+
+The engine may prevent lifecycle progression when a required experience checkpoint has not been recorded. This assures delivery without requiring the user to approve informational moments.
 
 ## Working Mode
 
@@ -94,10 +108,11 @@ Before materially changing an agreed North Star, recording DNA module selection 
 When the user says `build concept`:
 
 1. Read `_brainwave_state.yaml` and `_settings.yaml`.
-2. If profile settings are incomplete, ask the guidance question first, then:
+2. If profile settings are incomplete, ask the guidance question first. After the user answers it, introduce the dashboard as required by the Experience Protocol, record `dashboard_introduced_at`, then ask:
    - Technical proficiency: `beginner`, `intermediate`, or `architect`
    - Working mode: `thought_partner` or `fast_execution`
    - Detail level: `lean`, `standard`, or `exhaustive`
+   If the profile is already complete but the dashboard checkpoint is missing, deliver and record the dashboard introduction before continuing.
 3. Write profile answers to `_settings.yaml` automatically and set:
    - `guidance_mode: guided` or `guidance_mode: concise`
    - `configured: true`
@@ -105,7 +120,8 @@ When the user says `build concept`:
    - `profile_last_updated: <ISO timestamp>`
    - Apply the selected working mode immediately.
 4. If the stage is `awaiting_seed`, follow the Seed Input Routes. For conversational capture, preserve the user's supplied wording and natural structure. Do not complete the optional template as a schema or infer missing content. If materially paraphrasing or restructuring, show the exact proposed seed and obtain approval before writing it. For a directly saved seed, obtain confirmation to use the file exactly as written. Transition to `shaping_north_star`; this locks the seed hash.
-5. During `shaping_north_star`, ask one to three targeted questions at a time. Establish:
+5. At the start of `shaping_north_star`, read the Seed and supplied materials, then complete the one-time project-basics check from the Experience Protocol. Save the result to `_settings.yaml` and `_brainwave_state.yaml` before agreeing the North Star.
+6. During `shaping_north_star`, ask one to three targeted questions at a time. Establish:
    - why the idea should exist
    - who it is for
    - what it should enable
@@ -114,19 +130,19 @@ When the user says `build concept`:
    - what is being built now
    - what success means
    - which material questions remain
-6. Once the concept is understood well enough for the choice to be meaningful, ask **How far would you like us to take this idea?** Offer:
+7. Once the concept is understood well enough for the choice to be meaningful, ask **How far would you like us to take this idea?** Offer:
    - **Show me the idea** (`demonstration`) — create something people can see and try; sample data and simulated behaviour are acceptable, and it is not intended for real use.
    - **Build a usable first version** (`usable_first_version`) — the agreed essential capabilities work properly for real users, and anything saved for later is identified and agreed upfront.
    - **Build the complete product** (`complete_product`) — everything agreed as part of the current product direction works properly for its intended users, with nothing inside that boundary left as a mock-up, placeholder, or unfinished future task.
    - A user-defined outcome (`custom`) through the host's normal free-form choice when available.
-7. Do not infer or default the build outcome. Explain the selected outcome in the context of this concept, obtain explicit confirmation, then write its value and confirmation time to `_settings.yaml`. Capture the agreed interpretation concisely in the North Star under `What We Are Building`; keep detailed capability scope and completion rules in their owning DNA documentation.
-8. Keep `_my_brainwave_north_star.md` at `Status: shaping` until the build outcome has been confirmed and the user explicitly agrees the North Star.
-9. After agreement, set `Status: agreed` and transition to `selecting_dna`.
-10. Explain that DNA modules are curated catalogues of possible documentation for relevant domains, then recommend one or more modules using semantic judgment, the conversation's meaning, and each module's `module_contract`. Use its relevance, selection signals, timing, ownership, exclusions, coordination, and live-verification needs as a coherent boundary; do not use keyword matching. Explain both the recommendation and any material omission or deferral, including its re-entry trigger, then obtain explicit user agreement.
-11. Record the approved selection with `select-dna`, log its rationale, and transition to `scoping_brainwave_documentation`.
-12. Propose only relevant DNA documents within the selected modules. Use the confirmed build outcome as context for the recommendation, not as a substitute for user-approved DNA document scope. Use each DNA document group's `when_relevant` as the domain gate, treat `baseline: true` children as the normal recommendation once that group is relevant, and use each file's `intent` to decide whether optional children are material. Group obvious related recommendations into concise approval slices rather than presenting a long document-by-document questionnaire. Explicit user-approved scope remains authoritative.
-13. Log the approved DNA document scope and rationale, express entries using canonical references such as `_DNA-SAPP-00201`, and transition to `building_brainwave_documentation`.
-14. Run the engine to scaffold only the scoped DNA documents.
+8. Do not infer or default the build outcome. Explain the selected outcome in the context of this concept, obtain explicit confirmation, then write its value and confirmation time to `_settings.yaml`. Capture the agreed interpretation concisely in the North Star under `What We Are Building`; keep detailed capability scope and completion rules in their owning DNA documentation.
+9. Keep `_my_brainwave_north_star.md` at `Status: shaping` until the build outcome has been confirmed and the user explicitly agrees the North Star.
+10. After agreement, set `Status: agreed` and transition to `selecting_dna`.
+11. Explain that DNA modules are curated catalogues of possible documentation for relevant domains, then recommend one or more modules using semantic judgment, the conversation's meaning, and each module's `module_contract`. Use its relevance, selection signals, timing, ownership, exclusions, coordination, and live-verification needs as a coherent boundary; do not use keyword matching. Explain both the recommendation and any material omission or deferral, including its re-entry trigger, then obtain explicit user agreement.
+12. Record the approved selection with `select-dna`, log its rationale, and transition to `scoping_brainwave_documentation`.
+13. Propose only relevant DNA documents within the selected modules. Use the confirmed build outcome as context for the recommendation, not as a substitute for user-approved DNA document scope. Use each DNA document group's `when_relevant` as the domain gate, treat `baseline: true` children as the normal recommendation once that group is relevant, and use each file's `intent` to decide whether optional children are material. Group obvious related recommendations into concise approval slices rather than presenting a long document-by-document questionnaire. Explicit user-approved scope remains authoritative.
+14. Log the approved DNA document scope and rationale, express entries using canonical references such as `_DNA-SAPP-00201`, and transition to `building_brainwave_documentation`.
+15. Run the engine to scaffold only the scoped DNA documents.
 
 ## DNA Documentation
 
@@ -196,7 +212,7 @@ If direction changes after completion:
 - Return to `selecting_dna` when the relevant domains change.
 - Return to `scoping_brainwave_documentation` when the North Star and DNA module selection remain valid but DNA document scope changes.
 
-During normal downstream implementation after completion, remain passive but update the status of directly affected DNA blocks: `not_started`, `in_progress`, `implemented`, `verified`, `blocked`, `not_applicable`, or `superseded`. Do not create a second implementation ID or duplicate implementation log. Run `refresh` only when the dashboard needs an updated derived view.
+During normal downstream implementation after completion, remain passive but update the status of directly affected DNA blocks: `not_started`, `in_progress`, `implemented`, `verified`, `blocked`, `not_applicable`, or `superseded`. Reuse confirmed project-profile materials and referenced `_assets/`; accepted Brand documentation governs their application. Do not create a second implementation ID or duplicate implementation log. Run `refresh` only when the dashboard needs an updated derived view.
 
 ## Local README Rule
 

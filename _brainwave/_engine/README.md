@@ -11,6 +11,7 @@ Tool-neutral session policy lives in `runtime/`. Thin adapters in `adapters/` tr
 - Validate the fixed _brainwave lifecycle.
 - Lock and verify the immutable _brainwave Seed.
 - Require an explicitly agreed North Star before DNA module selection.
+- Validate the dashboard introduction and project-basics experience checkpoints for settings schema 1.3 or newer.
 - Discover and validate versioned, data-only modules and their explicit ownership contracts in `_dna/`.
 - Validate project-owned module selection and expressed entries.
 - Scaffold only scoped DNA documents beneath `_documentation/_DNA-CODE/`.
@@ -26,7 +27,7 @@ The engine does not interpret the seed or North Star, call an AI model, or decid
 
 DNA modules, `_manifest.yaml`, `_settings.yaml`, and `_brainwave_state.yaml` use JSON-compatible YAML so the engine has no external runtime dependencies.
 
-Module definitions are immutable project inputs named by their canonical `_DNA-CODE` identity. The engine records selected module versions and expressed entries only in `_brainwave_state.yaml`.
+Module definitions are immutable project inputs named by their canonical `_DNA-CODE` identity. The engine records selected module versions, expressed entries, and experience checkpoints only in `_brainwave_state.yaml`. `_settings.yaml` holds the user's working preferences, confirmed build outcome, and lightweight project profile; supplied profile assets remain separate files beneath `_assets/`.
 
 DNA documents own their block statuses. The manifest and dashboard derive implementation visibility from those documents; they are not parallel logs.
 

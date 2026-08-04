@@ -160,6 +160,70 @@ function firstMeaningfulTitle(...contents) {
   return null;
 }
 
+function optionalText(value) {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function normalizedProjectProfile(settings) {
+  const defaults = defaultSettings().project_profile;
+  const source = isPlainObject(settings.project_profile) ? settings.project_profile : {};
+  const allowedStatuses = new Set(
+    settings.allowed_values?.project_profile_status ||
+      ["not_asked", "not_yet", "working", "confirmed", "deferred"]
+  );
+  const allowedItemStatuses = new Set(
+    settings.allowed_values?.project_profile_item_status ||
+      ["not_provided", "working", "confirmed"]
+  );
+  const logoSource = isPlainObject(source.logo) ? source.logo : {};
+  const logoPath = isSafeModulePath(logoSource.path) ? logoSource.path : null;
+  const colors = Array.isArray(source.colors)
+    ? source.colors
+        .map((color) => {
+          if (typeof color === "string") {
+            return {
+              name: null,
+              value: optionalText(color),
+              role: null,
+              usage: null,
+              featured: false,
+              status: "working"
+            };
+          }
+          if (!isPlainObject(color)) return null;
+          const value = optionalText(color.value);
+          if (!value) return null;
+          return {
+            name: optionalText(color.name) || optionalText(color.label),
+            value,
+            role: optionalText(color.role),
+            usage: optionalText(color.usage),
+            featured: color.featured === true,
+            status: allowedItemStatuses.has(color.status) ? color.status : "working"
+          };
+        })
+        .filter(Boolean)
+    : [];
+
+  return {
+    status: allowedStatuses.has(source.status) ? source.status : defaults.status,
+    name: optionalText(source.name),
+    short_description: optionalText(source.short_description),
+    tagline: optionalText(source.tagline),
+    logo: {
+      path: logoPath,
+      alt_text: optionalText(logoSource.alt_text),
+      status: allowedItemStatuses.has(logoSource.status)
+        ? logoSource.status
+        : defaults.logo.status,
+      exists: Boolean(logoPath && exists(path.join(ROOT, logoPath)))
+    },
+    colors,
+    style_direction: optionalText(source.style_direction),
+    updated_at: optionalText(source.updated_at)
+  };
+}
+
 function parseDecisionEntries(content) {
   const allowedFields = new Set([
     "timestamp",
@@ -212,7 +276,7 @@ function blockSectionMarkdown(section, heading) {
 
 function defaultSettings() {
   return {
-    schema_version: "1.2.0",
+    schema_version: "1.3.0",
     configured: false,
     onboarding_status: "pending",
     guidance_mode: null,
@@ -221,6 +285,20 @@ function defaultSettings() {
     verbosity_budget: "standard",
     build_outcome: null,
     build_outcome_confirmed_at: null,
+    project_profile: {
+      status: "not_asked",
+      name: null,
+      short_description: null,
+      tagline: null,
+      logo: {
+        path: null,
+        alt_text: null,
+        status: "not_provided"
+      },
+      colors: [],
+      style_direction: null,
+      updated_at: null
+    },
     profile_last_updated: null,
     onboarding_questions: [
       "Is this your first time using _brainwave? (yes — guide me / no — keep it concise)",
@@ -233,7 +311,9 @@ function defaultSettings() {
       technical_proficiency: ["beginner", "intermediate", "architect"],
       ideation_mode: ["thought_partner", "fast_execution"],
       verbosity_budget: ["lean", "standard", "exhaustive"],
-      build_outcome: ["demonstration", "usable_first_version", "complete_product", "custom"]
+      build_outcome: ["demonstration", "usable_first_version", "complete_product", "custom"],
+      project_profile_status: ["not_asked", "not_yet", "working", "confirmed", "deferred"],
+      project_profile_item_status: ["not_provided", "working", "confirmed"]
     },
     engine: {
       max_files_per_cycle: 120
@@ -250,6 +330,10 @@ function defaultState() {
       path: "_my_brainwave_seed.md",
       captured_at: null,
       locked_sha256: null
+    },
+    experience_checkpoints: {
+      dashboard_introduced_at: null,
+      project_basics_checked_at: null
     },
     selected_dna: {}
   };
@@ -286,15 +370,25 @@ function defaultManifestSkeleton() {
       stage_updated_at: null,
       passive: false
     },
+    experience: {
+      checkpoints: {
+        dashboard_introduced_at: null,
+        project_basics_checked_at: null
+      }
+    },
     settings: {
       path: "_settings.yaml",
       loaded: false,
+      configured: false,
+      onboarding_status: "pending",
       guidance_mode: null,
       technical_proficiency: null,
       ideation_mode: null,
       verbosity_budget: null,
       build_outcome: null,
-      build_outcome_confirmed_at: null
+      build_outcome_confirmed_at: null,
+      profile_last_updated: null,
+      project_profile: defaultSettings().project_profile
     },
     engine: {
       status: "idle",
@@ -341,6 +435,7 @@ function defaultManifestSkeleton() {
     },
     presentation: {
       project_title: null,
+      project_profile: defaultSettings().project_profile,
       content: {
         seed: { title: "_brainwave Seed", path: "_my_brainwave_seed.md", markdown: "" },
         north_star: {
@@ -617,6 +712,21 @@ function validateState(state, modules, options = {}) {
   }
   if (!STAGES.includes(state.stage)) {
     throw new Error(`Invalid _brainwave stage: ${state.stage || "missing"}.`);
+  }
+  if (state.experience_checkpoints === undefined) {
+    state.experience_checkpoints = {
+      dashboard_introduced_at: null,
+      project_basics_checked_at: null
+    };
+  }
+  if (!isPlainObject(state.experience_checkpoints)) {
+    throw new Error("`experience_checkpoints` must be an object.");
+  }
+  for (const key of ["dashboard_introduced_at", "project_basics_checked_at"]) {
+    const value = state.experience_checkpoints[key];
+    if (value !== undefined && value !== null && (typeof value !== "string" || !value.trim())) {
+      throw new Error(`Experience checkpoint ${key} must be a timestamp or null.`);
+    }
   }
   if (state.selected_dna === undefined) state.selected_dna = {};
   if (!isPlainObject(state.selected_dna)) {
@@ -1003,6 +1113,7 @@ function computeModuleProgress(module, state, trackedFiles) {
 
 function buildManifest(workspace, command, taskPlan = [], prior = null) {
   const manifest = defaultManifestSkeleton();
+  const projectProfile = normalizedProjectProfile(workspace.settings);
   const previous = prior || workspace.previousManifest;
   if (previous && Array.isArray(previous.events)) {
     manifest.events = previous.events.slice(-100);
@@ -1015,6 +1126,8 @@ function buildManifest(workspace, command, taskPlan = [], prior = null) {
   manifest.engine.task_router.pending_tasks = taskPlan.length;
 
   manifest.settings.loaded = true;
+  manifest.settings.configured = workspace.settings.configured === true;
+  manifest.settings.onboarding_status = workspace.settings.onboarding_status ?? null;
   manifest.settings.guidance_mode = workspace.settings.guidance_mode ?? null;
   manifest.settings.technical_proficiency = workspace.settings.technical_proficiency ?? null;
   manifest.settings.ideation_mode = workspace.settings.ideation_mode ?? null;
@@ -1022,11 +1135,17 @@ function buildManifest(workspace, command, taskPlan = [], prior = null) {
   manifest.settings.build_outcome = workspace.settings.build_outcome ?? null;
   manifest.settings.build_outcome_confirmed_at =
     workspace.settings.build_outcome_confirmed_at ?? null;
+  manifest.settings.profile_last_updated = workspace.settings.profile_last_updated ?? null;
+  manifest.settings.project_profile = projectProfile;
 
-  manifest.presentation.project_title = firstMeaningfulTitle(
-    workspace.northStarText,
-    workspace.seedText
-  );
+  manifest.experience.checkpoints.dashboard_introduced_at =
+    workspace.state.experience_checkpoints?.dashboard_introduced_at || null;
+  manifest.experience.checkpoints.project_basics_checked_at =
+    workspace.state.experience_checkpoints?.project_basics_checked_at || null;
+
+  manifest.presentation.project_title =
+    projectProfile.name || firstMeaningfulTitle(workspace.northStarText, workspace.seedText);
+  manifest.presentation.project_profile = projectProfile;
   manifest.presentation.content.seed.markdown = workspace.seedText;
   manifest.presentation.content.north_star.markdown = workspace.northStarText;
   manifest.presentation.content.decisions.markdown = workspace.decisionsText;
@@ -1283,6 +1402,10 @@ function settingsRequireBuildOutcome(settings) {
   return settingsSchemaAtLeast(settings, 1, 2);
 }
 
+function settingsRequireExperienceProtocol(settings) {
+  return settingsSchemaAtLeast(settings, 1, 3);
+}
+
 function isSettingsConfigured(settings) {
   return Boolean(
     settings &&
@@ -1311,6 +1434,30 @@ function assertBuildOutcomeReady(settings) {
   ) {
     throw new Error(
       "Build outcome pre-check failed: ask how far the user wants to take this idea, confirm what that means for this concept, and record the outcome in `_settings.yaml` before agreeing the North Star."
+    );
+  }
+}
+
+function assertDashboardIntroduced(workspace) {
+  if (
+    settingsRequireExperienceProtocol(workspace.settings) &&
+    !workspace.state.experience_checkpoints?.dashboard_introduced_at
+  ) {
+    throw new Error(
+      "Experience pre-check failed: introduce the `_brainwave` dashboard in friendly, simple language and record `dashboard_introduced_at` in `_brainwave_state.yaml` before capturing the Seed."
+    );
+  }
+}
+
+function assertProjectBasicsChecked(workspace) {
+  if (!settingsRequireExperienceProtocol(workspace.settings)) return;
+  const profile = normalizedProjectProfile(workspace.settings);
+  if (
+    !workspace.state.experience_checkpoints?.project_basics_checked_at ||
+    profile.status === "not_asked"
+  ) {
+    throw new Error(
+      "Experience pre-check failed: after reading the Seed, check once for any existing project name, short description or tagline, logo, colours, or style direction. Record the answer in `_settings.yaml` and `project_basics_checked_at` in `_brainwave_state.yaml` before agreeing the North Star."
     );
   }
 }
@@ -1592,6 +1739,10 @@ function transitionStage(targetStage) {
   }
 
   if (currentStage === "awaiting_seed" && targetStage === "shaping_north_star") {
+    if (settingsRequireExperienceProtocol(workspace.settings)) {
+      assertSettingsReady(workspace.settings);
+      assertDashboardIntroduced(workspace);
+    }
     if (!workspace.seedText.trim()) {
       throw new Error("Cannot capture the _brainwave Seed because `_my_brainwave_seed.md` is empty.");
     }
@@ -1615,6 +1766,9 @@ function transitionStage(targetStage) {
     assertSettingsReady(workspace.settings);
     assertBuildOutcomeReady(workspace.settings);
     assertNorthStarAgreed(workspace.northStarText);
+  }
+  if (targetStage === "selecting_dna") {
+    assertProjectBasicsChecked(workspace);
   }
   if (
     [

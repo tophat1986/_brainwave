@@ -23,6 +23,8 @@ During onboarding, _brainwave asks whether to use:
 - `guided` — concise stage signposting, a seven-step journey at orientation and approval points, plain-language explanations of unfamiliar terms, and early links to this handbook and `_dashboard.html`
 - `concise` — the current step and immediate next action, with more explanation only when needed or requested
 
+Everyone receives one short, friendly dashboard introduction near the start. Guided mode adds the fuller journey; concise mode keeps the introduction to a sentence.
+
 Guidance mode controls explanation of the process. The separate detail setting controls the depth of working output and documentation. Guided mode does not make every response longer, and the journey is not repeated during routine shaping questions.
 
 The user-facing journey is:
@@ -52,6 +54,16 @@ The user can choose either route:
 - **Use a prepared concept:** paste it into chat for verbatim capture, or save it directly in `_my_brainwave_seed.md`.
 
 For the direct-file route, save the concept and tell the agent: `build concept using the seed file exactly as written`. Saving the file does not lock it. The engine locks its hash only after confirmation and transition to `shaping_north_star`.
+
+## Project Basics
+
+After reading the Seed, _brainwave asks once whether the user already has any project basics to carry forward: a name, short description or tagline, logo, colours, or a general style direction. The question is optional and bundled; `not yet` is a complete answer.
+
+Supplied details are saved in `_settings.yaml` as either working or confirmed. Actual files such as a logo are stored beneath `_assets/project_profile/` and referenced from the project profile. These inputs appear in the dashboard and are reused during later direction and Brand Identity DNA work so the agent does not reinvent what already exists.
+
+Colours may each have a name, value, role, intended use, and an optional featured marker for the dashboard. Roles are flexible and repeatable, so a project can have several primary or secondary colours rather than being forced into one slot of each type. Unclassified colours are also allowed.
+
+Project basics are living information. They may evolve as the idea becomes clearer; only the approved Seed is immutable.
 
 ## Agreeing What Will Be Built
 
@@ -159,6 +171,8 @@ In another IDE or agent environment, begin by telling the agent to read the root
 
 It shows:
 
+- a focused project overview with the current name, short description or tagline, logo, and colour direction when available
+- a complete, friendly view of the user's setup choices, project basics, and getting-started checkpoints
 - a seven-stage vertical journey, with completed stages collapsed and the current stage in focus
 - in-dashboard previews of the seed, North Star, decisions, handbook, and expressed documents
 - the installed DNA Library, including each module's full DNA document catalogue before a concept is selected
@@ -227,6 +241,7 @@ Project-owned files must never be overwritten by an update:
 - `_my_brainwave_north_star.md`
 - `_brainwave_state.yaml`
 - `_settings.yaml`
+- `_assets/`
 - `_decisions_log.md`
 - `_documentation/`
 

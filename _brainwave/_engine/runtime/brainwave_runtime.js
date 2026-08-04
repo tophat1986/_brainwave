@@ -91,6 +91,10 @@ function settingsRequireBuildOutcome(settings) {
   return settingsSchemaAtLeast(settings, 1, 2);
 }
 
+function settingsRequireExperienceProtocol(settings) {
+  return settingsSchemaAtLeast(settings, 1, 3);
+}
+
 function buildOutcomeIsReady(settings) {
   return Boolean(
     !settingsRequireBuildOutcome(settings) ||
@@ -143,6 +147,15 @@ function buildSessionContext(runtime) {
     ? runtime.settings.ideation_mode
     : null;
   const displayStage = STAGE_DISPLAY_LABELS[stage] || stage;
+  const experienceRequired = settingsRequireExperienceProtocol(runtime.settings);
+  const dashboardIntroduced = Boolean(
+    runtime.state.experience_checkpoints?.dashboard_introduced_at
+  );
+  const projectBasicsChecked = Boolean(
+    runtime.state.experience_checkpoints?.project_basics_checked_at &&
+      runtime.settings.project_profile?.status &&
+      runtime.settings.project_profile.status !== "not_asked"
+  );
   const lines = [
     `_brainwave is active at stage \`${stage}\`. The exact user-facing label is "${displayStage}". Follow ${at("AGENTS.md")} and ${at("_brainwave_handbook.md")}.`,
     `Use "${displayStage}" when stating the current step in the first assistant reply; keep the lifecycle ID internal.`
@@ -150,16 +163,24 @@ function buildSessionContext(runtime) {
 
   if (!settingsConfigured) {
     lines.push(
-      `The profile is incomplete. Ask whether this is the user's first time with _brainwave before the other three concise profile questions. Map "Yes — guide me" to \`guided\` and "No — keep it concise" to \`concise\`, prefer the host's native structured-choice UI when available, and update ${at("_settings.yaml")} after the user answers. Apply the selected working mode immediately. Do not infer profile values from keywords.`
+      `The profile is incomplete. Ask whether this is the user's first time with _brainwave before the other three concise profile questions. Map "Yes — guide me" to \`guided\` and "No — keep it concise" to \`concise\`, prefer the host's native structured-choice UI when available, and update ${at("_settings.yaml")} after the user answers. Immediately after that first answer, give the friendly dashboard introduction below before asking the other profile questions. Apply the selected working mode immediately. Do not infer profile values from keywords.`
     );
   } else if (guidanceMode === "guided") {
     lines.push(
-      `Guidance mode is \`guided\`. At the first orientation, status requests, and lifecycle approval points, show the compact seven-step journey defined in ${at("AGENTS.md")}; state the exact next action and explain the next unfamiliar term in one concise sentence. Mention ${at("_brainwave_handbook.md")} and ${at("_dashboard.html")} once near the start. Do not repeat the journey during routine shaping questions.`
+      `Guidance mode is \`guided\`. At the first orientation, status requests, and lifecycle approval points, show the compact seven-step journey defined in ${at("AGENTS.md")}; state the exact next action and explain the next unfamiliar term in one concise sentence. Mention ${at("_brainwave_handbook.md")} once near the start. Do not repeat the journey during routine shaping questions.`
     );
   } else {
     lines.push(
       "Guidance mode is `concise`. State the current step and immediate next action without the full journey block; explain a term only when needed for the decision."
     );
+  }
+
+  if (experienceRequired && !dashboardIntroduced) {
+    lines.push(
+      `Before the seed routes or any concept questions, tell the user in simple, friendly language: "You can follow your idea as it takes shape in the _brainwave dashboard. It gives you a clear visual view of the journey, decisions, documents and progress. You can open ${at("_dashboard.html")} now or anytime." Do not add technical caveats. After delivering it, record \`dashboard_introduced_at\` in ${at("_brainwave_state.yaml")}.`
+    );
+  } else if (!experienceRequired && guidanceMode === "guided") {
+    lines.push(`Mention ${at("_dashboard.html")} once near the start as the visual way to follow progress.`);
   }
 
   if (stage === "awaiting_seed") {
@@ -177,6 +198,11 @@ function buildSessionContext(runtime) {
       `The seed is unexpectedly missing. Restore the approved content in ${at("_my_brainwave_seed.md")} before continuing.`
     );
   } else if (stage === "shaping_north_star") {
+    if (experienceRequired && !projectBasicsChecked) {
+      lines.push(
+        `Read the Seed and any supplied materials first, then ask one optional bundled project-basics question without repeating known details: "Do you already have any project basics you'd like us to carry forward—such as a name, a short description or tagline, a logo, colours, or a general style direction? Share whatever you have, or say 'not yet' and we can shape it later." Do not split this into separate questions. Save supplied details as working or confirmed in ${at("_settings.yaml")} \`project_profile\`; save actual files under a project-owned \`_assets/project_profile/\` folder and record their paths. For each colour, preserve its name, value, optional repeatable role, optional usage, and whether it should be featured in the dashboard; never force unique primary, secondary, or tertiary slots. Treat \`not_yet\` and \`deferred\` as complete answers, then record \`project_basics_checked_at\` in ${at("_brainwave_state.yaml")}.`
+      );
+    }
     lines.push(
       `The North Star status is \`${northStarStatus(runtime.northStar)}\`. Read ${at("_my_brainwave_north_star.md")} first, use the seed only for provenance, and treat discovery as an adaptive conversation rather than a questionnaire. Interpret existing answers before asking one to three high-leverage questions, route follow-ups only where material, and give compact progress reflections at natural checkpoints. At the appropriate moment, resolve the smallest consequential branch across funding and economic sustainability, discovery and adoption, legal or policy exposure from users/data/claims/money/markets/distribution, and human service or support dependencies. Risk overrides an early project phase; record the reason and re-entry trigger for any material deferral. Proportional scope changes breadth, not the quality floor.`
     );

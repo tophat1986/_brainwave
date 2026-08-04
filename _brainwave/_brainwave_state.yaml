@@ -7,5 +7,9 @@
     "captured_at": null,
     "locked_sha256": null
   },
+  "experience_checkpoints": {
+    "dashboard_introduced_at": null,
+    "project_basics_checked_at": null
+  },
   "selected_dna": {}
 }

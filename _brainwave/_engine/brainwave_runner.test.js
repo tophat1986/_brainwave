@@ -251,6 +251,25 @@ test("dashboard JavaScript parses and presents the expanded DNA boundaries", () 
   assert.match(html, /data-tone="growth"/);
   assert.match(html, /data-tone="legal"/);
   assert.match(html, /data-tone="operations"/);
+  assert.match(html, /id="project-overview"/);
+  assert.match(html, /setupFieldDefinitions/);
+  for (const key of [
+    "onboarding_status",
+    "guidance_mode",
+    "technical_proficiency",
+    "ideation_mode",
+    "verbosity_budget",
+    "build_outcome"
+  ]) {
+    assert.match(html, new RegExp(`key: "${key}"`));
+  }
+  assert.match(html, /Project basics/);
+  assert.match(html, /Getting started/);
+  assert.match(html, /overviewProfileColors/);
+  assert.match(html, /colorsByRole/);
+  assert.match(html, /class="seed-body"/);
+  assert.match(html, /seedIcon\("large"\)/);
+  assert.doesNotMatch(html, /artifact-symbol idea/);
 });
 
 test("keeps user-facing lifecycle terminology aligned across surfaces", () => {
@@ -349,6 +368,93 @@ test("session context adapts user orientation to guidance mode", () => {
   assert.match(concise, /Guidance mode is `concise`/);
   assert.doesNotMatch(concise, /compact seven-step journey/);
   assert.match(legacy, /Guidance mode is `concise`/);
+});
+
+test("new experience protocol introduces the dashboard once in both guidance modes", () => {
+  const settings = {
+    schema_version: "1.3.0",
+    configured: true,
+    onboarding_status: "complete",
+    guidance_mode: "concise",
+    technical_proficiency: "intermediate",
+    ideation_mode: "thought_partner",
+    verbosity_budget: "standard",
+    project_profile: { status: "not_asked" },
+    allowed_values: {
+      guidance_mode: ["guided", "concise"],
+      technical_proficiency: ["beginner", "intermediate", "architect"],
+      ideation_mode: ["thought_partner", "fast_execution"],
+      verbosity_budget: ["lean", "standard", "exhaustive"]
+    }
+  };
+  const runtime = {
+    root: SOURCE_ROOT,
+    cwd: SOURCE_PROJECT_ROOT,
+    settings,
+    state: {
+      stage: "awaiting_seed",
+      experience_checkpoints: {
+        dashboard_introduced_at: null,
+        project_basics_checked_at: null
+      }
+    },
+    seed: "",
+    northStar: ""
+  };
+
+  const pending = buildSessionContext(runtime);
+  const delivered = buildSessionContext({
+    ...runtime,
+    state: {
+      ...runtime.state,
+      experience_checkpoints: {
+        ...runtime.state.experience_checkpoints,
+        dashboard_introduced_at: "2026-08-04T12:00:00.000Z"
+      }
+    }
+  });
+
+  assert.match(pending, /You can follow your idea as it takes shape/);
+  assert.match(pending, /Do not add technical caveats/);
+  assert.match(pending, /dashboard_introduced_at/);
+  assert.doesNotMatch(delivered, /You can follow your idea as it takes shape/);
+});
+
+test("new experience protocol asks one bundled project-basics question after the Seed", () => {
+  const runtime = {
+    root: SOURCE_ROOT,
+    cwd: SOURCE_PROJECT_ROOT,
+    state: {
+      stage: "shaping_north_star",
+      experience_checkpoints: {
+        dashboard_introduced_at: "2026-08-04T12:00:00.000Z",
+        project_basics_checked_at: null
+      }
+    },
+    settings: {
+      schema_version: "1.3.0",
+      configured: true,
+      onboarding_status: "complete",
+      guidance_mode: "concise",
+      technical_proficiency: "intermediate",
+      ideation_mode: "thought_partner",
+      verbosity_budget: "standard",
+      project_profile: { status: "not_asked" },
+      allowed_values: {
+        guidance_mode: ["guided", "concise"],
+        technical_proficiency: ["beginner", "intermediate", "architect"],
+        ideation_mode: ["thought_partner", "fast_execution"],
+        verbosity_budget: ["lean", "standard", "exhaustive"]
+      }
+    },
+    seed: "A concept.",
+    northStar: "# North Star\n\nStatus: shaping\n"
+  };
+
+  const context = buildSessionContext(runtime);
+  assert.match(context, /Do you already have any project basics/);
+  assert.match(context, /Do not split this into separate questions/);
+  assert.match(context, /project_basics_checked_at/);
 });
 
 test("shaping context applies the selected working mode", () => {
@@ -660,6 +766,126 @@ test("new settings block DNA selection until the build outcome is confirmed", (t
   writeJson(settingsPath, settings);
   const confirmed = runEngine(root, "transition", "selecting_dna");
   assert.equal(confirmed.status, 0);
+});
+
+test("new experience protocol requires the dashboard introduction before Seed capture", (t) => {
+  const { root } = createWorkspace(t, {
+    selected: false,
+    stage: "awaiting_seed"
+  });
+  const settingsPath = path.join(root, "_settings.yaml");
+  const statePath = path.join(root, "_brainwave_state.yaml");
+  const settings = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
+  const state = JSON.parse(fs.readFileSync(statePath, "utf8"));
+  settings.schema_version = "1.3.0";
+  settings.guidance_mode = "concise";
+  settings.allowed_values.guidance_mode = ["guided", "concise"];
+  settings.project_profile = { status: "not_asked" };
+  state.experience_checkpoints = {
+    dashboard_introduced_at: null,
+    project_basics_checked_at: null
+  };
+  writeJson(settingsPath, settings);
+  writeJson(statePath, state);
+
+  const pending = runEngine(root, "transition", "shaping_north_star");
+  assert.equal(pending.status, 1);
+  assert.match(pending.stderr, /introduce the `_brainwave` dashboard/);
+
+  state.experience_checkpoints.dashboard_introduced_at = "2026-08-04T12:00:00.000Z";
+  writeJson(statePath, state);
+  const delivered = runEngine(root, "transition", "shaping_north_star");
+  assert.equal(delivered.status, 0);
+});
+
+test("new experience protocol requires the project-basics check before North Star agreement", (t) => {
+  const { root } = createWorkspace(t, {
+    selected: false,
+    stage: "shaping_north_star"
+  });
+  const settingsPath = path.join(root, "_settings.yaml");
+  const statePath = path.join(root, "_brainwave_state.yaml");
+  const settings = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
+  const state = JSON.parse(fs.readFileSync(statePath, "utf8"));
+  settings.schema_version = "1.3.0";
+  settings.guidance_mode = "concise";
+  settings.build_outcome = "usable_first_version";
+  settings.build_outcome_confirmed_at = "2026-08-04T12:00:00.000Z";
+  settings.allowed_values.guidance_mode = ["guided", "concise"];
+  settings.allowed_values.build_outcome = [
+    "demonstration",
+    "usable_first_version",
+    "complete_product",
+    "custom"
+  ];
+  settings.allowed_values.project_profile_status = [
+    "not_asked",
+    "not_yet",
+    "working",
+    "confirmed",
+    "deferred"
+  ];
+  settings.project_profile = { status: "not_asked" };
+  state.experience_checkpoints = {
+    dashboard_introduced_at: "2026-08-04T12:00:00.000Z",
+    project_basics_checked_at: null
+  };
+  writeJson(settingsPath, settings);
+  writeJson(statePath, state);
+
+  const pending = runEngine(root, "transition", "selecting_dna");
+  assert.equal(pending.status, 1);
+  assert.match(pending.stderr, /check once for any existing project name/);
+
+  settings.project_profile.status = "not_yet";
+  state.experience_checkpoints.project_basics_checked_at = "2026-08-04T12:05:00.000Z";
+  writeJson(settingsPath, settings);
+  writeJson(statePath, state);
+  const checked = runEngine(root, "transition", "selecting_dna");
+  assert.equal(checked.status, 0);
+});
+
+test("manifest carries the complete setup and project profile into the dashboard", (t) => {
+  const { root } = createWorkspace(t, { selected: false });
+  const settingsPath = path.join(root, "_settings.yaml");
+  const settings = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
+  const logoPath = "_assets/project_profile/logo.svg";
+  fs.mkdirSync(path.join(root, "_assets", "project_profile"), { recursive: true });
+  fs.writeFileSync(path.join(root, logoPath), "<svg xmlns=\"http://www.w3.org/2000/svg\"></svg>", "utf8");
+  settings.guidance_mode = "guided";
+  settings.allowed_values.guidance_mode = ["guided", "concise"];
+  settings.project_profile = {
+    status: "working",
+    name: "Signal Garden",
+    short_description: "A calm place to grow useful ideas.",
+    tagline: "Ideas, tended well.",
+    logo: { path: logoPath, alt_text: "Signal Garden", status: "working" },
+    colors: [
+      { name: "Leaf", value: "#247A5A", role: "primary", usage: "Core identity", featured: true, status: "working" },
+      { name: "Moss", value: "#173B35", role: "primary", usage: "Dark surfaces", featured: true, status: "working" },
+      { name: "Sun", value: "#F5B942", role: "secondary", usage: "Warm highlights", featured: false, status: "working" }
+    ],
+    style_direction: "Calm, warm and quietly optimistic.",
+    updated_at: "2026-08-04T12:00:00.000Z"
+  };
+  writeJson(settingsPath, settings);
+
+  assert.equal(runEngine(root, "refresh").status, 0);
+  const manifest = JSON.parse(fs.readFileSync(path.join(root, "_manifest.yaml"), "utf8"));
+  const dashboard = fs.readFileSync(path.join(root, "_dashboard.html"), "utf8");
+
+  assert.equal(manifest.settings.technical_proficiency, "intermediate");
+  assert.equal(manifest.settings.ideation_mode, "thought_partner");
+  assert.equal(manifest.settings.verbosity_budget, "standard");
+  assert.equal(manifest.presentation.project_title, "Signal Garden");
+  assert.equal(manifest.presentation.project_profile.logo.exists, true);
+  assert.equal(manifest.presentation.project_profile.colors[0].value, "#247A5A");
+  assert.equal(manifest.presentation.project_profile.colors[0].role, "primary");
+  assert.equal(manifest.presentation.project_profile.colors[0].featured, true);
+  assert.equal(manifest.presentation.project_profile.colors[1].role, "primary");
+  assert.equal(manifest.presentation.project_profile.colors[2].usage, "Warm highlights");
+  assert.match(dashboard, /Signal Garden/);
+  assert.match(dashboard, /#247A5A/);
 });
 
 test("rejects a seed changed after capture", (t) => {
@@ -1307,6 +1533,8 @@ test("integrates a nested _brainwave without replacing existing project guidance
   assert.match(claudeGuide, /canonical name, `_brainwave`/);
   assert.match(agents, /all user-facing output must follow the accepted Product Design and Experience and Brand documentation/);
   assert.match(claudeGuide, /all user-facing output must follow the accepted Product Design and Experience and Brand documentation/);
+  assert.match(agents, /`project_profile` and its referenced `_brainwave\/_assets\/` files/);
+  assert.match(claudeGuide, /`project_profile` and its referenced `_brainwave\/_assets\/` files/);
   assert.equal((agents.match(/_brainwave:project-bridge:start/g) || []).length, 1);
   assert.equal((claudeGuide.match(/_brainwave:project-bridge:start/g) || []).length, 1);
   assert.deepEqual(
@@ -1471,6 +1699,10 @@ test("ships a clean template and installs into an empty repository", (t) => {
   );
   assert.equal(sourceState.stage, "awaiting_seed");
   assert.equal(sourceState.seed.locked_sha256, null);
+  assert.deepEqual(sourceState.experience_checkpoints, {
+    dashboard_introduced_at: null,
+    project_basics_checked_at: null
+  });
   assert.equal(fs.readFileSync(path.join(SOURCE_ROOT, "_my_brainwave_seed.md"), "utf8"), "");
   assert.equal(
     fs.readFileSync(path.join(SOURCE_ROOT, "_my_brainwave_north_star.md"), "utf8"),
@@ -1485,7 +1717,7 @@ test("ships a clean template and installs into an empty repository", (t) => {
   const sourceSettings = JSON.parse(
     fs.readFileSync(path.join(SOURCE_ROOT, "_settings.yaml"), "utf8")
   );
-  assert.equal(sourceSettings.schema_version, "1.2.0");
+  assert.equal(sourceSettings.schema_version, "1.3.0");
   assert.equal(sourceSettings.guidance_mode, null);
   assert.equal(sourceSettings.build_outcome, null);
   assert.equal(sourceSettings.build_outcome_confirmed_at, null);
@@ -1496,6 +1728,9 @@ test("ships a clean template and installs into an empty repository", (t) => {
     "complete_product",
     "custom"
   ]);
+  assert.equal(sourceSettings.project_profile.status, "not_asked");
+  assert.equal(sourceSettings.project_profile.logo.path, null);
+  assert.deepEqual(sourceSettings.project_profile.colors, []);
   assert.match(sourceSettings.onboarding_questions[0], /first time using _brainwave/);
   assert.equal(sourceSettings.onboarding_questions.some((question) => /build outcome/i.test(question)), false);
   const seedTemplate = fs.readFileSync(

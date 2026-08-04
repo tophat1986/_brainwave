@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.2.0",
+  "schema_version": "1.3.0",
   "configured": false,
   "onboarding_status": "pending",
   "guidance_mode": null,
@@ -8,6 +8,20 @@
   "verbosity_budget": "standard",
   "build_outcome": null,
   "build_outcome_confirmed_at": null,
+  "project_profile": {
+    "status": "not_asked",
+    "name": null,
+    "short_description": null,
+    "tagline": null,
+    "logo": {
+      "path": null,
+      "alt_text": null,
+      "status": "not_provided"
+    },
+    "colors": [],
+    "style_direction": null,
+    "updated_at": null
+  },
   "profile_last_updated": null,
   "onboarding_questions": [
     "Is this your first time using _brainwave? (yes — guide me / no — keep it concise)",
@@ -20,7 +34,9 @@
     "technical_proficiency": ["beginner", "intermediate", "architect"],
     "ideation_mode": ["thought_partner", "fast_execution"],
     "verbosity_budget": ["lean", "standard", "exhaustive"],
-    "build_outcome": ["demonstration", "usable_first_version", "complete_product", "custom"]
+    "build_outcome": ["demonstration", "usable_first_version", "complete_product", "custom"],
+    "project_profile_status": ["not_asked", "not_yet", "working", "confirmed", "deferred"],
+    "project_profile_item_status": ["not_provided", "working", "confirmed"]
   },
   "engine": {
     "max_files_per_cycle": 120
