@@ -23,6 +23,8 @@
       .implementation-plan-note { align-items: flex-start; flex-direction: column; }
       .roadmap-slice-heading { grid-template-columns: auto minmax(0, 1fr); gap: 8px 10px; }
       .roadmap-slice-reference { grid-column: 2; justify-content: space-between; }
+      .roadmap-track-reference { gap: 8px; }
+      .roadmap-slice-body { padding-left: 50px; }
       .roadmap-document-heading { grid-template-columns: 1fr; gap: 6px; }
       .roadmap-document-heading .document-id { text-align: left; }
       :root {

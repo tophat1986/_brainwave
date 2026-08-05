@@ -1,6 +1,6 @@
 {
   "schema_version": "3.0.0",
-  "generated_at": "2026-08-05T22:24:03.418Z",
+  "generated_at": "2026-08-05T22:55:44.406Z",
   "workspace_root": ".",
   "framework": {
     "name": "_brainwave",
@@ -13,7 +13,7 @@
     "locked_sha256": null,
     "integrity": "unlocked",
     "captured_at": null,
-    "last_ingested_at": "2026-08-05T22:24:03.418Z"
+    "last_ingested_at": "2026-08-05T22:55:44.407Z"
   },
   "north_star": {
     "path": "_my_brainwave_north_star.md",
@@ -83,7 +83,7 @@
   "engine": {
     "status": "ok",
     "last_command": "refresh",
-    "last_cycle_at": "2026-08-05T22:24:03.418Z",
+    "last_cycle_at": "2026-08-05T22:55:44.406Z",
     "task_router": {
       "pending_tasks": 0
     }

@@ -26,10 +26,10 @@
         }[state] || { label: "Not recorded", tone: "empty", progress: 0, glyph: "" };
       }
 
-      function roadmapImplementationRing(state, className = "") {
+      function roadmapImplementationRing(state, className = "", sequence = "") {
         const display = roadmapWorkItemState(state);
         const ariaLabel = display.tone === "complete" ? "Complete" : display.label || "Incomplete";
-        return `<span class="block-progress-ring ${esc(display.tone)} ${esc(className)}" style="--block-progress:${display.progress}" role="img" aria-label="${esc(ariaLabel)}"><span>${esc(display.glyph)}</span></span>`;
+        return `<span class="block-progress-ring ${esc(display.tone)} ${esc(className)}" style="--block-progress:${display.progress}" role="img" aria-label="${esc(`${sequence ? `${sequence}: ` : ""}${ariaLabel}`)}"><span>${esc(display.glyph || sequence)}</span></span>`;
       }
 
       function implementationStatusKey() {
@@ -78,7 +78,7 @@
               const display = roadmapWorkItemState(item.state);
               const stateClass = item.state === "blocked" ? "waiting" : item.state;
               return `<button class="dna-block roadmap-dna-block ${esc(stateClass || "not_started")}" type="button" data-action="block" data-block="${esc(item.id)}" title="${esc(`${item.id}: ${display.tone === "complete" ? "Complete" : display.label || "Incomplete"}`)}">
-                <span class="block-copy"><span class="block-slice">${esc(item.id)}</span><span class="block-title">${esc(item.direction?.title || item.title || block?.title || item.id)}</span>${display.label ? `<span class="roadmap-block-state">${esc(display.label)}</span>` : ""}</span>
+                <span class="block-copy"><span class="block-slice">${esc(item.id)}</span><span class="block-title">${esc(item.direction?.title || item.title || block?.title || item.id)}</span></span>
                 ${roadmapImplementationRing(item.state)}
               </button>`;
             }).join("")}</div>
@@ -86,18 +86,16 @@
         }).join("")}</div>`;
       }
 
-      function roadmapSlice(slice) {
+      function roadmapSlice(slice, track) {
         const stateDisplay = roadmapSliceState(slice.state);
-        const dependencies = (slice.depends_on || []).map((id) => implementationSliceById.get(id) || { id, title: id });
-        const gates = Array.isArray(slice.blocking_gates) ? slice.blocking_gates : [];
+        const sequence = `${track.order}.${slice.order}`;
         return `<details class="implementation-document roadmap-slice ${esc(stateDisplay.tone)}" ${slice.state === "active" ? "open" : ""}>
           <summary class="roadmap-slice-heading">
-            ${roadmapImplementationRing(slice.state, "roadmap-slice-ring")}
+            ${roadmapImplementationRing(slice.state, "roadmap-slice-ring", sequence)}
             <span class="document-title">${esc(slice.title)}${stateDisplay.label ? `<span class="roadmap-state ${esc(stateDisplay.tone)}">${esc(stateDisplay.label)}</span>` : ""}</span>
             <span class="roadmap-slice-reference"><span class="document-id">${esc(slice.id)}</span><span class="chevron" aria-hidden="true"></span></span>
           </summary>
           <div class="roadmap-slice-body">
-            ${dependencies.length || gates.length ? `<div class="roadmap-sequence">${dependencies.length ? `<span><strong>After</strong>${dependencies.map((dependency) => esc(dependency.title)).join(" · ")}</span>` : ""}${gates.length ? `<span><strong>Waiting for</strong>${gates.map((gate) => esc(typeof gate === "string" ? gate : gate.title || gate.id || "Gate")).join(" · ")}</span>` : ""}</div>` : ""}
             ${roadmapDnaMap(slice)}
           </div>
         </details>`;
@@ -110,7 +108,8 @@
           ${implementationStatusKey()}
           <div class="roadmap-tracks">${tracks.map((track) => {
             const slices = implementationSlices.filter((slice) => slice.track === track.id).sort((left, right) => left.order - right.order);
-            return `<section class="roadmap-track"><div class="module-section-head block-module-title roadmap-track-head"><span class="module-section-identity"><span class="module-mark" aria-hidden="true">${esc(String(track.order).padStart(2, "0"))}</span><span class="module-section-title">${esc(track.title)}</span></span><span class="module-section-count">${slices.length} slice${slices.length === 1 ? "" : "s"}</span></div><div class="roadmap-slices">${slices.map((slice) => roadmapSlice(slice)).join("")}</div></section>`;
+            const active = slices.some((slice) => slice.state === "active");
+            return `<details class="roadmap-track ${active ? "active" : ""}" ${active ? "open" : ""}><summary class="module-section-head roadmap-track-head"><span class="module-section-identity"><span class="module-mark roadmap-track-mark" aria-hidden="true">${esc(String(track.order).padStart(2, "0"))}</span><span class="module-section-title">${esc(track.title)}</span></span><span class="roadmap-track-reference"><span class="module-section-count">${slices.length} slice${slices.length === 1 ? "" : "s"}</span><span class="chevron" aria-hidden="true"></span></span></summary><div class="roadmap-track-body"><div class="roadmap-slices">${slices.map((slice) => roadmapSlice(slice, track)).join("")}</div></div></details>`;
           }).join("")}</div>
         </section>`;
       }
