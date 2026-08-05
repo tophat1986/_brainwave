@@ -248,13 +248,37 @@ function acceptFoundation(root) {
 function compileAndApproveSpine(root) {
   assert.equal(runEngine(root, "implementation-compile").status, 0);
   const spinePath = path.join(root, "_implementation.yaml");
-  const spine = JSON.parse(fs.readFileSync(spinePath, "utf8"));
-  for (const slice of spine.slices) {
-    slice.requires_refinement = false;
-    slice.refinement_note = null;
-    slice.outcome = `Deliver and verify ${slice.title} as one coherent outcome.`;
+  const proposalPath = path.join(root, "_implementation_proposal.yaml");
+  const proposal = JSON.parse(fs.readFileSync(proposalPath, "utf8"));
+  proposal.synthesis_basis.push({
+    ref: "_documentation/_DNA-SAPP/00200_architecture/_DNA-SAPP-00201_system_context.md",
+    role: "Defines the observable system-boundary outcome for this fixture."
+  });
+  proposal.tracks = [{ id: "TRACK-OUTCOME", title: "Product outcome", order: 1 }];
+  proposal.slices = [{
+    id: "SLICE-SYSTEM-BOUNDARY",
+    track: "TRACK-OUTCOME",
+    kind: "outcome",
+    title: "System boundary",
+    outcome: "The accepted system boundary exists and can be verified.",
+    order: 1,
+    priority: "high",
+    depends_on: [],
+    blocking_gates: [],
+    acceptance_checks: [{
+      id: "SLICE-SYSTEM-BOUNDARY-AC01",
+      type: "inspection",
+      description: "Verify the delivered boundary against its accepted direction."
+    }]
+  }];
+  for (const item of Object.values(proposal.work_items)) {
+    item.primary_slice = "SLICE-SYSTEM-BOUNDARY";
   }
-  writeJson(spinePath, spine);
+  writeJson(proposalPath, proposal);
+  const synthesized = runEngine(root, "implementation-synthesize", "Test-agent");
+  assert.equal(synthesized.status, 0, synthesized.stderr);
+  const reviewed = runEngine(root, "implementation-review");
+  assert.equal(reviewed.status, 0, reviewed.stderr);
   const approval = runEngine(root, "implementation-approve", "Product", "owner");
   assert.equal(approval.status, 0, approval.stderr);
   return JSON.parse(fs.readFileSync(spinePath, "utf8"));
@@ -355,7 +379,7 @@ test("dashboard JavaScript parses and presents the expanded DNA boundaries", () 
   assert.match(html, /Getting started/);
   assert.match(html, /implementationPlanCard/);
   assert.match(html, /implementationItemByBlockId/);
-  assert.match(html, /Compile the delivery plan/);
+  assert.match(html, /Compile the delivery inventory/);
   assert.match(html, /Refresh the delivery plan/);
   assert.match(html, /Planned in:/);
   assert.match(html, /overviewProfileColors/);
@@ -1165,36 +1189,32 @@ test("compiles every applicable DNA block into a versioned draft spine", (t) => 
   const spine = JSON.parse(fs.readFileSync(path.join(root, "_implementation.yaml"), "utf8"));
   const manifest = JSON.parse(fs.readFileSync(path.join(root, "_manifest.yaml"), "utf8"));
 
-  assert.equal(spine.schema_version, "0.1.0");
+  assert.equal(spine.schema_version, "0.2.0");
   assert.equal(spine.plan_version, 1);
   assert.equal(spine.plan_status, "draft");
-  assert.equal(spine.slices.length, 1);
-  assert.equal(spine.slices[0].requires_refinement, true);
-  assert.equal(spine.work_items["_DNA-SAPP-00201.01"].primary_slice, spine.slices[0].id);
+  assert.equal(spine.planning.synthesis_status, "inventory_ready");
+  assert.equal(spine.slices.length, 0);
+  assert.equal(spine.work_items["_DNA-SAPP-00201.01"].primary_slice, null);
+  assert.equal(fs.existsSync(path.join(root, "_implementation_proposal.yaml")), true);
   assert.equal(manifest.implementation.mode, "compiled");
   assert.equal(manifest.implementation.coverage.applicable, 1);
   assert.equal(manifest.implementation.coverage.built, 0);
 });
 
-test("requires semantic slice refinement and explicit approval before implementation", (t) => {
+test("requires semantic synthesis and a human-readable review before approval", (t) => {
   const { root } = createWorkspace(t, { expressed: true });
   acceptFoundation(root);
   assert.equal(runEngine(root, "implementation-compile").status, 0);
 
   const premature = runEngine(root, "implementation-approve", "Product", "owner");
   assert.equal(premature.status, 1);
-  assert.match(premature.stderr, /semantically refined|requires semantic refinement/);
+  assert.match(premature.stderr, /human-readable implementation review/i);
 
-  const spinePath = path.join(root, "_implementation.yaml");
-  const spine = JSON.parse(fs.readFileSync(spinePath, "utf8"));
-  for (const slice of spine.slices) {
-    slice.requires_refinement = false;
-    slice.refinement_note = null;
-    slice.outcome = `Deliver and verify ${slice.title} as one coherent outcome.`;
-  }
-  writeJson(spinePath, spine);
-  const approval = runEngine(root, "implementation-approve", "Product", "owner");
-  assert.equal(approval.status, 0, approval.stderr);
+  const approved = compileAndApproveSpine(root);
+  assert.equal(approved.planning.synthesis_status, "reviewed");
+  const review = fs.readFileSync(path.join(root, "_implementation_review.md"), "utf8");
+  assert.match(review, /What approval means/);
+  assert.match(review, /Proposed working order/);
 
   const context = runEngine(root, "implementation-context");
   assert.equal(context.status, 0, context.stderr);

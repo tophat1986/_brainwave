@@ -5,12 +5,45 @@ const assert = require("node:assert/strict");
 
 const {
   buildImplementationSpine,
+  buildImplementationProposalTemplate,
+  applyImplementationProposal,
+  finalizeImplementationSynthesis,
+  markImplementationReview,
   validateImplementationSpine,
   summarizeImplementationSpine,
   startImplementationSlice,
   implementationContextPayload,
   formatImplementationContext
 } = require("./implementation_spine");
+
+function authoredProposal(spine, blocks, sliceCount = 1) {
+  const proposal = buildImplementationProposalTemplate(spine);
+  proposal.synthesis_basis.push({
+    ref: "_documentation/_DNA-SAPP/example.md",
+    role: "Project-specific outcome and journey backbone."
+  });
+  proposal.tracks = [{ id: "TRACK-OUTCOMES", title: "Product outcomes", order: 1 }];
+  proposal.slices = Array.from({ length: sliceCount }, (_, index) => ({
+    id: `SLICE-OUTCOME-${index + 1}`,
+    track: "TRACK-OUTCOMES",
+    kind: "outcome",
+    title: `Outcome ${index + 1}`,
+    outcome: `A user can complete observable outcome ${index + 1}.`,
+    order: index + 1,
+    priority: index === 0 ? "high" : "normal",
+    depends_on: index === 0 ? [] : [`SLICE-OUTCOME-${index}`],
+    blocking_gates: [],
+    acceptance_checks: [{
+      id: `SLICE-OUTCOME-${index + 1}-AC01`,
+      type: "inspection",
+      description: `Verify observable outcome ${index + 1}.`
+    }]
+  }));
+  blocks.forEach((block, index) => {
+    proposal.work_items[block.id].primary_slice = `SLICE-OUTCOME-${(index % sliceCount) + 1}`;
+  });
+  return applyImplementationProposal(spine, proposal);
+}
 
 function source(overrides = {}) {
   return {
@@ -68,8 +101,8 @@ test("keeps a 720-block implementation inventory out of the active context packe
   const packet = formatImplementationContext(payload);
 
   assert.equal(summary.coverage.applicable, 720);
-  assert.equal(spine.slices.length, 120);
-  assert.equal(payload.work_items.length, 6);
+  assert.equal(spine.slices.length, 0);
+  assert.equal(payload.work_items.length, 0);
   assert.ok(packet.length < 10000);
   assert.match(packet, /DNA direction coverage: built 0\/720/);
   assert.doesNotMatch(packet, new RegExp(blocks.at(-1).id.replace(/[.]/g, "\\.")));
@@ -86,7 +119,7 @@ test("detects dependency cycles and multiple active slices before approval", () 
     blocks,
     now: "2026-08-05T12:00:00.000Z"
   });
-  for (const slice of spine.slices) slice.requires_refinement = false;
+  Object.assign(spine, authoredProposal(spine, blocks, 2));
   spine.slices[0].depends_on = [spine.slices[1].id];
   spine.slices[1].depends_on = [spine.slices[0].id];
   spine.slices[0].state = "active";
@@ -116,7 +149,7 @@ test("does not direct delivery work from a draft or stale context", () => {
     applicableBlockIds
   });
 
-  assert.match(draft.exact_next_command, /Refine the provisional slices/);
+  assert.match(draft.exact_next_command, /Complete _implementation_proposal\.yaml/);
   assert.doesNotMatch(draft.exact_next_command, /implementation-start/);
   assert.match(stale.exact_next_command, /implementation-compile/);
 });
@@ -129,6 +162,7 @@ test("allows an explicitly selected held slice to resume after its reopen condit
     blocks,
     now: "2026-08-05T12:00:00.000Z"
   });
+  Object.assign(spine, authoredProposal(spine, blocks));
   const sliceId = spine.slices[0].id;
   spine.slices[0].requires_refinement = false;
   spine.slices[0].state = "blocked";
@@ -174,4 +208,68 @@ test("rejects a release-ready claim while delivery or independent gates remain o
 
   assert.match(validation.errors.join(" "), /Release readiness cannot be ready/);
   assert.equal(summary.readiness.release_readiness, "not_ready");
+});
+
+test("requires complete existing-build reconciliation and binds review to the sealed proposal", () => {
+  const blocks = [directionBlock(1), directionBlock(2)];
+  const inputSource = source({ applicable_block_count: 2 });
+  const inventory = buildImplementationSpine({
+    source: inputSource,
+    blocks,
+    adoptionMode: "existing_build",
+    now: "2026-08-05T12:00:00.000Z"
+  });
+  const proposal = buildImplementationProposalTemplate(inventory);
+  proposal.synthesis_basis.push({ ref: "journeys.md", role: "Critical outcome backbone." });
+  proposal.tracks = [{ id: "TRACK-OUTCOMES", title: "Outcomes", order: 1 }];
+  proposal.slices = [{
+    id: "SLICE-OUTCOME",
+    track: "TRACK-OUTCOMES",
+    kind: "outcome",
+    title: "Observable outcome",
+    outcome: "A user can complete the intended journey.",
+    order: 1,
+    priority: "high",
+    depends_on: [],
+    blocking_gates: [],
+    state: "verified",
+    acceptance_checks: [{ id: "SLICE-OUTCOME-AC01", type: "inspection", description: "Inspect it." }]
+  }];
+  for (const item of Object.values(proposal.work_items)) item.primary_slice = "SLICE-OUTCOME";
+  let candidate = applyImplementationProposal(inventory, proposal);
+  assert.equal(candidate.slices[0].state, "queued");
+  assert.throws(
+    () => finalizeImplementationSynthesis(candidate, {
+      synthesizedBy: "Agent",
+      revision: "abc1234",
+      now: "2026-08-05T12:01:00.000Z",
+      source: inputSource,
+      applicableBlockIds: blocks.map((block) => block.id)
+    }),
+    /not been reconciled/
+  );
+
+  for (const item of Object.values(proposal.work_items)) {
+    item.existing_build_assessment = { status: "absent", refs: [], note: null };
+  }
+  candidate = applyImplementationProposal(inventory, proposal);
+  const synthesized = finalizeImplementationSynthesis(candidate, {
+    synthesizedBy: "Agent",
+    revision: "abc1234",
+    now: "2026-08-05T12:02:00.000Z",
+    source: inputSource,
+    applicableBlockIds: blocks.map((block) => block.id)
+  });
+  const reviewed = markImplementationReview(synthesized, {
+    artifact: "_implementation_review.md",
+    now: "2026-08-05T12:03:00.000Z",
+    source: inputSource,
+    applicableBlockIds: blocks.map((block) => block.id)
+  });
+  reviewed.slices[0].outcome = "A changed unreviewed outcome.";
+  const validation = validateImplementationSpine(reviewed, {
+    source: inputSource,
+    applicableBlockIds: blocks.map((block) => block.id)
+  });
+  assert.match(validation.errors.join(" "), /changed after validation|no longer matches/);
 });

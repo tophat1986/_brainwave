@@ -11,8 +11,13 @@ const {
 } = require("./project_integration");
 const {
   buildImplementationSpine,
+  buildImplementationProposalTemplate,
+  applyImplementationProposal,
   validateImplementationSpine,
   summarizeImplementationSpine,
+  finalizeImplementationSynthesis,
+  markImplementationReview,
+  buildImplementationReview,
   approveImplementationSpine,
   startImplementationSlice,
   recordWorkItemEvidence,
@@ -37,6 +42,8 @@ const PATHS = Object.freeze({
   dnaDir: path.join(ROOT, "_dna"),
   documentationDir: path.join(ROOT, "_documentation"),
   implementation: path.join(ROOT, "_implementation.yaml"),
+  implementationProposal: path.join(ROOT, "_implementation_proposal.yaml"),
+  implementationReview: path.join(ROOT, "_implementation_review.md"),
   implementationAudit: path.join(ROOT, "_implementation_audit.md"),
   manifest: path.join(ROOT, "_manifest.yaml"),
   dashboard: path.join(ROOT, "_dashboard.html")
@@ -512,6 +519,11 @@ function defaultManifestSkeleton() {
       plan_version: null,
       state_revision: null,
       plan_status: null,
+      planning: {
+        adoption_mode: null,
+        synthesis_status: null,
+        review_artifact: null
+      },
       source_stale: false,
       readiness: {
         technical_health: "unknown",
@@ -1582,6 +1594,11 @@ function buildManifest(workspace, command, taskPlan = [], prior = null) {
       plan_version: workspace.implementationSpine.plan_version || null,
       state_revision: workspace.implementationSpine.state_revision ?? null,
       plan_status: workspace.implementationSpine.plan_status || null,
+      planning: {
+        adoption_mode: workspace.implementationSpine.planning?.adoption_mode || null,
+        synthesis_status: workspace.implementationSpine.planning?.synthesis_status || null,
+        review_artifact: workspace.implementationSpine.planning?.review?.artifact || null
+      },
       source_stale: validation.stale,
       totals: summary.totals,
       coverage: summary.coverage,
@@ -2134,8 +2151,13 @@ function runImplementationMutation(command, mutator) {
   }
 }
 
-function compileImplementationSpine() {
+function compileImplementationSpine(args = []) {
   const context = implementationCommandContext({ requireSpine: false });
+  const unknownArgs = args.filter((arg) => arg !== "--existing-build");
+  if (unknownArgs.length) {
+    throw new Error("Usage: implementation-compile [--existing-build].");
+  }
+  const adoptionMode = args.includes("--existing-build") ? "existing_build" : "greenfield";
   if (context.applicableBlockIds.length === 0) {
     throw new Error("No applicable DNA blocks are available to compile.");
   }
@@ -2143,20 +2165,74 @@ function compileImplementationSpine() {
     source: context.source,
     blocks: context.directionBlocks,
     existing: context.workspace.implementationSpine,
-    now: nowIso()
+    now: nowIso(),
+    adoptionMode
   });
   persistImplementationSpine(spine, "implementation-compile");
+  writeJsonYaml(PATHS.implementationProposal, buildImplementationProposalTemplate(spine));
   const validation = validateImplementationSpine(spine, {
     source: context.source,
     applicableBlockIds: context.applicableBlockIds
   });
   console.log(
-    `${CONSOLE_PREFIX} implementation spine draft ${spine.plan_version} compiled: ${context.applicableBlockIds.length} applicable blocks across ${spine.slices.length} provisional slices.`
+    `${CONSOLE_PREFIX} implementation inventory ${spine.plan_version} compiled: ${context.applicableBlockIds.length} applicable blocks; adoption mode ${adoptionMode}.`
   );
   console.log(
-    `${CONSOLE_PREFIX} refine the document-based draft into coherent journey or outcome slices, set requires_refinement to false, then obtain user approval.`
+    `${CONSOLE_PREFIX} no slices were invented. Complete _implementation_proposal.yaml from project-specific backbone direction, then run implementation-synthesize <authored-by> [_implementation_proposal.yaml].`
   );
   for (const warning of validation.warnings) console.log(`${CONSOLE_PREFIX} warning: ${warning}`);
+}
+
+function synthesizeImplementationPlan(args) {
+  const [synthesizedBy, proposalArg = "_implementation_proposal.yaml", ...extra] = args;
+  if (!synthesizedBy || extra.length) {
+    throw new Error("Usage: implementation-synthesize <authored-by> [proposal-path].");
+  }
+  const proposalPath = path.resolve(ROOT, proposalArg);
+  if (proposalPath !== ROOT && !proposalPath.startsWith(`${ROOT}${path.sep}`)) {
+    throw new Error("The implementation proposal must be inside the _brainwave directory.");
+  }
+  const proposal = readJsonYaml(proposalPath);
+  if (!proposal) throw new Error(`Implementation proposal not found: ${relativePath(proposalPath)}.`);
+  const updated = runImplementationMutation("implementation-synthesize", (context) =>
+    finalizeImplementationSynthesis(applyImplementationProposal(context.workspace.implementationSpine, proposal), {
+      synthesizedBy,
+      revision: gitRevision(),
+      now: nowIso(),
+      source: context.source,
+      applicableBlockIds: context.applicableBlockIds
+    })
+  );
+  console.log(
+    `${CONSOLE_PREFIX} slice proposal ready: ${updated.slices.length} slices across ${updated.tracks.length} tracks. Run implementation-review before requesting approval.`
+  );
+}
+
+function writeImplementationReview() {
+  const context = implementationCommandContext();
+  try {
+    const generatedAt = nowIso();
+    const updated = markImplementationReview(context.workspace.implementationSpine, {
+      artifact: "_implementation_review.md",
+      now: generatedAt,
+      source: context.source,
+      applicableBlockIds: context.applicableBlockIds
+    });
+    const report = buildImplementationReview(updated, {
+      source: context.source,
+      applicableBlockIds: context.applicableBlockIds,
+      generatedAt
+    });
+    writeText(PATHS.implementationReview, report);
+    persistImplementationSpine(updated, "implementation-review");
+    console.log(`${CONSOLE_PREFIX} implementation review written to _implementation_review.md.`);
+    console.log(
+      `${CONSOLE_PREFIX} present that review to the user. Do not request approval from status counters alone.`
+    );
+  } catch (error) {
+    recordRejectedImplementationMutation(context);
+    throw error;
+  }
 }
 
 function approveImplementationPlan(args) {
@@ -2448,7 +2524,9 @@ function printHelp() {
   console.log("  node _brainwave/_engine/brainwave_runner.js unintegrate  (from project root)");
   console.log("  node _brainwave/_engine/brainwave_runner.js status");
   console.log("  node _brainwave/_engine/brainwave_runner.js refresh");
-  console.log("  node _brainwave/_engine/brainwave_runner.js implementation-compile");
+  console.log("  node _brainwave/_engine/brainwave_runner.js implementation-compile [--existing-build]");
+  console.log("  node _brainwave/_engine/brainwave_runner.js implementation-synthesize <authored-by> [proposal-path]");
+  console.log("  node _brainwave/_engine/brainwave_runner.js implementation-review");
   console.log("  node _brainwave/_engine/brainwave_runner.js implementation-approve <approved-by>");
   console.log("  node _brainwave/_engine/brainwave_runner.js implementation-context [--json]");
   console.log("  node _brainwave/_engine/brainwave_runner.js implementation-start <slice-id>");
@@ -2500,7 +2578,9 @@ async function main() {
   }
   if (command === "status") return printStatus();
   if (command === "refresh") return refreshDerivedState();
-  if (command === "implementation-compile") return compileImplementationSpine();
+  if (command === "implementation-compile") return compileImplementationSpine(args);
+  if (command === "implementation-synthesize") return synthesizeImplementationPlan(args);
+  if (command === "implementation-review") return writeImplementationReview();
   if (command === "implementation-approve") return approveImplementationPlan(args);
   if (command === "implementation-context") return printImplementationContext(args);
   if (command === "implementation-start") return startImplementationPlanSlice(args);

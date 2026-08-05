@@ -203,9 +203,17 @@ An `aligned` result is accepted only when the implementation spine is current an
 
 `brainwave_documentation_complete` automatically enters ambient delivery alignment. This is not an eighth lifecycle stage and is not a user setting. Passive means _brainwave stops initiating foundation ceremony; it does not mean the accepted direction becomes invisible or optional.
 
-At foundation acceptance, run `implementation-compile`. The command inventories every applicable current DNA block into a draft `_implementation.yaml`; because the deterministic engine cannot interpret product meaning, an agent must refine its provisional document groupings into coherent journey or outcome slices and obtain explicit user approval before `implementation-approve` activates delivery work.
+At foundation acceptance, run `implementation-compile`. Add `--existing-build` when adopting the spine into a repository where product work is already underway. Compilation inventories every applicable current DNA block into draft `_implementation.yaml` and writes `_implementation_proposal.yaml`; it deliberately creates no slices because the deterministic engine cannot interpret product meaning.
 
-That semantic refinement is the narrow exception to command-owned mutation: while the plan is `draft`, the agent may edit its tracks, slice definitions, block mappings, dependencies, gates, and acceptance checks. Delivery states, evidence, holds, approval, revision counters, and audit fields remain command-owned.
+Slice synthesis is a first-class planning step. An agent reads the North Star and discovers the project-specific documents that provide an outcome backbone—such as critical journeys, capability or outcome priorities, delivery phases, acceptance criteria, architecture boundaries, and risk or external-gate direction. These roles are semantic and data-driven; no DNA IDs are hardcoded. DNA documents remain direction authority and DNA blocks remain the atomic traceability items, but document boundaries do not automatically become slice boundaries.
+
+The agent completes only `_implementation_proposal.yaml`. A normal slice must express one coherent observable outcome. A dedicated `foundation` or `external_gate` slice is allowed only with a recorded justification. The proposal gives every slice an explicit working order, dependencies, blocking gates, and acceptance checks; maps every applicable block to exactly one `primary_slice`; and uses `applies_to` for cross-cutting direction that governs additional slices without duplicating ownership.
+
+For existing-build adoption, the synthesis pass also inspects the current code, tests, and representative rendered journeys. Each block receives a planning assessment of absent, partial, apparently implemented, or apparently verified with inspectable references where applicable. These assessments inform grouping and order but do not count as delivery evidence; guarded evidence commands still establish implementation coverage.
+
+Run `implementation-synthesize <authored-by>` to import and validate the proposal into the command-owned spine. Run `implementation-review` to create `_implementation_review.md`, then present that review to the user. It explains the outcome grouping, ownership, cross-cutting links, order, dependencies, gates, checks, and existing-build snapshot, plus exactly what approval means. `implementation-approve` rejects a plan until that exact proposal fingerprint has been reviewed. Status counters alone are never a sufficient approval request.
+
+`_implementation_proposal.yaml` is the agent-authored draft input. `_implementation.yaml` remains the sole authority and is command-owned: agents do not directly edit delivery states, evidence, holds, approval, revisions, audit fields, or a sealed proposal.
 
 For ordinary implementation, `implementation-context` returns a bounded packet containing the previous result, active or next slice, relevant DNA IDs and owning paths, dependencies, gates, acceptance checks, coverage, and exact next command. The agent reads only those DNA passages, works on one slice, records concise evidence through guarded commands, closes a clean Git checkpoint, then asks for the next packet. `implemented` requires current implementation evidence. `verified` additionally requires verification evidence, check time, and checked revision.
 
@@ -285,7 +293,9 @@ Project-owned files must never be overwritten by an update:
 - `_assets/`
 - `_decisions_log.md`
 - `_documentation/`
+- `_implementation_proposal.yaml`
 - `_implementation.yaml`
+- `_implementation_review.md`
 - `_implementation_audit.md`
 
 `_manifest.yaml` and the state embedded in `_dashboard.html` are derived and may be regenerated. Root bridges and hook configurations are merged rather than replaced.

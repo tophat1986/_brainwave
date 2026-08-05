@@ -19,3 +19,4 @@ Notable changes will be recorded here.
 - Added consequence-based module timing, explicit specialist-coverage gap handling, and guarded legal review gates.
 - Added experience checkpoints for the dashboard introduction and project-basics check, a reusable project profile for early identity inputs, flexible repeatable colour roles and usage, and a dashboard overview that presents project names, descriptions, logos, colours, setup choices, and onboarding progress.
 - Added the experimental implementation spine: a separate delivery-state authority, legacy DNA-status import, user-approved journey-sized planning, bounded context packets, guarded evidence transitions, stale-source detection, dashboard visibility, and portable audit reports.
+- Replaced document-derived provisional slices with an inventory → agent-authored hybrid slice synthesis → human-readable review flow, including existing-build reconciliation and approval bound to the reviewed proposal fingerprint.

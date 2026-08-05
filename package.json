@@ -25,6 +25,8 @@
     "brainwave:status": "node _brainwave/_engine/brainwave_runner.js status",
     "brainwave:refresh": "node _brainwave/_engine/brainwave_runner.js refresh",
     "brainwave:implementation:compile": "node _brainwave/_engine/brainwave_runner.js implementation-compile",
+    "brainwave:implementation:synthesize": "node _brainwave/_engine/brainwave_runner.js implementation-synthesize",
+    "brainwave:implementation:review": "node _brainwave/_engine/brainwave_runner.js implementation-review",
     "brainwave:implementation:context": "node _brainwave/_engine/brainwave_runner.js implementation-context",
     "brainwave:implementation:audit": "node _brainwave/_engine/brainwave_runner.js implementation-audit",
     "test": "node --test _brainwave/_engine/*.test.js"

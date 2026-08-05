@@ -159,12 +159,17 @@ function buildSessionContext(runtime) {
     const spine = runtime.implementationSpine;
     if (!spine?.schema_version) {
       lines.push(
-        `The implementation spine has not been compiled. Before downstream product work, run \`node _brainwave/_engine/brainwave_runner.js implementation-compile\`, refine the generated document-based draft into coherent journey or outcome slices, obtain explicit user approval, and run \`implementation-approve <approved-by>\`.`
+        `The implementation spine has not been compiled. Before downstream product work, run \`node _brainwave/_engine/brainwave_runner.js implementation-compile\` (add \`--existing-build\` when adopting into an existing product), author the generated proposal from the North Star and project-specific outcome backbone, run \`implementation-synthesize <authored-by>\` and \`implementation-review\`, present the review, then obtain explicit user approval and run \`implementation-approve <approved-by>\`.`
       );
     } else if (spine.plan_status === "draft") {
-      lines.push(
-        `Implementation plan ${spine.plan_version || "unknown"} is still a draft. Refine every provisional slice, remove each \`requires_refinement\` marker only after semantic review, obtain explicit user approval, then run \`implementation-approve <approved-by>\`. Do not begin product implementation yet.`
-      );
+      const synthesisStatus = spine.planning?.synthesis_status || "unknown";
+      lines.push(`Implementation plan ${spine.plan_version || "unknown"} is still a draft at synthesis state ${synthesisStatus}. ${
+        synthesisStatus === "inventory_ready"
+          ? "Complete _implementation_proposal.yaml semantically; inspect current code and tests first when adoption mode is existing_build, then run implementation-synthesize <authored-by>."
+          : synthesisStatus === "proposal_ready"
+            ? "Run implementation-review and present _implementation_review.md to the user."
+            : "Present the current human-readable review and obtain explicit approval before running implementation-approve <approved-by>."
+      } Do not begin product implementation yet.`);
     } else {
       const payload = implementationContextPayload(spine, {
         source: spine.source,
@@ -173,7 +178,7 @@ function buildSessionContext(runtime) {
       if (runtime.manifest?.implementation?.source_stale) {
         payload.source_stale = true;
         payload.exact_next_command =
-          "Run implementation-compile, refine the changed plan, and obtain approval before continuing.";
+          "Run implementation-compile, repeat synthesis and human review, and obtain approval before continuing.";
       }
       lines.push(formatImplementationContext(payload));
       lines.push(

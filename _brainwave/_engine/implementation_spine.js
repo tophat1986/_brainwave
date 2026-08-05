@@ -1,6 +1,8 @@
 "use strict";
 
-const SPINE_SCHEMA_VERSION = "0.1.0";
+const crypto = require("node:crypto");
+
+const SPINE_SCHEMA_VERSION = "0.2.0";
 const PLAN_STATUSES = new Set(["draft", "approved", "active", "complete"]);
 const SLICE_STATES = new Set([
   "queued",
@@ -34,6 +36,16 @@ const EVIDENCE_KINDS = new Set([
   "external_review"
 ]);
 const PRIORITY_ORDER = Object.freeze({ critical: 0, high: 1, normal: 2, low: 3 });
+const SYNTHESIS_STATUSES = new Set(["inventory_ready", "proposal_ready", "reviewed"]);
+const ADOPTION_MODES = new Set(["greenfield", "existing_build"]);
+const SLICE_KINDS = new Set(["outcome", "foundation", "external_gate"]);
+const EXISTING_BUILD_ASSESSMENTS = new Set([
+  "not_assessed",
+  "absent",
+  "partial",
+  "appears_implemented",
+  "appears_verified"
+]);
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
@@ -49,14 +61,6 @@ function text(value) {
 
 function unique(values) {
   return [...new Set(values)];
-}
-
-function safeIdPart(value) {
-  return String(value || "")
-    .replace(/^_DNA-/, "")
-    .replace(/[^A-Za-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .toUpperCase();
 }
 
 function applicableDirectionBlocks(blocks) {
@@ -81,46 +85,15 @@ function importedEvidence(markdown, owningDocument, blockId, type) {
   ];
 }
 
-function defaultTrack(block) {
-  const moduleCode = safeIdPart(block.module_id || "GENERAL");
-  return {
-    id: `TRACK-${moduleCode}`,
-    title: block.module_name || block.module_id || "Implementation",
-    order: 100
-  };
+function legacyAssessment(block) {
+  const status = text(block.legacy_delivery_status);
+  if (status === "verified") return "appears_verified";
+  if (status === "implemented") return "appears_implemented";
+  if (status === "in_progress") return "partial";
+  return "not_assessed";
 }
 
-function defaultSlice(block) {
-  const documentPart = safeIdPart(block.document_id || block.id.split(".")[0]);
-  const id = `SLICE-${documentPart}`;
-  return {
-    id,
-    track: defaultTrack(block).id,
-    title: block.document_title || block.document_id || "Implementation slice",
-    outcome: `Implement and verify the accepted direction in ${block.document_title || block.document_id}.`,
-    state: "queued",
-    priority: "normal",
-    depends_on: [],
-    blocking_gates: [],
-    requires_refinement: true,
-    refinement_note:
-      "Replace this document-based draft with a coherent journey or outcome slice before approval.",
-    acceptance_checks: [
-      {
-        id: `${id}-AC01`,
-        type: "inspection",
-        description: "Verify the implemented outcome against every referenced DNA direction.",
-        status: "pending",
-        evidence: []
-      }
-    ],
-    started_at: null,
-    closed_at: null,
-    checked_revision: null
-  };
-}
-
-function defaultWorkItem(block) {
+function defaultWorkItem(block, adoptionMode) {
   const owningDocument = block.path || "";
   const state = importedWorkItemState(block);
   const implementationEvidence = importedEvidence(
@@ -141,7 +114,7 @@ function defaultWorkItem(block) {
     document_id: block.document_id || null,
     document_title: block.document_title || null,
     owning_document: owningDocument,
-    primary_slice: defaultSlice(block).id,
+    primary_slice: null,
     applies_to: [],
     state,
     implementation_evidence: implementationEvidence,
@@ -149,65 +122,54 @@ function defaultWorkItem(block) {
     last_checked: text(block.legacy_last_checked) || null,
     checked_revision: text(block.legacy_checked_revision) || null,
     hold: null,
-    imported_legacy_status: text(block.legacy_delivery_status) || null
+    imported_legacy_status: text(block.legacy_delivery_status) || null,
+    existing_build_assessment: {
+      status: adoptionMode === "existing_build" ? legacyAssessment(block) : "not_assessed",
+      refs: unique([
+        ...implementationEvidence.map((entry) => entry.ref),
+        ...verificationEvidence.map((entry) => entry.ref)
+      ]),
+      note: text(block.legacy_delivery_status)
+        ? "Provisional legacy import; inspect the current build during reconciliation."
+        : null
+    }
   };
 }
 
-function buildImplementationSpine({ source, blocks, existing = null, now }) {
+function buildImplementationSpine({ source, blocks, existing = null, now, adoptionMode = "greenfield" }) {
+  if (!ADOPTION_MODES.has(adoptionMode)) throw new Error(`Invalid adoption mode: ${adoptionMode}.`);
   const applicableBlocks = applicableDirectionBlocks(blocks);
-  const tracksById = new Map();
-  const slicesById = new Map();
   const workItems = {};
 
   for (const block of applicableBlocks) {
-    const track = defaultTrack(block);
-    const slice = defaultSlice(block);
-    tracksById.set(track.id, track);
-    slicesById.set(slice.id, slice);
-    workItems[block.id] = defaultWorkItem(block);
+    workItems[block.id] = defaultWorkItem(block, adoptionMode);
   }
 
   if (isObject(existing)) {
-    const existingTracks = new Map(
-      (Array.isArray(existing.tracks) ? existing.tracks : [])
-        .filter((track) => text(track.id))
-        .map((track) => [track.id, clone(track)])
-    );
-    const existingSlices = new Map(
-      (Array.isArray(existing.slices) ? existing.slices : [])
-        .filter((slice) => text(slice.id))
-        .map((slice) => [slice.id, clone(slice)])
-    );
-
     for (const [id, item] of Object.entries(workItems)) {
       const previous = existing.work_items?.[id];
       if (!isObject(previous)) continue;
-      const preservedSlice = existingSlices.get(previous.primary_slice);
       workItems[id] = {
         ...item,
-        ...clone(previous),
+        state: previous.state || item.state,
+        implementation_evidence: clone(previous.implementation_evidence || item.implementation_evidence),
+        verification_evidence: clone(previous.verification_evidence || item.verification_evidence),
+        last_checked: previous.last_checked || item.last_checked,
+        checked_revision: previous.checked_revision || item.checked_revision,
+        hold: clone(previous.hold || item.hold),
+        existing_build_assessment: clone(
+          previous.existing_build_assessment || item.existing_build_assessment
+        ),
         title: item.title,
         module_id: item.module_id,
         document_id: item.document_id,
         document_title: item.document_title,
-        owning_document: item.owning_document
+        owning_document: item.owning_document,
+        primary_slice: null,
+        applies_to: []
       };
-      if (preservedSlice) {
-        slicesById.set(preservedSlice.id, preservedSlice);
-        const preservedTrack = existingTracks.get(preservedSlice.track);
-        if (preservedTrack) tracksById.set(preservedTrack.id, preservedTrack);
-      }
     }
   }
-
-  const usedSliceIds = new Set(Object.values(workItems).map((item) => item.primary_slice));
-  const slices = [...slicesById.values()]
-    .filter((slice) => usedSliceIds.has(slice.id))
-    .sort((a, b) => text(a.id).localeCompare(text(b.id)));
-  const usedTrackIds = new Set(slices.map((slice) => slice.track));
-  const tracks = [...tracksById.values()]
-    .filter((track) => usedTrackIds.has(track.id))
-    .sort((a, b) => Number(a.order || 0) - Number(b.order || 0) || a.id.localeCompare(b.id));
 
   const priorPlanVersion = Number(existing?.plan_version || 0);
   const priorStateRevision = Number(existing?.state_revision || 0);
@@ -216,6 +178,20 @@ function buildImplementationSpine({ source, blocks, existing = null, now }) {
     plan_version: priorPlanVersion > 0 ? priorPlanVersion + 1 : 1,
     state_revision: priorStateRevision > 0 ? priorStateRevision + 1 : 0,
     plan_status: "draft",
+    planning: {
+      adoption_mode: adoptionMode,
+      synthesis_status: "inventory_ready",
+      synthesized_at: null,
+      synthesized_by: null,
+      synthesized_revision: null,
+      synthesis_basis: [],
+      proposal_fingerprint: null,
+      review: {
+        presented_at: null,
+        proposal_fingerprint: null,
+        artifact: null
+      }
+    },
     source: clone(source),
     approval: { approved_at: null, approved_by: null, git_revision: null },
     active_slice: null,
@@ -225,8 +201,8 @@ function buildImplementationSpine({ source, blocks, existing = null, now }) {
       external_gates: "unknown",
       release_readiness: "not_assessed"
     },
-    tracks,
-    slices,
+    tracks: [],
+    slices: [],
     work_items: workItems,
     audit: {
       experiment_started_at: existing?.audit?.experiment_started_at || now,
@@ -285,6 +261,120 @@ function sourceIsStale(spine, source) {
   );
 }
 
+function proposalFingerprint(spine) {
+  const proposal = {
+    adoption_mode: spine?.planning?.adoption_mode || null,
+    synthesis_basis: spine?.planning?.synthesis_basis || [],
+    tracks: (spine?.tracks || []).map(({ id, title, order }) => ({ id, title, order })),
+    slices: (spine?.slices || []).map((slice) => ({
+      id: slice.id,
+      track: slice.track,
+      kind: slice.kind,
+      title: slice.title,
+      outcome: slice.outcome,
+      justification: slice.justification || null,
+      order: slice.order,
+      priority: slice.priority,
+      depends_on: slice.depends_on || [],
+      blocking_gates: slice.blocking_gates || [],
+      acceptance_checks: (slice.acceptance_checks || []).map(({ id, type, description }) => ({
+        id,
+        type,
+        description
+      }))
+    })),
+    mappings: Object.fromEntries(
+      Object.entries(spine?.work_items || {}).map(([id, item]) => [id, {
+        primary_slice: item.primary_slice || null,
+        applies_to: item.applies_to || [],
+        existing_build_assessment: item.existing_build_assessment || null
+      }])
+    )
+  };
+  return crypto.createHash("sha256").update(JSON.stringify(proposal)).digest("hex");
+}
+
+function buildImplementationProposalTemplate(spine) {
+  return {
+    proposal_version: "0.1.0",
+    adoption_mode: spine?.planning?.adoption_mode || "greenfield",
+    synthesis_basis: [
+      {
+        ref: "_my_brainwave_north_star.md",
+        role: "Current product direction; add the project-specific journey, priority, delivery, acceptance, architecture, and gate documents that actually shape this proposal."
+      }
+    ],
+    tracks: [],
+    slices: [],
+    work_items: Object.fromEntries(
+      Object.keys(spine?.work_items || {}).map((id) => [id, {
+        primary_slice: null,
+        applies_to: [],
+        existing_build_assessment: {
+          status: spine.work_items[id].existing_build_assessment?.status || "not_assessed",
+          refs: spine.work_items[id].existing_build_assessment?.refs || [],
+          note: spine.work_items[id].existing_build_assessment?.note || null
+        }
+      }])
+    )
+  };
+}
+
+function applyImplementationProposal(spine, proposal) {
+  if (!isObject(proposal)) throw new Error("The implementation proposal must be an object.");
+  if (proposal.proposal_version !== "0.1.0") {
+    throw new Error(`implementation proposal_version must be 0.1.0; found ${proposal.proposal_version || "missing"}.`);
+  }
+  if (proposal.adoption_mode !== spine.planning?.adoption_mode) {
+    throw new Error("The proposal adoption_mode must match the compiled inventory.");
+  }
+  if (!Array.isArray(proposal.tracks) || !Array.isArray(proposal.slices) || !isObject(proposal.work_items)) {
+    throw new Error("The proposal must define tracks, slices, and work_items.");
+  }
+  const unknownWorkItems = Object.keys(proposal.work_items).filter((id) => !spine.work_items?.[id]);
+  if (unknownWorkItems.length) {
+    throw new Error(`The proposal references unknown DNA blocks: ${unknownWorkItems.join(", ")}.`);
+  }
+  const updated = clone(spine);
+  updated.planning.synthesis_basis = clone(proposal.synthesis_basis || []);
+  updated.tracks = proposal.tracks.map(({ id, title, order }) => ({ id, title, order }));
+  updated.slices = proposal.slices.map((slice) => ({
+    id: slice.id,
+    track: slice.track,
+    kind: slice.kind,
+    title: slice.title,
+    outcome: slice.outcome,
+    justification: slice.justification || null,
+    state: "queued",
+    order: slice.order,
+    priority: slice.priority,
+    depends_on: clone(slice.depends_on || []),
+    blocking_gates: clone(slice.blocking_gates || []),
+    requires_refinement: false,
+    refinement_note: null,
+    acceptance_checks: (slice.acceptance_checks || []).map(({ id, type, description }) => ({
+      id,
+      type,
+      description,
+      status: "pending",
+      evidence: []
+    })),
+    started_at: null,
+    closed_at: null,
+    checked_revision: null
+  }));
+  for (const [id, item] of Object.entries(updated.work_items)) {
+    const proposed = proposal.work_items[id];
+    if (!isObject(proposed)) continue;
+    item.primary_slice = proposed.primary_slice || null;
+    item.applies_to = clone(proposed.applies_to || []);
+    item.existing_build_assessment = clone(
+      proposed.existing_build_assessment || item.existing_build_assessment
+    );
+  }
+  return updated;
+}
+
 function validateImplementationSpine(spine, { source = null, applicableBlockIds = [] } = {}) {
   const errors = [];
   const warnings = [];
@@ -305,6 +395,29 @@ function validateImplementationSpine(spine, { source = null, applicableBlockIds 
   if (!PLAN_STATUSES.has(spine.plan_status)) {
     errors.push(`plan_status is invalid: ${spine.plan_status || "missing"}.`);
   }
+  const planning = spine.planning;
+  if (!isObject(planning)) {
+    errors.push("planning must be an object.");
+  } else {
+    if (!ADOPTION_MODES.has(planning.adoption_mode)) {
+      errors.push(`planning.adoption_mode is invalid: ${planning.adoption_mode || "missing"}.`);
+    }
+    if (!SYNTHESIS_STATUSES.has(planning.synthesis_status)) {
+      errors.push(`planning.synthesis_status is invalid: ${planning.synthesis_status || "missing"}.`);
+    }
+    if (!Array.isArray(planning.synthesis_basis)) {
+      errors.push("planning.synthesis_basis must be an array.");
+    } else if (planning.synthesis_status !== "inventory_ready" && planning.synthesis_basis.length === 0) {
+      errors.push("A synthesized plan must identify the project-specific direction used as its outcome backbone.");
+    } else {
+      for (const [index, entry] of planning.synthesis_basis.entries()) {
+        if (!isObject(entry) || !text(entry.ref) || !text(entry.role)) {
+          errors.push(`planning.synthesis_basis[${index}] must define ref and role.`);
+        }
+      }
+    }
+  }
+  const mappingRequired = planning?.synthesis_status !== "inventory_ready" || spine.plan_status !== "draft";
   if (!isObject(spine.readiness)) {
     errors.push("readiness must be an object.");
   } else {
@@ -322,6 +435,7 @@ function validateImplementationSpine(spine, { source = null, applicableBlockIds 
 
   const tracks = Array.isArray(spine.tracks) ? spine.tracks : [];
   const trackIds = new Set();
+  const trackOrders = new Set();
   for (const track of tracks) {
     if (!isObject(track) || !text(track.id)) {
       errors.push("Every track must define an id.");
@@ -330,10 +444,16 @@ function validateImplementationSpine(spine, { source = null, applicableBlockIds 
     if (trackIds.has(track.id)) errors.push(`Track ${track.id} is duplicated.`);
     trackIds.add(track.id);
     if (!text(track.title)) errors.push(`Track ${track.id} must define a title.`);
+    if (!Number.isInteger(track.order) || track.order < 1) {
+      errors.push(`Track ${track.id} must define a positive integer order.`);
+    }
+    if (trackOrders.has(track.order)) errors.push(`Track order ${track.order} is duplicated.`);
+    trackOrders.add(track.order);
   }
 
   const slices = Array.isArray(spine.slices) ? spine.slices : [];
   const slicesById = new Map();
+  const sliceOrders = new Set();
   for (const slice of slices) {
     if (!isObject(slice) || !text(slice.id)) {
       errors.push("Every slice must define an id.");
@@ -344,6 +464,16 @@ function validateImplementationSpine(spine, { source = null, applicableBlockIds 
     if (!trackIds.has(slice.track)) errors.push(`Slice ${slice.id} references unknown track ${slice.track}.`);
     if (!text(slice.title)) errors.push(`Slice ${slice.id} must define a title.`);
     if (!text(slice.outcome)) errors.push(`Slice ${slice.id} must define an observable outcome.`);
+    if (!SLICE_KINDS.has(slice.kind)) errors.push(`Slice ${slice.id} has invalid kind ${slice.kind || "missing"}.`);
+    if (["foundation", "external_gate"].includes(slice.kind) && !text(slice.justification)) {
+      errors.push(`Slice ${slice.id} must justify why it is not an outcome slice.`);
+    }
+    if (!Number.isInteger(slice.order) || slice.order < 1) {
+      errors.push(`Slice ${slice.id} must define a positive integer order.`);
+    }
+    const orderKey = `${slice.track}:${slice.order}`;
+    if (sliceOrders.has(orderKey)) errors.push(`Slice order ${slice.order} is duplicated in track ${slice.track}.`);
+    sliceOrders.add(orderKey);
     if (!SLICE_STATES.has(slice.state)) errors.push(`Slice ${slice.id} has invalid state ${slice.state}.`);
     if (!(slice.priority in PRIORITY_ORDER)) {
       errors.push(`Slice ${slice.id} has invalid priority ${slice.priority || "missing"}.`);
@@ -355,7 +485,7 @@ function validateImplementationSpine(spine, { source = null, applicableBlockIds 
         if (dependency === slice.id) errors.push(`Slice ${slice.id} cannot depend on itself.`);
       }
     }
-    if (slice.requires_refinement && spine.plan_status !== "draft") {
+    if (mappingRequired && slice.requires_refinement) {
       errors.push(`Slice ${slice.id} still requires semantic refinement.`);
     }
     if (!Array.isArray(slice.acceptance_checks) || slice.acceptance_checks.length === 0) {
@@ -419,12 +549,15 @@ function validateImplementationSpine(spine, { source = null, applicableBlockIds 
       continue;
     }
     if (expectedIds.size && !expectedIds.has(id)) warnings.push(`Work item ${id} is no longer applicable.`);
-    if (!slicesById.has(item.primary_slice)) {
-      errors.push(`Work item ${id} references unknown primary slice ${item.primary_slice}.`);
+    if (mappingRequired && !slicesById.has(item.primary_slice)) {
+      errors.push(`Work item ${id} references unknown primary slice ${item.primary_slice || "none"}.`);
     }
     if (!Array.isArray(item.applies_to)) {
       errors.push(`Work item ${id} applies_to must be an array.`);
     } else {
+      if (unique(item.applies_to).length !== item.applies_to.length) {
+        errors.push(`Work item ${id} repeats a slice in applies_to.`);
+      }
       for (const sliceId of item.applies_to) {
         if (!slicesById.has(sliceId)) errors.push(`Work item ${id} applies to unknown slice ${sliceId}.`);
         if (sliceId === item.primary_slice) errors.push(`Work item ${id} repeats its primary slice in applies_to.`);
@@ -432,6 +565,24 @@ function validateImplementationSpine(spine, { source = null, applicableBlockIds 
     }
     if (!WORK_ITEM_STATES.has(item.state)) {
       errors.push(`Work item ${id} has invalid state ${item.state || "missing"}.`);
+    }
+    const assessment = item.existing_build_assessment;
+    if (!isObject(assessment) || !EXISTING_BUILD_ASSESSMENTS.has(assessment.status)) {
+      errors.push(`Work item ${id} has an invalid existing_build_assessment.`);
+    } else {
+      if (!Array.isArray(assessment.refs)) errors.push(`Work item ${id} assessment refs must be an array.`);
+      if (
+        planning?.adoption_mode === "existing_build" &&
+        mappingRequired &&
+        assessment.status === "not_assessed"
+      ) {
+        errors.push(`Work item ${id} has not been reconciled against the existing build.`);
+      }
+      if (["partial", "appears_implemented", "appears_verified"].includes(assessment.status)) {
+        if (!(assessment.refs || []).length || !text(assessment.note)) {
+          errors.push(`Work item ${id} assessment ${assessment.status} needs refs and a concise note.`);
+        }
+      }
     }
     if (
       item.state === "in_progress" &&
@@ -478,6 +629,24 @@ function validateImplementationSpine(spine, { source = null, applicableBlockIds 
       if (unchecked.length) errors.push(`Slice ${slice.id} is verified while ${unchecked.length} primary work items remain unchecked.`);
       const unpassed = (slice.acceptance_checks || []).filter((check) => check.status !== "passed");
       if (unpassed.length) errors.push(`Slice ${slice.id} is verified with ${unpassed.length} acceptance checks not passed.`);
+    }
+  }
+
+  if (mappingRequired && slices.length === 0) errors.push("A synthesized plan must contain at least one slice.");
+  if (mappingRequired && tracks.length === 0) errors.push("A synthesized plan must contain at least one track.");
+
+  if (["proposal_ready", "reviewed"].includes(planning?.synthesis_status)) {
+    const currentFingerprint = proposalFingerprint(spine);
+    if (text(planning.proposal_fingerprint) !== currentFingerprint) {
+      errors.push("The synthesized proposal changed after validation; run implementation-synthesize again.");
+    }
+  }
+  if (planning?.synthesis_status === "reviewed") {
+    if (!text(planning.review?.presented_at) || !text(planning.review?.artifact)) {
+      errors.push("The synthesized plan has not been presented in a human-readable review.");
+    }
+    if (text(planning.review?.proposal_fingerprint) !== proposalFingerprint(spine)) {
+      errors.push("The reviewed proposal no longer matches the current plan.");
     }
   }
 
@@ -580,8 +749,9 @@ function summarizeImplementationSpine(spine, validation = { errors: [] }) {
 function sliceOrder(spine, left, right) {
   const tracks = new Map((spine.tracks || []).map((track) => [track.id, Number(track.order || 0)]));
   return (
-    (PRIORITY_ORDER[left.priority] ?? 2) - (PRIORITY_ORDER[right.priority] ?? 2) ||
     (tracks.get(left.track) || 0) - (tracks.get(right.track) || 0) ||
+    Number(left.order || 0) - Number(right.order || 0) ||
+    (PRIORITY_ORDER[left.priority] ?? 2) - (PRIORITY_ORDER[right.priority] ?? 2) ||
     left.id.localeCompare(right.id)
   );
 }
@@ -618,14 +788,149 @@ function assertMutablePlan(spine, source) {
   }
 }
 
+function finalizeImplementationSynthesis(
+  spine,
+  { synthesizedBy, revision, now, source, applicableBlockIds }
+) {
+  if (spine.plan_status !== "draft") throw new Error("Only a draft plan can be synthesized.");
+  if (!text(synthesizedBy)) throw new Error("Provide who authored the slice synthesis.");
+  if (sourceIsStale(spine, source)) throw new Error("The implementation inventory is stale and must be recompiled.");
+  const candidate = clone(spine);
+  candidate.planning.synthesis_status = "proposal_ready";
+  candidate.planning.synthesized_at = now;
+  candidate.planning.synthesized_by = text(synthesizedBy);
+  candidate.planning.synthesized_revision = text(revision) || null;
+  candidate.planning.review = {
+    presented_at: null,
+    proposal_fingerprint: null,
+    artifact: null
+  };
+  candidate.planning.proposal_fingerprint = proposalFingerprint(candidate);
+  const validation = validateImplementationSpine(candidate, { source, applicableBlockIds });
+  if (validation.errors.length) {
+    throw new Error(`Slice synthesis is invalid: ${validation.errors.join(" ")}`);
+  }
+  return mutate(candidate, now, () => {});
+}
+
+function markImplementationReview(
+  spine,
+  { artifact, now, source, applicableBlockIds }
+) {
+  if (spine.plan_status !== "draft") throw new Error("Only a draft plan can be reviewed.");
+  if (spine.planning?.synthesis_status !== "proposal_ready") {
+    throw new Error("Run implementation-synthesize before presenting the plan review.");
+  }
+  const validation = validateImplementationSpine(spine, { source, applicableBlockIds });
+  if (validation.errors.length) {
+    throw new Error(`Implementation proposal is invalid: ${validation.errors.join(" ")}`);
+  }
+  return mutate(spine, now, (updated) => {
+    updated.planning.synthesis_status = "reviewed";
+    updated.planning.review = {
+      presented_at: now,
+      proposal_fingerprint: proposalFingerprint(updated),
+      artifact: text(artifact)
+    };
+  });
+}
+
+function buildImplementationReview(spine, { source, applicableBlockIds, generatedAt }) {
+  const validation = validateImplementationSpine(spine, { source, applicableBlockIds });
+  const items = Object.entries(spine.work_items || {});
+  const assessmentCounts = Object.fromEntries(
+    [...EXISTING_BUILD_ASSESSMENTS].map((status) => [
+      status,
+      items.filter(([, item]) => item.existing_build_assessment?.status === status).length
+    ])
+  );
+  const lines = [
+    "# _brainwave Implementation Spine Review",
+    "",
+    `- Generated: ${generatedAt}`,
+    `- Plan version: ${spine.plan_version}`,
+    `- Adoption mode: ${spine.planning?.adoption_mode || "unknown"}`,
+    `- Applicable DNA blocks: ${items.length}`,
+    `- Proposed tracks: ${(spine.tracks || []).length}`,
+    `- Proposed slices: ${(spine.slices || []).length}`,
+    `- Source revision: ${spine.source?.git_revision || "not recorded"}`,
+    "",
+    "## What approval means",
+    "",
+    "Approval accepts this outcome grouping, primary block ownership, cross-cutting applicability, working order, dependencies, gates, and acceptance checks as the delivery roadmap. It does not approve product completion or waive evidence requirements.",
+    "",
+    "## Synthesis basis",
+    "",
+    "The proposal must be authored semantically from the accepted North Star and project-specific backbone documents such as user journeys, capability or outcome priorities, delivery phases, acceptance criteria, architecture boundaries, and risk or external-gate direction where those documents exist. DNA document boundaries alone are not slice boundaries.",
+    "",
+    ...(spine.planning?.synthesis_basis || []).map((entry) => `- ${entry.ref} — ${entry.role}`),
+    ""
+  ];
+  if (spine.planning?.adoption_mode === "existing_build") {
+    lines.push(
+      "## Existing-build reconciliation",
+      "",
+      `- Absent: ${assessmentCounts.absent}`,
+      `- Partial: ${assessmentCounts.partial}`,
+      `- Appears implemented: ${assessmentCounts.appears_implemented}`,
+      `- Appears verified: ${assessmentCounts.appears_verified}`,
+      `- Not assessed: ${assessmentCounts.not_assessed}`,
+      "",
+      "These are planning observations, not delivery proof. Slices must still record current implementation and verification evidence through guarded commands.",
+      ""
+    );
+  }
+  lines.push("## Proposed working order", "");
+  const orderedTracks = [...(spine.tracks || [])].sort(
+    (left, right) => Number(left.order) - Number(right.order) || left.id.localeCompare(right.id)
+  );
+  for (const track of orderedTracks) {
+    lines.push(`### ${track.order}. ${track.title} (${track.id})`, "");
+    const slices = (spine.slices || [])
+      .filter((slice) => slice.track === track.id)
+      .sort((left, right) => sliceOrder(spine, left, right));
+    for (const slice of slices) {
+      const primary = items.filter(([, item]) => item.primary_slice === slice.id).map(([id]) => id);
+      const crossCutting = items.filter(([, item]) => item.applies_to?.includes(slice.id)).map(([id]) => id);
+      lines.push(
+        `#### ${track.order}.${slice.order} ${slice.title} (${slice.id})`,
+        "",
+        `- Kind: ${slice.kind}`,
+        `- Priority: ${slice.priority}`,
+        `- Observable outcome: ${slice.outcome}`,
+        `- Primary DNA blocks (${primary.length}): ${primary.join(", ")}`,
+        `- Cross-cutting DNA blocks (${crossCutting.length}): ${crossCutting.join(", ") || "none"}`,
+        `- Dependencies: ${(slice.depends_on || []).join(", ") || "none"}`,
+        `- Blocking gates: ${(slice.blocking_gates || []).join(", ") || "none"}`,
+        `- Acceptance checks: ${(slice.acceptance_checks || []).map((check) => `${check.id} [${check.type}] ${check.description}`).join(" | ")}`
+      );
+      if (text(slice.justification)) lines.push(`- Non-outcome justification: ${slice.justification}`);
+      lines.push("");
+    }
+  }
+  lines.push("## Validation", "");
+  lines.push(...(validation.errors.length ? validation.errors.map((entry) => `- ERROR: ${entry}`) : ["- No structural errors."]));
+  lines.push(...validation.warnings.map((entry) => `- WARNING: ${entry}`));
+  lines.push(
+    "",
+    "## Decision",
+    "",
+    "Review the proposed outcomes and order above. Request corrections if any grouping, ownership, dependency, gate, or check is wrong. Approve only when this is an acceptable working roadmap.",
+    "",
+    "After explicit approval: `node _brainwave/_engine/brainwave_runner.js implementation-approve <approved-by>`",
+    ""
+  );
+  return lines.join("\n");
+}
+
 function approveImplementationSpine(spine, { approvedBy, revision, now, source, applicableBlockIds }) {
   if (spine.plan_status !== "draft") throw new Error("Only a draft implementation plan can be approved.");
+  if (spine.planning?.synthesis_status !== "reviewed") {
+    throw new Error("Present the human-readable implementation review before requesting approval.");
+  }
   const validation = validateImplementationSpine(spine, { source, applicableBlockIds });
   if (validation.errors.length) throw new Error(`Implementation plan is invalid: ${validation.errors.join(" ")}`);
   if (validation.stale) throw new Error("The implementation plan is stale and must be recompiled.");
-  if ((spine.slices || []).some((slice) => slice.requires_refinement)) {
-    throw new Error("Every generated slice must be semantically refined before approval.");
-  }
   if (!text(approvedBy)) throw new Error("Provide who approved the implementation plan.");
   return mutate(spine, now, (updated) => {
     updated.plan_status = "approved";
@@ -806,7 +1111,9 @@ function implementationContextPayload(spine, { source, applicableBlockIds, slice
   const summary = summarizeImplementationSpine(spine, validation);
   const selectedSlice = sliceOverride
     ? (spine.slices || []).find((slice) => slice.id === sliceOverride) || null
-    : nextImplementationSlice(spine);
+    : ["approved", "active", "complete"].includes(spine.plan_status)
+      ? nextImplementationSlice(spine)
+      : null;
   const workItems = selectedSlice
     ? Object.entries(spine.work_items || {})
         .filter(([, item]) => item.primary_slice === selectedSlice.id || item.applies_to?.includes(selectedSlice.id))
@@ -822,11 +1129,15 @@ function implementationContextPayload(spine, { source, applicableBlockIds, slice
     : [];
   const previous = previousImplementationSlice(spine);
   const exactNextCommand = validation.stale
-    ? "Run implementation-compile, refine the changed plan, and obtain approval before continuing."
+    ? "Run implementation-compile, repeat slice synthesis and review, and obtain approval before continuing."
     : validation.errors.length
       ? "Resolve the reported spine validation errors before delivery work."
       : spine.plan_status === "draft"
-        ? "Refine the provisional slices, obtain explicit user approval, then run implementation-approve <approved-by>."
+        ? spine.planning?.synthesis_status === "inventory_ready"
+          ? "Inspect the accepted product direction and, for existing-build adoption, the current code and tests. Complete _implementation_proposal.yaml with outcome-led slices and mappings, then run implementation-synthesize <authored-by>."
+          : spine.planning?.synthesis_status === "proposal_ready"
+            ? "Run implementation-review and present _implementation_review.md before asking for approval."
+            : "Present the generated implementation review, resolve requested changes through a new synthesis/review pass, or obtain explicit approval and run implementation-approve <approved-by>."
         : !selectedSlice
           ? "No ready slice. Review blockers, dependencies, or plan completion."
           : spine.active_slice === selectedSlice.id
@@ -837,6 +1148,7 @@ function implementationContextPayload(spine, { source, applicableBlockIds, slice
     plan_version: spine.plan_version,
     state_revision: spine.state_revision,
     plan_status: spine.plan_status,
+    planning: clone(spine.planning || {}),
     source_git_revision: spine.source?.git_revision || null,
     source_stale: validation.stale,
     validation_errors: validation.errors,
@@ -868,6 +1180,7 @@ function formatImplementationContext(payload) {
   const coverage = payload.coverage || {};
   const lines = [
     `_brainwave implementation spine v${payload.plan_version}, state ${payload.state_revision} (${payload.plan_status}).`,
+    `Planning: ${payload.planning?.synthesis_status || "unknown"}; adoption mode ${payload.planning?.adoption_mode || "unknown"}.`,
     `DNA direction coverage: built ${coverage.built || 0}/${coverage.applicable || 0}; checked ${coverage.checked || 0}/${coverage.applicable || 0}; blocked ${coverage.blocked || 0}; deferred ${coverage.deferred || 0}.`
   ];
   if (payload.readiness) {
@@ -970,9 +1283,15 @@ function recordRejectedTransition(spine, now) {
 module.exports = {
   SPINE_SCHEMA_VERSION,
   buildImplementationSpine,
+  buildImplementationProposalTemplate,
+  applyImplementationProposal,
   validateImplementationSpine,
   summarizeImplementationSpine,
   nextImplementationSlice,
+  proposalFingerprint,
+  finalizeImplementationSynthesis,
+  markImplementationReview,
+  buildImplementationReview,
   approveImplementationSpine,
   startImplementationSlice,
   recordWorkItemEvidence,

@@ -218,7 +218,7 @@ _DNA-SAPP-00302.01
 
 The final decimal position identifies a DNA block inside a document. The block remains the stable traceability identity and source of accepted direction. `_implementation.yaml` references those same IDs and is the separate single source of implementation sequence, status, and concise current evidence; no second task-ID system is introduced.
 
-After the foundation is accepted, _brainwave compiles a reviewable implementation spine. Agents work through one coherent slice at a time, retrieve only its referenced DNA passages, persist evidence outside their context window, and reconstruct previous, current, and next work with one command. Before a release, pilot, major handoff, broad readiness claim, or overall alignment review, the dashboard provides the exact prompt for opening a separate fresh-context review chat.
+After the foundation is accepted, _brainwave compiles an unmapped DNA-block inventory rather than pretending document boundaries are implementation slices. An AI planning pass uses the North Star and project-specific journey, priority, delivery, acceptance, architecture, and gate direction to author a hybrid outcome-led proposal; existing products also receive a code-and-test reconciliation pass. The engine imports and validates that proposal, generates a human-readable review, and permits approval only after that exact review. Agents then work through one coherent slice at a time, retrieve only its referenced DNA passages, persist evidence outside their context window, and reconstruct previous, current, and next work with one command.
 
 DNA direction coverage is deliberately narrower than a project-completion estimate: it counts applicable documented directions that are built or checked, while blockers remain visible separately. It does not claim to measure effort remaining, time-to-finish, or release readiness.
 
@@ -232,7 +232,9 @@ node _brainwave/_engine/brainwave_runner.js unintegrate
 node _brainwave/_engine/brainwave_runner.js dna
 node _brainwave/_engine/brainwave_runner.js status
 node _brainwave/_engine/brainwave_runner.js refresh
-node _brainwave/_engine/brainwave_runner.js implementation-compile
+node _brainwave/_engine/brainwave_runner.js implementation-compile [--existing-build]
+node _brainwave/_engine/brainwave_runner.js implementation-synthesize <authored-by> [proposal-path]
+node _brainwave/_engine/brainwave_runner.js implementation-review
 node _brainwave/_engine/brainwave_runner.js implementation-approve <approved-by>
 node _brainwave/_engine/brainwave_runner.js implementation-context [--json]
 node _brainwave/_engine/brainwave_runner.js implementation-start <slice-id>
