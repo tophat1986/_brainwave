@@ -1,9 +1,5 @@
     /* Responsive adjustments */
     @media (max-width: 820px) {
-      .alignment-coverage-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .alignment-review-card { grid-template-columns: 1fr; }
-      .alignment-prompt { grid-column: auto; }
-      .roadmap-metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .hub {
         grid-template-columns: 1fr auto;
       }
@@ -22,13 +18,11 @@
 
     @media (max-width: 620px) {
       .alignment-review-actions { align-items: flex-start; flex-direction: column; }
-      .roadmap-head { grid-template-columns: 1fr; align-items: start; }
-      .roadmap-plan-meta { justify-self: start; text-align: left; }
+      .implementation-action { grid-template-columns: 1fr; }
+      .implementation-action .alignment-prompt { grid-column: auto; }
+      .implementation-plan-note { align-items: flex-start; flex-direction: column; }
       .roadmap-slice > summary { grid-template-columns: auto minmax(0, 1fr) auto; }
       .roadmap-slice-context { display: none; }
-      .roadmap-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .roadmap-detail-grid { grid-template-columns: 1fr; }
-      .roadmap-detail-grid .roadmap-checks { grid-column: auto; }
       .roadmap-block { grid-template-columns: 1fr; gap: 3px; }
       :root {
         --journey-rail-x: 1.1rem;
@@ -80,14 +74,11 @@
     }
 
     @media (max-width: 420px) {
-      .alignment-coverage-grid { grid-template-columns: 1fr; }
-      .alignment-stat { min-height: 78px; }
       .roadmap-head,
       .roadmap-tracks { padding: 14px; }
       .roadmap-notices { margin-inline: 14px; }
       .roadmap-slice > summary { grid-template-columns: minmax(0, 1fr) auto; }
       .roadmap-order { display: none; }
-      .roadmap-metrics { grid-template-columns: 1fr 1fr; }
       .brand-mark { font-size: 14px; }
       .brand { padding-left: 0; }
       .stage-subtitle { max-width: 190px; }

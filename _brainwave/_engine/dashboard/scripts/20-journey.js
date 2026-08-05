@@ -178,12 +178,11 @@
           needs_attention: "Needs attention",
           blocked: "Blocked"
         };
-        const lastReview = lastAlignmentReview
-          ? `<div class="alignment-last-review"><span>Latest fresh-context review</span><strong>${esc(resultLabels[lastAlignmentReview.result] || titleCase(lastAlignmentReview.result))}</strong><small>${esc(lastAlignmentReview.revision || "Revision not recorded")} · ${esc(lastAlignmentReview.reviewed_at ? new Date(lastAlignmentReview.reviewed_at).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }) : "Date not recorded")}</small></div>`
-          : `<div class="alignment-last-review empty"><span>Latest fresh-context review</span><strong>Not run yet</strong><small>Recommended before a release, pilot, major handoff, or broad readiness claim.</small></div>`;
-        return `<section class="alignment-review-card">
-          <div class="alignment-review-copy"><span class="alignment-kicker">Fresh perspective</span><h3>Run a fresh alignment review</h3><p>Open a new chat and paste this prepared prompt. The separate context reduces anchoring and gives you an inspectable review transcript.</p></div>
-          ${lastReview}
+        const reviewStatus = lastAlignmentReview
+          ? `${resultLabels[lastAlignmentReview.result] || titleCase(lastAlignmentReview.result)} · ${lastAlignmentReview.reviewed_at ? new Date(lastAlignmentReview.reviewed_at).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }) : "date not recorded"}`
+          : "Not run yet";
+        return `<section class="implementation-action">
+          <div><span class="alignment-kicker">Independent check</span><h3>Run a fresh alignment review</h3><small>${esc(reviewStatus)}</small></div>
           <div class="alignment-review-actions"><button class="copy-review-prompt" type="button" data-action="copy-alignment-prompt">Copy review prompt</button><span class="copy-review-status" id="copy-review-status" role="status" aria-live="polite"></span></div>
           <details class="alignment-prompt"><summary>View the prompt</summary><div id="alignment-review-prompt">${esc(alignmentReviewPrompt)}</div></details>
         </section>`;
@@ -191,28 +190,25 @@
 
       function implementationPlanCard() {
         if (implementation.mode === "not_compiled") {
-          return `<section class="alignment-review-card"><div class="alignment-review-copy"><span class="alignment-kicker">Implementation spine</span><h3>Compile the delivery inventory</h3><p>The accepted DNA is ready. Compile its block inventory, then let the planning agent synthesize a reviewable outcome sequence before product work begins.</p></div><div class="alignment-last-review empty"><span>Delivery state</span><strong>Not compiled</strong><small>DNA direction remains unchanged.</small></div></section>`;
+          return `<section class="implementation-plan-note"><div><strong>Delivery plan needed</strong><span>Compile the accepted DNA into slices before product work begins.</span></div><em>Not compiled</em></section>`;
         }
         if (implementation.plan_status === "draft") {
           const synthesis = implementation.planning?.synthesis_status || "inventory_ready";
-          const message = synthesis === "inventory_ready"
-            ? "The DNA-block inventory is ready for semantic outcome synthesis. Existing builds must be reconciled against current code and tests."
-            : synthesis === "proposal_ready"
-              ? "The proposal is structurally valid. Generate and present the human-readable review before asking for approval."
-              : "The human-readable proposal review is ready. Approval accepts its grouping, ownership, order, dependencies, gates, and checks—not product completion.";
           const reviewLink = implementation.planning?.review_artifact
-            ? `<a class="roadmap-review-link" href="${esc(safeHref(implementation.planning.review_artifact))}" target="_blank" rel="noopener">Open the plan review ↗</a>`
+            ? `<a class="roadmap-review-link" href="${esc(safeHref(implementation.planning.review_artifact))}" target="_blank" rel="noopener">Review plan ↗</a>`
             : "";
-          return `<section class="alignment-review-card"><div class="alignment-review-copy"><span class="alignment-kicker">Implementation spine</span><h3>${synthesis === "reviewed" ? "Review the proposed sequence" : "Prepare the proposed sequence"}</h3><p>${esc(message)}</p>${reviewLink}</div><div class="alignment-last-review empty"><span>Plan ${esc(implementation.plan_version || "")}</span><strong>${esc(synthesis.replaceAll("_", " "))}</strong><small>${esc(implementationSlices.length)} proposed slices</small></div></section>`;
+          return `<section class="implementation-plan-note"><div><strong>${synthesis === "reviewed" ? "Delivery plan ready to review" : "Delivery plan in preparation"}</strong><span>${esc(implementationSlices.length)} proposed slice${implementationSlices.length === 1 ? "" : "s"}</span></div>${reviewLink || `<em>${esc(synthesis.replaceAll("_", " "))}</em>`}</section>`;
         }
         if (implementation.source_stale) {
-          return `<section class="alignment-review-card"><div class="alignment-review-copy"><span class="alignment-kicker">Implementation spine</span><h3>Refresh the delivery plan</h3><p>The accepted North Star or DNA direction changed after this plan was compiled. Recompile, review, and approve the sequence before starting more work.</p></div><div class="alignment-last-review empty"><span>Plan ${esc(implementation.plan_version || "")}</span><strong>Source changed</strong><small>No new slice should start yet.</small></div></section>`;
+          return `<section class="implementation-plan-note attention"><div><strong>Delivery plan needs refreshing</strong><span>The accepted direction changed. Do not start another slice yet.</span></div><em>Source changed</em></section>`;
         }
-        const focus = implementation.current || implementation.next;
-        const focusLabel = implementation.current ? "Active slice" : "Next slice";
-        const readiness = implementation.readiness || {};
-        const gates = `Technical health: ${titleCase(readiness.technical_health || "unknown")} · Product coverage: ${titleCase(readiness.product_coverage || "not assessed")} · External gates: ${titleCase(readiness.external_gates || "unknown")} · Release readiness: ${titleCase(readiness.release_readiness || "not assessed")}`;
-        return `<section class="alignment-review-card"><div class="alignment-review-copy"><span class="alignment-kicker">Implementation spine</span><h3>${esc(focus?.title || "No ready slice")}</h3><p>${esc(focus?.outcome || "Review dependencies, blockers, or completed coverage before selecting more work.")}</p><small>${esc(gates)}</small></div><div class="alignment-last-review"><span>${esc(focusLabel)}</span><strong>${esc(focus?.id || "None")}</strong><small>Plan ${esc(implementation.plan_version || "—")} · state ${esc(implementation.state_revision ?? "—")}${implementation.source_stale ? " · source changed" : ""}</small></div></section>`;
+        return "";
+      }
+
+      function alignmentCoverageDisclosure() {
+        const applicable = Number(alignmentCoverage.applicable || 0);
+        const checked = Number(alignmentCoverage.checked || 0);
+        return `<details class="implementation-detail"><summary><span>DNA direction coverage</span><strong>${checked}/${applicable} checked</strong><span class="chevron" aria-hidden="true"></span></summary><div>${alignmentBlockMap()}</div></details>`;
       }
 
       function foundationReadyContent() {
@@ -236,41 +232,26 @@
         const deferred = Number(alignmentCoverage.deferred || 0);
         const invalid = Number(alignmentCoverage.invalid || 0);
         const title = implementation.mode === "not_compiled"
-          ? "A delivery plan is needed"
+          ? "Delivery plan needed"
           : implementation.plan_status === "draft"
-            ? "The implementation sequence needs review"
+            ? "Delivery plan needs review"
             : implementation.source_stale
-              ? "The delivery plan needs refreshing"
+              ? "Delivery plan needs refreshing"
             : blocked || invalid
-          ? "Alignment needs attention"
+          ? `${blocked + invalid} direction${blocked + invalid === 1 ? "" : "s"} need attention`
           : applicable && checked === applicable
-            ? "Documented directions checked"
+            ? "All documented directions checked"
             : applicable && built === applicable
-              ? "The build is recorded; checks remain"
-              : "Implementation alignment underway";
-        const summary = implementation.mode === "not_compiled"
-          ? `${applicable} applicable DNA directions are accepted. Implementation coverage will begin after the spine is compiled and approved.`
-          : implementation.source_stale
-            ? "The accepted direction changed after this plan was compiled. Existing evidence remains visible, but no new slice should start until the plan is recompiled and approved."
-          : applicable
-          ? `${checked} of ${applicable} applicable DNA directions are aligned and checked. This is direction coverage, not an estimate of overall product completion or release readiness.`
-          : "The accepted foundation is ready. Direction coverage will appear as implementation evidence is recorded.";
+              ? "Built; checks remain"
+              : "Implementation underway";
+        const ringProgress = applicable ? Math.round((checked / applicable) * 100) : 0;
 
         return `<div class="alignment-shell">
-          <section class="alignment-hero ${blocked || invalid ? "attention" : ""}">
-            <div class="alignment-hero-copy"><span class="alignment-kicker">Ambient delivery alignment</span><h2>${esc(title)}</h2><p>${esc(summary)}</p></div>
-            <div class="alignment-coverage-grid">
-              <div class="alignment-stat"><strong>${built}<small>/${applicable}</small></strong><span>Built</span><em>${esc(alignmentCoverage.built_pct || 0)}% coverage</em></div>
-              <div class="alignment-stat checked"><strong>${checked}<small>/${applicable}</small></strong><span>Checked</span><em>${esc(alignmentCoverage.checked_pct || 0)}% coverage</em></div>
-              <div class="alignment-stat"><strong>${underway}</strong><span>Underway</span><em>Work in progress</em></div>
-              <div class="alignment-stat ${blocked || invalid ? "attention" : ""}"><strong>${blocked + invalid}</strong><span>Needs attention</span><em>${deferred} deferred · ${pendingCheck} check pending</em></div>
-            </div>
-            ${blocked || invalid ? `<div class="alignment-alert"><strong>${blocked + invalid} direction${blocked + invalid === 1 ? "" : "s"} need attention.</strong><span>Resolve these before making a broad readiness claim, regardless of the coverage percentage.</span></div>` : ""}
-          </section>
+          <div class="review-card implementation-summary ${blocked || invalid ? "attention" : ""}"><div class="progress-ring" style="--progress:${ringProgress}"><strong>${checked}/${applicable}</strong></div><div><div class="review-title">${esc(title)}</div><div class="review-metrics"><span class="metric">${built} built</span><span class="metric">${underway} underway</span>${pendingCheck ? `<span class="metric">${pendingCheck} check pending</span>` : ""}${blocked || invalid ? `<span class="metric warn">${blocked + invalid} need attention</span>` : ""}${deferred ? `<span class="metric">${deferred} deferred</span>` : ""}</div></div></div>
           ${implementationPlanCard()}
           ${implementationRoadmap()}
           ${alignmentReviewCard()}
-          ${alignmentBlockMap()}
+          ${alignmentCoverageDisclosure()}
         </div>`;
       }
 

@@ -679,30 +679,11 @@
       gap: 18px;
     }
 
-    .alignment-hero,
-    .alignment-review-card,
     .alignment-matrix {
       border: 1px solid var(--line-soft);
       border-radius: 1.35rem;
       background: rgba(255, 255, 255, 0.82);
       box-shadow: 0 14px 34px rgba(15, 23, 42, 0.055);
-    }
-
-    .alignment-hero {
-      display: grid;
-      gap: 18px;
-      padding: 20px;
-      overflow: hidden;
-      background:
-        radial-gradient(circle at 92% 8%, rgba(34, 211, 238, 0.14), transparent 34%),
-        rgba(255, 255, 255, 0.9);
-    }
-
-    .alignment-hero.attention {
-      border-color: rgba(251, 113, 133, 0.5);
-      background:
-        radial-gradient(circle at 92% 8%, rgba(251, 113, 133, 0.12), transparent 34%),
-        rgba(255, 255, 255, 0.92);
     }
 
     .alignment-kicker {
@@ -715,116 +696,10 @@
       text-transform: uppercase;
     }
 
-    .alignment-hero-copy h2,
-    .alignment-review-copy h3,
     .alignment-matrix-head h3 {
       margin: 0;
       color: var(--ink);
       letter-spacing: -0.02em;
-    }
-
-    .alignment-hero-copy h2 { font-size: clamp(19px, 3vw, 28px); }
-
-    .alignment-hero-copy p,
-    .alignment-review-copy p {
-      max-width: 690px;
-      margin: 8px 0 0;
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.6;
-    }
-
-    .alignment-coverage-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 9px;
-    }
-
-    .alignment-stat {
-      display: grid;
-      gap: 3px;
-      min-height: 94px;
-      align-content: end;
-      padding: 13px;
-      border: 1px solid rgba(203, 213, 225, 0.76);
-      border-radius: 17px;
-      background: rgba(248, 250, 252, 0.78);
-    }
-
-    .alignment-stat strong {
-      color: var(--ink);
-      font-size: 24px;
-      line-height: 1;
-    }
-
-    .alignment-stat strong small {
-      color: var(--faint);
-      font-size: 12px;
-      font-weight: 650;
-    }
-
-    .alignment-stat span {
-      color: var(--ink-soft);
-      font-size: 11px;
-      font-weight: 700;
-    }
-
-    .alignment-stat em {
-      color: var(--faint);
-      font-size: 9px;
-      font-style: normal;
-    }
-
-    .alignment-stat.checked {
-      border-color: rgba(16, 185, 129, 0.3);
-      background: rgba(236, 253, 245, 0.62);
-    }
-
-    .alignment-stat.attention {
-      border-color: rgba(251, 113, 133, 0.42);
-      background: var(--rose-soft);
-    }
-
-    .alignment-alert {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px 10px;
-      padding: 11px 13px;
-      border-radius: 14px;
-      background: var(--rose-soft);
-      color: var(--muted);
-      font-size: 10px;
-      line-height: 1.45;
-    }
-
-    .alignment-alert strong { color: var(--rose); }
-
-    .alignment-review-card {
-      display: grid;
-      grid-template-columns: minmax(0, 1.45fr) minmax(190px, 0.75fr);
-      gap: 15px 22px;
-      padding: 18px;
-    }
-
-    .alignment-last-review {
-      display: grid;
-      gap: 3px;
-      align-content: center;
-      padding: 12px 14px;
-      border-radius: 16px;
-      background: rgba(241, 245, 249, 0.78);
-    }
-
-    .alignment-last-review span,
-    .alignment-last-review small {
-      color: var(--faint);
-      font-size: 9px;
-      line-height: 1.35;
-    }
-
-    .alignment-last-review strong {
-      color: var(--ink-soft);
-      font-size: 12px;
     }
 
     .alignment-review-actions {

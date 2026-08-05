@@ -386,8 +386,8 @@ test("dashboard JavaScript parses and presents the expanded DNA boundaries", () 
   assert.match(html, /Getting started/);
   assert.match(html, /implementationPlanCard/);
   assert.match(html, /implementationItemByBlockId/);
-  assert.match(html, /Compile the delivery inventory/);
-  assert.match(html, /Refresh the delivery plan/);
+  assert.match(html, /Delivery plan needed/);
+  assert.match(html, /Delivery plan needs refreshing/);
   assert.match(html, /Planned in:/);
   assert.match(html, /overviewProfileColors/);
   assert.match(html, /colorsByRole/);
@@ -396,11 +396,10 @@ test("dashboard JavaScript parses and presents the expanded DNA boundaries", () 
   assert.match(html, /Deliver the implementation/);
   assert.match(html, /implementationRoadmap/);
   assert.match(html, /Starts after foundation/);
-  assert.match(html, /Outcome-led delivery slices/);
-  assert.match(html, /Primary directions/);
-  assert.match(html, /Approx\. context/);
-  assert.match(html, /Blocks approval/);
-  assert.match(html, /DNA mapping/);
+  assert.match(html, /Delivery slices/);
+  assert.match(html, /DNA directions/);
+  assert.match(html, /plan note/);
+  assert.match(html, /DNA direction coverage/);
   assert.match(html, /Run a fresh alignment review/);
   assert.match(html, /Copy review prompt/);
   assert.match(html, /alignmentReviewPrompt/);
