@@ -6,6 +6,8 @@ DNA documents own accepted product direction. DNA blocks are the atomic traceabi
 
 `_implementation_proposal.yaml` is an agent-authored planning input, not a second delivery authority. `_implementation_review.md` is the human approval view. The manifest and dashboard are derived.
 
+The dashboard presents the spine as the eighth user-facing journey step, **Deliver the implementation**. This is a derived delivery view, not another `_brainwave_state.yaml` lifecycle value. It exposes the proposed or approved tracks and slices, outcomes, dependencies, gates, acceptance checks, context measures, validation notices, and progressively disclosed DNA mappings without owning or mutating them.
+
 ## Planning flow
 
 1. `implementation-compile [--existing-build]` inventories every applicable current DNA block. It creates no tracks or slices and writes a proposal template.

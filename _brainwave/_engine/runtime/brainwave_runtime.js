@@ -153,7 +153,7 @@ function buildSessionContext(runtime) {
   if (stage === COMPLETE_STAGE) {
     const at = (artifact) => `\`${artifactPath(runtime.root, runtime.cwd, artifact)}\``;
     const lines = [
-      `_brainwave has accepted its foundation and ambient delivery alignment is active. Do not announce or restart the seven-stage workflow during ordinary development. DNA documents in ${at("_documentation/")} are the authority for direction; ${at("_implementation.yaml")} is the sole authority for delivery state and evidence.`,
+      `_brainwave has accepted its foundation; the eighth user-facing step, Deliver the implementation, and ambient delivery alignment are active. Do not announce or restart the seven-stage foundation workflow during ordinary development. DNA documents in ${at("_documentation/")} are the authority for direction; ${at("_implementation.yaml")} is the sole authority for delivery state and evidence.`,
       `Read ${at("_my_brainwave_north_star.md")} before project work. Do not read the full DNA corpus. Use \`node _brainwave/_engine/brainwave_runner.js implementation-context\` to retrieve the current slice and only its owning DNA passages.`
     ];
     const spine = runtime.implementationSpine;
@@ -228,7 +228,7 @@ function buildSessionContext(runtime) {
     );
   } else if (guidanceMode === "guided") {
     lines.push(
-      `Guidance mode is \`guided\`. At the first orientation, status requests, and lifecycle approval points, show the compact seven-step journey defined in ${at("AGENTS.md")}; state the exact next action and explain the next unfamiliar term in one concise sentence. Mention ${at("_brainwave_handbook.md")} once near the start. Do not repeat the journey during routine shaping questions.`
+      `Guidance mode is \`guided\`. At the first orientation, status requests, and lifecycle approval points, show the compact eight-step journey defined in ${at("AGENTS.md")}; state the exact next action and explain the next unfamiliar term in one concise sentence. Mention ${at("_brainwave_handbook.md")} once near the start. Do not repeat the journey during routine shaping questions.`
     );
   } else {
     lines.push(

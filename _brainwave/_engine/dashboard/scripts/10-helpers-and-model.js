@@ -128,9 +128,11 @@
       });
 
       const currentStage = state.lifecycle?.stage || "awaiting_seed";
-      const currentStageIndex = Math.max(0, stageDefinitions.findIndex((stage) => stage.id === currentStage));
-      const currentDefinition = stageDefinitions[currentStageIndex] || stageDefinitions[0];
-      const expandedStages = new Set([currentStageIndex]);
+      const lifecycleStageIndex = Math.max(0, stageDefinitions.findIndex((stage) => stage.id === currentStage));
+      const foundationComplete = currentStage === "brainwave_documentation_complete";
+      const currentJourneyIndex = foundationComplete ? stageDefinitions.length - 1 : lifecycleStageIndex;
+      const currentDefinition = stageDefinitions[currentJourneyIndex] || stageDefinitions[0];
+      const expandedStages = new Set([currentJourneyIndex]);
 
       function safeHref(value) {
         const href = String(value || "").trim();

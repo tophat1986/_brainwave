@@ -16,11 +16,13 @@ _brainwave turns an original idea into an agreed North Star and a proportionate 
 
 A completed _brainwave returns to `shaping_north_star` when direction changes, `selecting_dna` when the relevant domains change, or `scoping_brainwave_documentation` when only DNA document scope changes.
 
+The dashboard extends these seven foundation stages with an eighth user-facing step, **Deliver the implementation**. It is derived from `_implementation.yaml`, not stored as another lifecycle state.
+
 ## Guidance Modes
 
 During onboarding, _brainwave asks whether to use:
 
-- `guided` — concise stage signposting, a seven-step journey at orientation and approval points, plain-language explanations of unfamiliar terms, and early links to this handbook and `_dashboard.html`
+- `guided` — concise stage signposting, an eight-step journey at orientation and approval points, plain-language explanations of unfamiliar terms, and early links to this handbook and `_dashboard.html`
 - `concise` — the current step and immediate next action, with more explanation only when needed or requested
 
 Everyone receives one short, friendly dashboard introduction near the start. Guided mode adds the fuller journey; concise mode keeps the introduction to a sentence.
@@ -36,6 +38,7 @@ The user-facing journey is:
 5. Build DNA documentation.
 6. Review the foundation.
 7. Ready for implementation.
+8. Deliver the implementation.
 
 ## Working Modes
 
@@ -173,11 +176,12 @@ It shows:
 
 - a focused project overview with the current name, short description or tagline, logo, and colour direction when available
 - a complete, friendly view of the user's setup choices, project basics, and getting-started checkpoints
-- a seven-stage vertical journey, with completed stages collapsed and the current stage in focus
+- an eight-step vertical journey: seven foundation stages followed by active implementation delivery
 - in-dashboard previews of the seed, North Star, decisions, handbook, and expressed documents
 - the installed DNA Library, including each module's full DNA document catalogue before a concept is selected
 - document and DNA-block progress using canonical IDs and expandable block-level detail
-- after foundation acceptance, a **Staying aligned** view showing built, checked, underway, and blocked DNA direction coverage together with the latest fresh-context review
+- after foundation acceptance, an active **Implementation** step showing the proposed or approved tracks and slices, their outcomes, sequence, dependencies, gates, acceptance checks, context size, and progressively disclosed DNA mappings
+- built, checked, underway, and blocked DNA direction coverage together with the latest fresh-context review
 - a copyable fresh-context review prompt at the point where a release, pilot, major handoff, or broad readiness review becomes useful
 - a quiet project-state view for technical provenance without placing it in the main journey
 

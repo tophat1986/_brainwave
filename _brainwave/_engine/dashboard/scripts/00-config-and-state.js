@@ -8,7 +8,8 @@
         { id: "scoping_brainwave_documentation", label: "DNA documents", action: "Scope DNA documents" },
         { id: "building_brainwave_documentation", label: "DNA documents and blocks", action: "Build DNA documentation" },
         { id: "reviewing_brainwave_documentation", label: "Foundation", action: "Review the foundation" },
-        { id: "brainwave_documentation_complete", label: "Implementation", action: "Ready for implementation" }
+        { id: "brainwave_documentation_complete", label: "Foundation ready", action: "Ready for implementation" },
+        { id: "implementation", label: "Implementation", action: "Deliver the implementation" }
       ];
 
       const documentationStates = Object.freeze({
@@ -44,6 +45,13 @@
       const implementationSliceById = new Map(implementationSlices.map((slice) => [slice.id, slice]));
       const implementationWorkItems = Array.isArray(implementation.work_items) ? implementation.work_items : [];
       const implementationItemByBlockId = new Map(implementationWorkItems.map((item) => [item.id, item]));
+      const implementationValidation = implementation.validation || {};
+      const implementationSliceContexts = Array.isArray(implementationValidation.slice_contexts)
+        ? implementationValidation.slice_contexts
+        : [];
+      const implementationContextBySliceId = new Map(
+        implementationSliceContexts.map((context) => [context.slice_id, context])
+      );
       const deliveryAlignment = state.delivery_alignment || {};
       const alignmentCoverage = deliveryAlignment.coverage || {};
       const alignmentReviewPrompt = deliveryAlignment.review_prompt || "";
@@ -103,7 +111,8 @@
         blockTotal: Number(implementationTotals.blocks || 0),
         completeBlocks: Number(implementationTotals.implemented || 0) + Number(implementationTotals.verified || 0),
         blockedBlocks: Number(implementationTotals.blocked || 0),
-        verifiedBlocks: Number(implementationTotals.verified || 0)
+        verifiedBlocks: Number(implementationTotals.verified || 0),
+        verifiedSlices: implementationSlices.filter((slice) => slice.state === "verified").length
       });
       const searchEntries = [];
       for (const [moduleId, module] of moduleEntries) {

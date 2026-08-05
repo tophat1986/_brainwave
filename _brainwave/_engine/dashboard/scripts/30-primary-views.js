@@ -1,11 +1,12 @@
       // Primary views
       function renderJourney() {
         document.getElementById("journey").innerHTML = stageDefinitions.map((definition, index) => {
-          const displayDefinition =
-            index === 6 && currentStage === "brainwave_documentation_complete"
-              ? { ...definition, label: "Staying aligned", action: "Keep implementation true to the foundation" }
-              : definition;
-          const status = index < currentStageIndex ? "complete" : index === currentStageIndex ? "current" : "future";
+          const implementationComplete = index === 7 && implementation.plan_status === "complete" && !implementation.source_stale;
+          const status = implementationComplete
+            ? "complete"
+            : index < currentJourneyIndex
+              ? "complete"
+              : index === currentJourneyIndex ? "current" : "future";
           const expanded = expandedStages.has(index);
           const contentAvailable =
             (index === 0 && presentationContent.seed?.markdown?.trim()) ||
@@ -13,13 +14,13 @@
           const previewKey = index === 0 ? "seed" : index === 1 ? "north_star" : null;
           const badge = stageBadge(index);
           return `<article class="stage ${status} ${expanded ? "expanded" : ""}" data-stage-index="${index}">
-            <button class="stage-node" type="button" data-action="stage" data-stage="${index}" aria-label="${expanded ? "Collapse" : "Expand"} ${esc(displayDefinition.label)}" aria-expanded="${expanded}">${status === "complete" ? "✓" : String(index + 1).padStart(2, "0")}</button>
+            <button class="stage-node" type="button" data-action="stage" data-stage="${index}" aria-label="${expanded ? "Collapse" : "Expand"} ${esc(definition.label)}" aria-expanded="${expanded}">${status === "complete" ? "✓" : String(index + 1).padStart(2, "0")}</button>
             <div class="stage-card">
               <button class="stage-toggle" type="button" data-action="stage" data-stage="${index}" aria-expanded="${expanded}">
-                <span><span class="stage-label">${esc(displayDefinition.label)}${status === "current" ? '<span class="now-mark">Now</span>' : ""}</span><span class="stage-subtitle">${esc(displayDefinition.action)}</span></span>
+                <span><span class="stage-label">${esc(definition.label)}${status === "current" ? '<span class="now-mark">Now</span>' : ""}</span><span class="stage-subtitle">${esc(definition.action)}</span></span>
                 <span class="stage-actions">${badge ? `<span class="stage-count">${esc(badge)}</span>` : ""}<span class="chevron" aria-hidden="true"></span></span>
               </button>
-              ${contentAvailable && !expanded ? `<button class="preview-button" style="position:absolute;right:56px;top:22px;z-index:3" type="button" data-action="content" data-content="${previewKey}" aria-label="Preview ${esc(displayDefinition.label)}"><span class="eye" aria-hidden="true"></span></button>` : ""}
+              ${contentAvailable && !expanded ? `<button class="preview-button" style="position:absolute;right:56px;top:22px;z-index:3" type="button" data-action="content" data-content="${previewKey}" aria-label="Preview ${esc(definition.label)}"><span class="eye" aria-hidden="true"></span></button>` : ""}
               ${expanded ? `<div class="stage-body">${stageBody(index)}</div>` : ""}
             </div>
           </article>`;

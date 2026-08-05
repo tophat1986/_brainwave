@@ -200,7 +200,10 @@
             : synthesis === "proposal_ready"
               ? "The proposal is structurally valid. Generate and present the human-readable review before asking for approval."
               : "The human-readable proposal review is ready. Approval accepts its grouping, ownership, order, dependencies, gates, and checks—not product completion.";
-          return `<section class="alignment-review-card"><div class="alignment-review-copy"><span class="alignment-kicker">Implementation spine</span><h3>${synthesis === "reviewed" ? "Review the proposed sequence" : "Prepare the proposed sequence"}</h3><p>${esc(message)}</p></div><div class="alignment-last-review empty"><span>Plan ${esc(implementation.plan_version || "")}</span><strong>${esc(synthesis.replaceAll("_", " "))}</strong><small>${esc(implementationSlices.length)} synthesized slices</small></div></section>`;
+          const reviewLink = implementation.planning?.review_artifact
+            ? `<a class="roadmap-review-link" href="${esc(safeHref(implementation.planning.review_artifact))}" target="_blank" rel="noopener">Open the plan review ↗</a>`
+            : "";
+          return `<section class="alignment-review-card"><div class="alignment-review-copy"><span class="alignment-kicker">Implementation spine</span><h3>${synthesis === "reviewed" ? "Review the proposed sequence" : "Prepare the proposed sequence"}</h3><p>${esc(message)}</p>${reviewLink}</div><div class="alignment-last-review empty"><span>Plan ${esc(implementation.plan_version || "")}</span><strong>${esc(synthesis.replaceAll("_", " "))}</strong><small>${esc(implementationSlices.length)} proposed slices</small></div></section>`;
         }
         if (implementation.source_stale) {
           return `<section class="alignment-review-card"><div class="alignment-review-copy"><span class="alignment-kicker">Implementation spine</span><h3>Refresh the delivery plan</h3><p>The accepted North Star or DNA direction changed after this plan was compiled. Recompile, review, and approve the sequence before starting more work.</p></div><div class="alignment-last-review empty"><span>Plan ${esc(implementation.plan_version || "")}</span><strong>Source changed</strong><small>No new slice should start yet.</small></div></section>`;
@@ -212,10 +215,16 @@
         return `<section class="alignment-review-card"><div class="alignment-review-copy"><span class="alignment-kicker">Implementation spine</span><h3>${esc(focus?.title || "No ready slice")}</h3><p>${esc(focus?.outcome || "Review dependencies, blockers, or completed coverage before selecting more work.")}</p><small>${esc(gates)}</small></div><div class="alignment-last-review"><span>${esc(focusLabel)}</span><strong>${esc(focus?.id || "None")}</strong><small>Plan ${esc(implementation.plan_version || "—")} · state ${esc(implementation.state_revision ?? "—")}${implementation.source_stale ? " · source changed" : ""}</small></div></section>`;
       }
 
-      function readyContent() {
-        const ready = currentStage === "brainwave_documentation_complete";
-        if (!ready) {
+      function foundationReadyContent() {
+        if (!foundationComplete) {
           return `<div class="review-card"><div class="progress-ring" style="--progress:0"><strong>○</strong></div><div><div class="review-title">Ready after review</div></div></div>`;
+        }
+        return `<div class="review-card"><div class="progress-ring" style="--progress:100"><strong>✓</strong></div><div><div class="review-title">Foundation accepted</div><div class="review-metrics"><span class="metric">${dashboardStats.completeDocuments}/${dashboardStats.expressedDocuments} DNA documents</span><span class="metric">${alignmentCoverage.applicable || 0} applicable directions</span></div></div></div>`;
+      }
+
+      function implementationContent() {
+        if (!foundationComplete) {
+          return `<div class="review-card"><div class="progress-ring" style="--progress:0"><strong>○</strong></div><div><div class="review-title">Available after foundation acceptance</div></div></div>`;
         }
 
         const applicable = Number(alignmentCoverage.applicable || 0);
@@ -259,6 +268,7 @@
             ${blocked || invalid ? `<div class="alignment-alert"><strong>${blocked + invalid} direction${blocked + invalid === 1 ? "" : "s"} need attention.</strong><span>Resolve these before making a broad readiness claim, regardless of the coverage percentage.</span></div>` : ""}
           </section>
           ${implementationPlanCard()}
+          ${implementationRoadmap()}
           ${alignmentReviewCard()}
           ${alignmentBlockMap()}
         </div>`;
@@ -277,7 +287,8 @@
         if (index === 3) return scopeContent();
         if (index === 4) return blockMap();
         if (index === 5) return reviewContent();
-        return readyContent();
+        if (index === 6) return foundationReadyContent();
+        return implementationContent();
       }
 
       function stageBadge(index) {
@@ -294,7 +305,13 @@
             ? `${dashboardStats.scopedCompleteDocuments} of ${dashboardStats.documentTotal} DNA documents complete`
             : "";
         }
-        if (index === 6 && currentStage === "brainwave_documentation_complete" && dashboardStats.blockTotal) {
+        if (index === 6 && foundationComplete) {
+          return "Foundation accepted";
+        }
+        if (index === 7 && foundationComplete && implementationSlices.length) {
+          return `${dashboardStats.verifiedSlices} of ${implementationSlices.length} slices checked`;
+        }
+        if (index === 7 && foundationComplete && dashboardStats.blockTotal) {
           return `${alignmentCoverage.checked || 0} of ${alignmentCoverage.applicable || 0} directions checked`;
         }
         return "";

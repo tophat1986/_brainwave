@@ -10,7 +10,7 @@ AI agents can turn a prompt into a working application remarkably quickly, but t
 
 _brainwave calls its documentation system **DNA**. A **DNA module** is a versioned catalogue for one domain, containing possible **DNA documents**. Each document records its directions as traceable **DNA blocks**. A project uses only the modules and documents it genuinely needs.
 
-The idea moves through seven stages:
+The user journey has eight steps. The first seven establish the accepted foundation; the eighth keeps implementation actively sequenced and checked against it:
 
 1. **Capture the idea** — preserve the original concept as the immutable _brainwave Seed.
 2. **Agree the direction** — shape and approve the living North Star.
@@ -19,8 +19,9 @@ The idea moves through seven stages:
 5. **Build DNA documentation** — write the selected documents and their traceable DNA blocks.
 6. **Review the foundation** — resolve gaps, conflicts, and readiness concerns.
 7. **Ready for implementation** — give the agreed foundation to the agents that will build the project.
+8. **Deliver the implementation** — work through approved outcome slices, evidence, checks, dependencies, and external gates.
 
-The AI agent provides the judgment: it interprets the concept, asks material questions, and develops the foundation with the user. The local engine preserves the process, identities, versions, and agreed scope. Once the foundation is accepted, _brainwave becomes passive while the North Star and DNA documentation continue guiding implementation.
+The AI agent provides the judgment: it interprets the concept, asks material questions, and develops the foundation with the user. The local engine preserves the process, identities, versions, and agreed scope. Once the foundation is accepted, the seven-stage foundation lifecycle becomes passive while the eighth dashboard step presents the implementation spine that keeps delivery aligned.
 
 Discovery is progressive rather than a long setup form. The agent interprets what is already known, asks one to three high-leverage questions at a time, and uses early answers about intended outcome, users, reach, platforms, languages, risk, operations, and business intent to route only the follow-ups that matter. A smaller build has a narrower boundary, not a lower quality floor.
 

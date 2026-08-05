@@ -393,7 +393,13 @@ test("dashboard JavaScript parses and presents the expanded DNA boundaries", () 
   assert.match(html, /colorsByRole/);
   assert.match(html, /class="seed-body"/);
   assert.match(html, /seedIcon\("large"\)/);
-  assert.match(html, /Staying aligned/);
+  assert.match(html, /Deliver the implementation/);
+  assert.match(html, /implementationRoadmap/);
+  assert.match(html, /Outcome-led delivery slices/);
+  assert.match(html, /Primary directions/);
+  assert.match(html, /Approx\. context/);
+  assert.match(html, /Blocks approval/);
+  assert.match(html, /DNA mapping/);
   assert.match(html, /Run a fresh alignment review/);
   assert.match(html, /Copy review prompt/);
   assert.match(html, /alignmentReviewPrompt/);
@@ -441,7 +447,8 @@ test("keeps user-facing lifecycle terminology aligned across surfaces", () => {
     "Scope DNA documents",
     "Build DNA documentation",
     "Review the foundation",
-    "Ready for implementation"
+    "Ready for implementation",
+    "Deliver the implementation"
   ];
   const retiredLabels = [
     "Choose documentation areas",
@@ -515,10 +522,10 @@ test("session context adapts user orientation to guidance mode", () => {
 
   assert.match(guided, /Guidance mode is `guided`/);
   assert.match(guided, /exact user-facing label is "Agree the direction"/);
-  assert.match(guided, /compact seven-step journey/);
+  assert.match(guided, /compact eight-step journey/);
   assert.match(guided, /`_brainwave\/_dashboard\.html`/);
   assert.match(concise, /Guidance mode is `concise`/);
-  assert.doesNotMatch(concise, /compact seven-step journey/);
+  assert.doesNotMatch(concise, /compact eight-step journey/);
   assert.match(legacy, /Guidance mode is `concise`/);
 });
 
@@ -1219,6 +1226,15 @@ test("requires semantic synthesis and a human-readable review before approval", 
 
   const approved = compileAndApproveSpine(root);
   assert.equal(approved.planning.synthesis_status, "reviewed");
+  const manifest = JSON.parse(fs.readFileSync(path.join(root, "_manifest.yaml"), "utf8"));
+  assert.ok(manifest.implementation.planning.synthesis_basis.length >= 1);
+  assert.equal(manifest.implementation.validation.approval_blockers.length, 0);
+  assert.equal(manifest.implementation.validation.slice_contexts.length, 1);
+  assert.equal(
+    manifest.implementation.validation.slice_contexts[0].slice_id,
+    "SLICE-SYSTEM-BOUNDARY"
+  );
+  assert.equal(manifest.implementation.validation.slice_contexts[0].primary_blocks, 1);
   const review = fs.readFileSync(path.join(root, "_implementation_review.md"), "utf8");
   assert.match(review, /What approval means/);
   assert.match(review, /Proposed working order/);
@@ -1422,7 +1438,7 @@ test("session hook restores ambient delivery alignment when DNA documentation is
 
   assert.equal(result.status, 0);
   assert.equal(response.continue, true);
-  assert.match(response.additional_context, /ambient delivery alignment is active/);
+  assert.match(response.additional_context, /ambient delivery alignment (?:is|are) active/);
   assert.match(response.additional_context, /implementation spine has not been compiled/i);
   assert.match(response.additional_context, /implementation-compile/);
   assert.match(response.additional_context, /Run a fresh-context `_brainwave` implementation alignment review/);

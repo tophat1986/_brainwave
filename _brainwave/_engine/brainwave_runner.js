@@ -524,6 +524,7 @@ function defaultManifestSkeleton() {
       planning: {
         adoption_mode: null,
         synthesis_status: null,
+        synthesis_basis: [],
         review_artifact: null
       },
       source_stale: false,
@@ -561,7 +562,12 @@ function defaultManifestSkeleton() {
       tracks: [],
       slices: [],
       work_items: [],
-      validation: { errors: [], warnings: [] }
+      validation: {
+        errors: [],
+        warnings: [],
+        approval_blockers: [],
+        slice_contexts: []
+      }
     },
     presentation: {
       project_title: null,
@@ -1599,6 +1605,7 @@ function buildManifest(workspace, command, taskPlan = [], prior = null) {
       planning: {
         adoption_mode: workspace.implementationSpine.planning?.adoption_mode || null,
         synthesis_status: workspace.implementationSpine.planning?.synthesis_status || null,
+        synthesis_basis: workspace.implementationSpine.planning?.synthesis_basis || [],
         review_artifact: workspace.implementationSpine.planning?.review?.artifact || null
       },
       source_stale: validation.stale,
@@ -1618,7 +1625,12 @@ function buildManifest(workspace, command, taskPlan = [], prior = null) {
       work_items: Object.entries(workspace.implementationSpine.work_items || {})
         .map(([id, item]) => ({ id, ...item, direction: directionById.get(id) || null }))
         .sort((a, b) => a.id.localeCompare(b.id)),
-      validation: { errors: validation.errors, warnings: validation.warnings }
+      validation: {
+        errors: validation.errors,
+        warnings: validation.warnings,
+        approval_blockers: validation.approval_blockers,
+        slice_contexts: validation.slice_contexts
+      }
     };
     Object.assign(alignmentCoverage, summary.coverage);
   } else {
