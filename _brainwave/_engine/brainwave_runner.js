@@ -26,7 +26,8 @@ const {
   checkImplementationSlice,
   closeImplementationSlice,
   implementationContextPayload,
-  formatImplementationContext,
+  formatGuardedImplementationContext,
+  CONTEXT_BUDGETS,
   buildImplementationAudit,
   recordRejectedTransition
 } = require("./implementation_spine");
@@ -2206,6 +2207,14 @@ function synthesizeImplementationPlan(args) {
   console.log(
     `${CONSOLE_PREFIX} slice proposal ready: ${updated.slices.length} slices across ${updated.tracks.length} tracks. Run implementation-review before requesting approval.`
   );
+  const validation = validateImplementationSpine(updated, {
+    source: updated.source,
+    applicableBlockIds: Object.keys(updated.work_items || {})
+  });
+  for (const warning of validation.warnings) console.log(`${CONSOLE_PREFIX} warning: ${warning}`);
+  for (const blocker of validation.approval_blockers) {
+    console.log(`${CONSOLE_PREFIX} approval blocker: ${blocker}`);
+  }
 }
 
 function writeImplementationReview() {
@@ -2259,20 +2268,18 @@ function printImplementationContext(args) {
   });
   if (args.includes("--json")) {
     const output = JSON.stringify(payload, null, 2);
-    if (output.length > 10000) {
+    if (
+      payload.context_budget?.approval_blockers?.length ||
+      output.length > CONTEXT_BUDGETS.hard.packet_chars
+    ) {
       throw new Error(
-        `Implementation context packet is ${output.length} characters; split the selected slice before continuing.`
+        `Implementation context exceeds its mandatory budget; split the selected slice or narrow applies_to before continuing.`
       );
     }
     console.log(output);
     return;
   }
-  const output = formatImplementationContext(payload);
-  if (output.length > 10000) {
-    throw new Error(
-      `Implementation context packet is ${output.length} characters; split the selected slice before continuing.`
-    );
-  }
+  const output = formatGuardedImplementationContext(payload);
   console.log(output);
 }
 

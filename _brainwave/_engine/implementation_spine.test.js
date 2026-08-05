@@ -9,11 +9,13 @@ const {
   applyImplementationProposal,
   finalizeImplementationSynthesis,
   markImplementationReview,
+  approveImplementationSpine,
   validateImplementationSpine,
   summarizeImplementationSpine,
   startImplementationSlice,
   implementationContextPayload,
-  formatImplementationContext
+  formatImplementationContext,
+  formatGuardedImplementationContext
 } = require("./implementation_spine");
 
 function authoredProposal(spine, blocks, sliceCount = 1) {
@@ -108,6 +110,102 @@ test("keeps a 720-block implementation inventory out of the active context packe
   assert.doesNotMatch(packet, new RegExp(blocks.at(-1).id.replace(/[.]/g, "\\.")));
 });
 
+test("measures a synthesized 720-block plan's effective cross-linked scope and blocks approval", () => {
+  const blocks = [];
+  for (let document = 1; document <= 72; document += 1) {
+    for (let index = 1; index <= 10; index += 1) {
+      blocks.push(directionBlock(index, { document }));
+    }
+  }
+  const inputSource = source({ applicable_block_count: blocks.length });
+  const applicableBlockIds = blocks.map((block) => block.id);
+  const inventory = buildImplementationSpine({
+    source: inputSource,
+    blocks,
+    now: "2026-08-05T12:00:00.000Z"
+  });
+  const proposal = buildImplementationProposalTemplate(inventory);
+  proposal.synthesis_basis.push({ ref: "journeys.md", role: "Outcome backbone." });
+  proposal.tracks = [{ id: "TRACK-OUTCOMES", title: "Outcomes", order: 1 }];
+  proposal.slices = Array.from({ length: 72 }, (_, index) => ({
+    id: `SLICE-${index + 1}`,
+    track: "TRACK-OUTCOMES",
+    kind: "outcome",
+    title: `Outcome ${index + 1}`,
+    outcome: `Deliver outcome ${index + 1}.`,
+    order: index + 1,
+    priority: "normal",
+    depends_on: [],
+    blocking_gates: [],
+    acceptance_checks: [{
+      id: `SLICE-${index + 1}-AC01`,
+      type: "inspection",
+      description: `Inspect outcome ${index + 1}.`
+    }]
+  }));
+  blocks.forEach((block, index) => {
+    proposal.work_items[block.id].primary_slice = `SLICE-${Math.floor(index / 10) + 1}`;
+    if (index >= 10) proposal.work_items[block.id].applies_to = ["SLICE-1"];
+  });
+
+  const synthesized = finalizeImplementationSynthesis(
+    applyImplementationProposal(inventory, proposal),
+    {
+      synthesizedBy: "Agent",
+      revision: "abc1234",
+      now: "2026-08-05T12:01:00.000Z",
+      source: inputSource,
+      applicableBlockIds
+    }
+  );
+  const validation = validateImplementationSpine(synthesized, {
+    source: inputSource,
+    applicableBlockIds
+  });
+  const oversized = validation.slice_contexts.find((entry) => entry.slice_id === "SLICE-1");
+
+  assert.deepEqual(
+    {
+      primary: oversized.primary_blocks,
+      crossCutting: oversized.cross_cutting_blocks,
+      effective: oversized.effective_blocks,
+      documents: oversized.documents
+    },
+    { primary: 10, crossCutting: 710, effective: 720, documents: 72 }
+  );
+  assert.ok(oversized.packet_chars > 10000);
+  assert.match(validation.approval_blockers.join(" "), /effective blocks/);
+  assert.match(validation.approval_blockers.join(" "), /effective documents/);
+  assert.match(validation.approval_blockers.join(" "), /context-packet characters/);
+
+  const reviewed = markImplementationReview(synthesized, {
+    artifact: "_implementation_review.md",
+    now: "2026-08-05T12:02:00.000Z",
+    source: inputSource,
+    applicableBlockIds
+  });
+  assert.throws(
+    () => approveImplementationSpine(reviewed, {
+      approvedBy: "reviewer",
+      revision: "abc1234",
+      now: "2026-08-05T12:03:00.000Z",
+      source: inputSource,
+      applicableBlockIds
+    }),
+    /hard limit/
+  );
+
+  const payload = implementationContextPayload(synthesized, {
+    source: inputSource,
+    applicableBlockIds,
+    sliceOverride: "SLICE-1"
+  });
+  const guarded = formatGuardedImplementationContext(payload);
+  assert.match(guarded, /STOP: the selected slice exceeds/);
+  assert.ok(guarded.length < 3000);
+  assert.doesNotMatch(guarded, new RegExp(blocks.at(-1).id.replace(/[.]/g, "\\.")));
+});
+
 test("detects dependency cycles and multiple active slices before approval", () => {
   const blocks = [
     directionBlock(1, { document: 1 }),
@@ -169,7 +267,7 @@ test("allows an explicitly selected held slice to resume after its reopen condit
   spine.plan_status = "active";
   spine.approval = {
     approved_at: "2026-08-05T12:01:00.000Z",
-    approved_by: "Jonny",
+    approved_by: "reviewer",
     git_revision: "abc1234"
   };
   spine.work_items[blocks[0].id].state = "blocked";

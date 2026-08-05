@@ -1,16 +1,16 @@
-# Brainwave roadmap-review UX handover
+# _brainwave roadmap-review UX handover
 
 Timestamp: 2026-08-05T15:38:29Z
 
 ## Repository state
 
-- Repository: `F:\www\_brainwave`
+- Repository: the `_brainwave` repository root
 - Branch: `codex/implementation-spine-experiment`
 - Preserve the uncommitted slice-synthesis implementation already on this branch.
 
 ## Next-agent instruction
 
-Improve the public Brainwave experience for reviewing a synthesized Implementation Spine before approval.
+Improve the public `_brainwave` experience for reviewing a synthesized implementation spine before approval.
 
 - In the dashboard, present the proposed roadmap clearly by track and slice, including order, outcomes, dependencies, external gates, and the existing-build assessment summary. Use progressive disclosure for block-level mappings.
 - In agent/chat guidance, present a concise plain-English roadmap checklist before requesting approval. Never ask for approval from plan/revision/status counters alone.

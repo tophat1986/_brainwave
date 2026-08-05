@@ -46,6 +46,10 @@ const EXISTING_BUILD_ASSESSMENTS = new Set([
   "appears_implemented",
   "appears_verified"
 ]);
+const CONTEXT_BUDGETS = Object.freeze({
+  warning: Object.freeze({ primary_blocks: 15, effective_blocks: 25, documents: 6, packet_chars: 6000, applies_to_links: 3 }),
+  hard: Object.freeze({ primary_blocks: 25, effective_blocks: 40, documents: 10, packet_chars: 10000, applies_to_links: 8 })
+});
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
@@ -61,6 +65,60 @@ function text(value) {
 
 function unique(values) {
   return [...new Set(values)];
+}
+
+function effectiveSliceItems(spine, sliceId) {
+  return Object.entries(spine?.work_items || {}).filter(
+    ([, item]) => item.primary_slice === sliceId || item.applies_to?.includes(sliceId)
+  );
+}
+
+function sliceContextMetrics(spine, sliceId, { source = null, applicableBlockIds = [] } = {}) {
+  const effective = effectiveSliceItems(spine, sliceId);
+  const primary = effective.filter(([, item]) => item.primary_slice === sliceId);
+  const crossCutting = effective.filter(([, item]) => item.primary_slice !== sliceId);
+  const documents = unique(effective.map(([, item]) => item.owning_document).filter(Boolean));
+  const payload = implementationContextPayload(spine, {
+    source,
+    applicableBlockIds,
+    sliceOverride: sliceId,
+    validation: { errors: [], warnings: [], approval_blockers: [], stale: false }
+  });
+  const packetChars = formatImplementationContext(payload).length;
+  return {
+    slice_id: sliceId,
+    primary_blocks: primary.length,
+    cross_cutting_blocks: crossCutting.length,
+    effective_blocks: effective.length,
+    documents: documents.length,
+    packet_chars: packetChars
+  };
+}
+
+function contextBudgetMessages(metrics) {
+  const labels = {
+    primary_blocks: "primary blocks",
+    effective_blocks: "effective blocks",
+    documents: "effective documents",
+    packet_chars: "formatted context-packet characters"
+  };
+  const warnings = [];
+  const blockers = [];
+  for (const key of Object.keys(labels)) {
+    const value = metrics[key];
+    const warningLimit = CONTEXT_BUDGETS.warning[key];
+    const hardLimit = CONTEXT_BUDGETS.hard[key];
+    if (value > hardLimit) {
+      blockers.push(
+        `Slice ${metrics.slice_id} has ${value} ${labels[key]}, above the hard limit of ${hardLimit}; split the slice or narrow applies_to before approval.`
+      );
+    } else if (value > warningLimit) {
+      warnings.push(
+        `Slice ${metrics.slice_id} has ${value} ${labels[key]}, above the early-warning threshold of ${warningLimit}; confirm its cohesion or split it.`
+      );
+    }
+  }
+  return { warnings, blockers };
 }
 
 function applicableDirectionBlocks(blocks) {
@@ -375,11 +433,22 @@ function applyImplementationProposal(spine, proposal) {
   return updated;
 }
 
-function validateImplementationSpine(spine, { source = null, applicableBlockIds = [] } = {}) {
+function validateImplementationSpine(
+  spine,
+  { source = null, applicableBlockIds = [], enforceContextHardLimits = null } = {}
+) {
   const errors = [];
   const warnings = [];
+  const approvalBlockers = [];
+  const sliceContexts = [];
   if (!isObject(spine)) {
-    return { errors: ["_implementation.yaml must contain an object."], warnings, stale: true };
+    return {
+      errors: ["_implementation.yaml must contain an object."],
+      warnings,
+      approval_blockers: approvalBlockers,
+      slice_contexts: sliceContexts,
+      stale: true
+    };
   }
   if (spine.schema_version !== SPINE_SCHEMA_VERSION) {
     errors.push(
@@ -562,6 +631,15 @@ function validateImplementationSpine(spine, { source = null, applicableBlockIds 
         if (!slicesById.has(sliceId)) errors.push(`Work item ${id} applies to unknown slice ${sliceId}.`);
         if (sliceId === item.primary_slice) errors.push(`Work item ${id} repeats its primary slice in applies_to.`);
       }
+      if (mappingRequired && item.applies_to.length > CONTEXT_BUDGETS.hard.applies_to_links) {
+        approvalBlockers.push(
+          `Work item ${id} applies to ${item.applies_to.length} slices, above the hard fan-out limit of ${CONTEXT_BUDGETS.hard.applies_to_links}; replace broad propagation with exact semantic applicability.`
+        );
+      } else if (mappingRequired && item.applies_to.length > CONTEXT_BUDGETS.warning.applies_to_links) {
+        warnings.push(
+          `Work item ${id} applies to ${item.applies_to.length} slices, above the fan-out warning threshold of ${CONTEXT_BUDGETS.warning.applies_to_links}; confirm each link is semantically necessary.`
+        );
+      }
     }
     if (!WORK_ITEM_STATES.has(item.state)) {
       errors.push(`Work item ${id} has invalid state ${item.state || "missing"}.`);
@@ -617,9 +695,13 @@ function validateImplementationSpine(spine, { source = null, applicableBlockIds 
   for (const slice of slices) {
     const primaryItems = Object.entries(workItems).filter(([, item]) => item.primary_slice === slice.id);
     if (!primaryItems.length) errors.push(`Slice ${slice.id} has no primary DNA blocks.`);
-    const owningDocuments = unique(primaryItems.map(([, item]) => item.owning_document).filter(Boolean));
-    if (primaryItems.length > 25) warnings.push(`Slice ${slice.id} references ${primaryItems.length} blocks; split or record an override.`);
-    if (owningDocuments.length > 10) warnings.push(`Slice ${slice.id} references ${owningDocuments.length} documents; split or record an override.`);
+    if (mappingRequired && primaryItems.length) {
+      const metrics = sliceContextMetrics(spine, slice.id, { source, applicableBlockIds });
+      sliceContexts.push(metrics);
+      const budget = contextBudgetMessages(metrics);
+      warnings.push(...budget.warnings);
+      approvalBlockers.push(...budget.blockers);
+    }
     if (slice.state === "implemented") {
       const open = primaryItems.filter(([, item]) => !["implemented", "verified"].includes(item.state));
       if (open.length) errors.push(`Slice ${slice.id} is implemented while ${open.length} primary work items remain open.`);
@@ -676,7 +758,17 @@ function validateImplementationSpine(spine, { source = null, applicableBlockIds 
   }
   const stale = source ? sourceIsStale(spine, source) : false;
   if (stale) warnings.push("The implementation spine is stale against the accepted North Star or DNA scope.");
-  return { errors, warnings, stale };
+  const enforceHardLimits = enforceContextHardLimits === null
+    ? ["approved", "active", "complete"].includes(spine.plan_status)
+    : Boolean(enforceContextHardLimits);
+  if (enforceHardLimits) errors.push(...approvalBlockers);
+  return {
+    errors,
+    warnings,
+    approval_blockers: approvalBlockers,
+    slice_contexts: sliceContexts,
+    stale
+  };
 }
 
 function summarizeImplementationSpine(spine, validation = { errors: [] }) {
@@ -892,6 +984,7 @@ function buildImplementationReview(spine, { source, applicableBlockIds, generate
     for (const slice of slices) {
       const primary = items.filter(([, item]) => item.primary_slice === slice.id).map(([id]) => id);
       const crossCutting = items.filter(([, item]) => item.applies_to?.includes(slice.id)).map(([id]) => id);
+      const context = validation.slice_contexts.find((entry) => entry.slice_id === slice.id);
       lines.push(
         `#### ${track.order}.${slice.order} ${slice.title} (${slice.id})`,
         "",
@@ -900,6 +993,7 @@ function buildImplementationReview(spine, { source, applicableBlockIds, generate
         `- Observable outcome: ${slice.outcome}`,
         `- Primary DNA blocks (${primary.length}): ${primary.join(", ")}`,
         `- Cross-cutting DNA blocks (${crossCutting.length}): ${crossCutting.join(", ") || "none"}`,
+        `- Effective context: ${context?.effective_blocks || 0} blocks across ${context?.documents || 0} documents; ${context?.packet_chars || 0} formatted packet characters`,
         `- Dependencies: ${(slice.depends_on || []).join(", ") || "none"}`,
         `- Blocking gates: ${(slice.blocking_gates || []).join(", ") || "none"}`,
         `- Acceptance checks: ${(slice.acceptance_checks || []).map((check) => `${check.id} [${check.type}] ${check.description}`).join(" | ")}`
@@ -911,6 +1005,7 @@ function buildImplementationReview(spine, { source, applicableBlockIds, generate
   lines.push("## Validation", "");
   lines.push(...(validation.errors.length ? validation.errors.map((entry) => `- ERROR: ${entry}`) : ["- No structural errors."]));
   lines.push(...validation.warnings.map((entry) => `- WARNING: ${entry}`));
+  lines.push(...validation.approval_blockers.map((entry) => `- APPROVAL BLOCKER: ${entry}`));
   lines.push(
     "",
     "## Decision",
@@ -928,7 +1023,11 @@ function approveImplementationSpine(spine, { approvedBy, revision, now, source, 
   if (spine.planning?.synthesis_status !== "reviewed") {
     throw new Error("Present the human-readable implementation review before requesting approval.");
   }
-  const validation = validateImplementationSpine(spine, { source, applicableBlockIds });
+  const validation = validateImplementationSpine(spine, {
+    source,
+    applicableBlockIds,
+    enforceContextHardLimits: true
+  });
   if (validation.errors.length) throw new Error(`Implementation plan is invalid: ${validation.errors.join(" ")}`);
   if (validation.stale) throw new Error("The implementation plan is stale and must be recompiled.");
   if (!text(approvedBy)) throw new Error("Provide who approved the implementation plan.");
@@ -1106,8 +1205,11 @@ function previousImplementationSlice(spine) {
     .sort((a, b) => String(b.closed_at).localeCompare(String(a.closed_at)))[0] || null;
 }
 
-function implementationContextPayload(spine, { source, applicableBlockIds, sliceOverride = null } = {}) {
-  const validation = validateImplementationSpine(spine, { source, applicableBlockIds });
+function implementationContextPayload(
+  spine,
+  { source, applicableBlockIds, sliceOverride = null, validation: suppliedValidation = null } = {}
+) {
+  const validation = suppliedValidation || validateImplementationSpine(spine, { source, applicableBlockIds });
   const summary = summarizeImplementationSpine(spine, validation);
   const selectedSlice = sliceOverride
     ? (spine.slices || []).find((slice) => slice.id === sliceOverride) || null
@@ -1128,6 +1230,10 @@ function implementationContextPayload(spine, { source, applicableBlockIds, slice
         .sort((a, b) => a.id.localeCompare(b.id))
     : [];
   const previous = previousImplementationSlice(spine);
+  const contextBudget = selectedSlice
+    ? validation.slice_contexts?.find((entry) => entry.slice_id === selectedSlice.id) || null
+    : null;
+  const contextBudgetBlockers = contextBudget ? contextBudgetMessages(contextBudget).blockers : [];
   const exactNextCommand = validation.stale
     ? "Run implementation-compile, repeat slice synthesis and review, and obtain approval before continuing."
     : validation.errors.length
@@ -1153,6 +1259,9 @@ function implementationContextPayload(spine, { source, applicableBlockIds, slice
     source_stale: validation.stale,
     validation_errors: validation.errors,
     validation_warnings: validation.warnings,
+    context_budget: contextBudget
+      ? { ...contextBudget, approval_blockers: contextBudgetBlockers }
+      : null,
     coverage: summary.coverage,
     readiness: summary.readiness,
     previous_slice: previous
@@ -1215,6 +1324,22 @@ function formatImplementationContext(payload) {
   return lines.join("\n");
 }
 
+function formatGuardedImplementationContext(payload) {
+  const output = formatImplementationContext(payload);
+  const budget = payload.context_budget;
+  const blockers = budget?.approval_blockers || [];
+  if (!blockers.length && output.length <= CONTEXT_BUDGETS.hard.packet_chars) return output;
+  return [
+    `_brainwave implementation spine v${payload.plan_version}, state ${payload.state_revision} (${payload.plan_status}).`,
+    "STOP: the selected slice exceeds the mandatory execution-context budget.",
+    budget
+      ? `Slice ${budget.slice_id}: ${budget.primary_blocks} primary + ${budget.cross_cutting_blocks} cross-cutting = ${budget.effective_blocks} effective blocks; ${budget.documents} documents; ${budget.packet_chars} formatted packet characters.`
+      : `Formatted context packet: ${output.length} characters.`,
+    ...blockers.map((entry) => `- ${entry}`),
+    "Recompile or resynthesize the roadmap and split the slice or narrow applies_to before product work continues."
+  ].join("\n");
+}
+
 function buildImplementationAudit(spine, { source, applicableBlockIds, currentRevision, generatedAt }) {
   const validation = validateImplementationSpine(spine, { source, applicableBlockIds });
   const summary = summarizeImplementationSpine(spine, validation);
@@ -1224,6 +1349,7 @@ function buildImplementationAudit(spine, { source, applicableBlockIds, currentRe
     )
   );
   const maxPacket = packets.reduce((maximum, packet) => Math.max(maximum, packet.length), 0);
+  const contextRows = validation.slice_contexts || [];
   const attempted = (spine.slices || []).filter((slice) => slice.started_at).length;
   const completed = (spine.slices || []).filter((slice) => slice.state === "verified").length;
   const recommendation = validation.errors.length
@@ -1260,10 +1386,19 @@ function buildImplementationAudit(spine, { source, applicableBlockIds, currentRe
     `- Rejected transitions recorded: ${Number(spine.audit?.rejected_transitions || 0)}`,
     `- Source state: ${validation.stale ? "stale" : "current"}`,
     "",
+    "## Slice context budgets",
+    "",
+    "| Slice | Primary | Cross-cutting | Effective | Documents | Packet chars |",
+    "| --- | ---: | ---: | ---: | ---: | ---: |",
+    ...contextRows.map((entry) =>
+      `| ${entry.slice_id} | ${entry.primary_blocks} | ${entry.cross_cutting_blocks} | ${entry.effective_blocks} | ${entry.documents} | ${entry.packet_chars} |`
+    ),
+    "",
     "## Validation",
     "",
     ...(validation.errors.length ? validation.errors.map((error) => `- ERROR: ${error}`) : ["- No structural errors."]),
     ...validation.warnings.map((warning) => `- WARNING: ${warning}`),
+    ...validation.approval_blockers.map((blocker) => `- APPROVAL BLOCKER: ${blocker}`),
     "",
     "## Human review",
     "",
@@ -1301,6 +1436,9 @@ module.exports = {
   closeImplementationSlice,
   implementationContextPayload,
   formatImplementationContext,
+  formatGuardedImplementationContext,
+  sliceContextMetrics,
+  CONTEXT_BUDGETS,
   buildImplementationAudit,
   recordRejectedTransition,
   sourceIsStale

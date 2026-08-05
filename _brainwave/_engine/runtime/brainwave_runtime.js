@@ -4,7 +4,7 @@ const fs = require("fs");
 const path = require("path");
 const {
   implementationContextPayload,
-  formatImplementationContext
+  formatGuardedImplementationContext
 } = require("../implementation_spine");
 
 const COMPLETE_STAGE = "brainwave_documentation_complete";
@@ -180,7 +180,7 @@ function buildSessionContext(runtime) {
         payload.exact_next_command =
           "Run implementation-compile, repeat synthesis and human review, and obtain approval before continuing.";
       }
-      lines.push(formatImplementationContext(payload));
+      lines.push(formatGuardedImplementationContext(payload));
       lines.push(
         payload.source_stale || payload.validation_errors?.length
           ? "Do not change product code until the implementation plan is current and structurally valid."

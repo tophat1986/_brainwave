@@ -23,8 +23,8 @@ Tool-neutral session policy lives in `runtime/`. Thin adapters in `adapters/` tr
 - Import an agent-authored hybrid outcome proposal, including explicit order, primary ownership, cross-cutting applicability, dependencies, gates, checks, and existing-build reconciliation when requested.
 - Generate a human-readable review and bind approval to the exact reviewed proposal fingerprint.
 - Maintain `_implementation.yaml` as the sole source of implementation sequence, state, and evidence; `_implementation_proposal.yaml` is only draft input.
-- Validate plan approval, slice dependencies, one active slice, concise evidence, holds, acceptance checks, and checked revisions.
-- Reconstruct a bounded current-slice context packet without loading the full DNA corpus.
+- Validate plan approval, slice dependencies, one active slice, concise evidence, holds, acceptance checks, checked revisions, and effective context budgets.
+- Reconstruct the same bounded current-slice context for CLI and automatic session injection, returning a compact stop instead of an oversized packet.
 - Derive built and checked DNA direction coverage and record fresh-context alignment review attestations.
 - Refresh `_manifest.yaml` and `_dashboard.html`.
 - Enter ambient delivery alignment after `brainwave_documentation_complete` without resuming active documentation reconciliation.
