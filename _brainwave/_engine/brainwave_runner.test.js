@@ -11,6 +11,7 @@ const { spawnSync } = require("node:child_process");
 const SOURCE_ROOT = path.resolve(__dirname, "..");
 const SOURCE_PROJECT_ROOT = path.resolve(SOURCE_ROOT, "..");
 const SOURCE_RUNNER = path.join(__dirname, "brainwave_runner.js");
+const SOURCE_IMPLEMENTATION_SPINE = path.join(__dirname, "implementation_spine.js");
 const SOURCE_PROJECT_INTEGRATION = path.join(__dirname, "project_integration.js");
 const SOURCE_CURSOR_CONFIG = path.join(SOURCE_PROJECT_ROOT, ".cursor", "hooks.json");
 const SOURCE_CLAUDE_CONFIG = path.join(SOURCE_PROJECT_ROOT, ".claude", "settings.json");
@@ -131,6 +132,10 @@ function createWorkspace(t, options = {}) {
   fs.mkdirSync(path.join(root, "_engine"), { recursive: true });
   fs.copyFileSync(SOURCE_RUNNER, path.join(root, "_engine", "brainwave_runner.js"));
   fs.copyFileSync(
+    SOURCE_IMPLEMENTATION_SPINE,
+    path.join(root, "_engine", "implementation_spine.js")
+  );
+  fs.copyFileSync(
     SOURCE_PROJECT_INTEGRATION,
     path.join(root, "_engine", "project_integration.js")
   );
@@ -218,6 +223,89 @@ function runEngineFrom(root, cwd, ...args) {
   });
 }
 
+function scaffoldedDocumentPath(root) {
+  return path.join(
+    root,
+    "_documentation",
+    "_DNA-SAPP",
+    "00200_architecture",
+    "_DNA-SAPP-00201_system_context.md"
+  );
+}
+
+function acceptFoundation(root) {
+  assert.equal(runEngine(root, "run").status, 0);
+  const documentPath = scaffoldedDocumentPath(root);
+  const complete = fs
+    .readFileSync(documentPath, "utf8")
+    .replace("Documentation status: in_progress", "Documentation status: complete");
+  fs.writeFileSync(documentPath, complete, "utf8");
+  assert.equal(runEngine(root, "transition", "reviewing_brainwave_documentation").status, 0);
+  assert.equal(runEngine(root, "transition", "brainwave_documentation_complete").status, 0);
+  return documentPath;
+}
+
+function compileAndApproveSpine(root) {
+  assert.equal(runEngine(root, "implementation-compile").status, 0);
+  const spinePath = path.join(root, "_implementation.yaml");
+  const spine = JSON.parse(fs.readFileSync(spinePath, "utf8"));
+  for (const slice of spine.slices) {
+    slice.requires_refinement = false;
+    slice.refinement_note = null;
+    slice.outcome = `Deliver and verify ${slice.title} as one coherent outcome.`;
+  }
+  writeJson(spinePath, spine);
+  const approval = runEngine(root, "implementation-approve", "Product", "owner");
+  assert.equal(approval.status, 0, approval.stderr);
+  return JSON.parse(fs.readFileSync(spinePath, "utf8"));
+}
+
+function verifySingleSlice(root) {
+  const spine = JSON.parse(fs.readFileSync(path.join(root, "_implementation.yaml"), "utf8"));
+  const slice = spine.slices[0];
+  const blockId = Object.keys(spine.work_items)[0];
+  assert.equal(runEngine(root, "implementation-start", slice.id).status, 0);
+  assert.equal(
+    runEngine(
+      root,
+      "implementation-record",
+      blockId,
+      "implemented",
+      "code",
+      "src/system.ts",
+      "Implements the accepted system boundary."
+    ).status,
+    0
+  );
+  assert.equal(
+    runEngine(
+      root,
+      "implementation-record",
+      blockId,
+      "verified",
+      "automated_test",
+      "system.test.ts",
+      "Relevant tests passed."
+    ).status,
+    0
+  );
+  assert.equal(
+    runEngine(
+      root,
+      "implementation-acceptance",
+      slice.id,
+      slice.acceptance_checks[0].id,
+      "passed",
+      "inspection",
+      "src/system.ts",
+      "Inspected against the accepted direction."
+    ).status,
+    0
+  );
+  assert.equal(runEngine(root, "implementation-close", slice.id).status, 0);
+  return { sliceId: slice.id, blockId };
+}
+
 test("uses canonical _brainwave terminology in source and console output", (t) => {
   const { root } = createWorkspace(t, { expressed: true });
   const invalidConsolePrefix = ["[", "brainwave", "]"].join("");
@@ -265,6 +353,11 @@ test("dashboard JavaScript parses and presents the expanded DNA boundaries", () 
   }
   assert.match(html, /Project basics/);
   assert.match(html, /Getting started/);
+  assert.match(html, /implementationPlanCard/);
+  assert.match(html, /implementationItemByBlockId/);
+  assert.match(html, /Compile the delivery plan/);
+  assert.match(html, /Refresh the delivery plan/);
+  assert.match(html, /Planned in:/);
   assert.match(html, /overviewProfileColors/);
   assert.match(html, /colorsByRole/);
   assert.match(html, /class="seed-body"/);
@@ -966,15 +1059,14 @@ test("scaffolds only expressed documents under the DNA namespace without copying
   const scaffold = fs.readFileSync(documentPath, "utf8");
 
   assert.equal(result.status, 0);
-  assert.match(scaffold, /Status: in_progress/);
+  assert.match(scaffold, /Documentation status: in_progress/);
   assert.match(scaffold, /_my_brainwave_north_star\.md/);
   assert.match(scaffold, /_DNA-SAPP.*1\.3\.0/);
   assert.match(scaffold, /### _DNA-SAPP-00201\.01 - Initial Direction/);
   assert.match(scaffold, /#### Alternatives Considered/);
-  assert.match(scaffold, /Last checked: not yet/);
-  assert.match(scaffold, /Checked revision: none/);
-  assert.match(scaffold, /#### Implementation Evidence/);
-  assert.match(scaffold, /#### Verification Evidence/);
+  assert.match(scaffold, /Direction status: active/);
+  assert.doesNotMatch(scaffold, /#### Implementation Evidence/);
+  assert.doesNotMatch(scaffold, /#### Verification Evidence/);
   assert.doesNotMatch(scaffold, new RegExp(seedText.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
 });
 
@@ -998,22 +1090,20 @@ test("uses explicit status instead of word count for completion", (t) => {
   assert.equal(result.status, 0);
   assert.equal(manifest.filesystem.tracked_files[key].processing_status, "in_progress");
   assert.equal(manifest.progress.documentation_completion_pct, 0);
+
+  fs.writeFileSync(documentPath, "# Context\n\nDocumentation status: not_started\n", "utf8");
+  assert.equal(runEngine(root, "refresh").status, 0);
+  const notStartedManifest = JSON.parse(fs.readFileSync(path.join(root, "_manifest.yaml"), "utf8"));
+  assert.equal(notStartedManifest.filesystem.tracked_files[key].processing_status, "not_started");
 });
 
-test("tracks implementation through DNA block identities without a second log", (t) => {
+test("keeps accepted DNA direction separate from implementation delivery state", (t) => {
   const { root } = createWorkspace(t, { expressed: true });
-  const documentPath = path.join(
-    root,
-    "_documentation",
-    "_DNA-SAPP",
-    "00200_architecture",
-    "_DNA-SAPP-00201_system_context.md"
-  );
+  const documentPath = scaffoldedDocumentPath(root);
 
   assert.equal(runEngine(root, "run").status, 0);
   const scaffold = fs
     .readFileSync(documentPath, "utf8")
-    .replace("Status: not_started", "Status: in_progress")
     .replace("#### Direction\n\n", "#### Direction\n\nKeep the system boundary explicit.\n\n");
   fs.writeFileSync(documentPath, scaffold, "utf8");
   fs.writeFileSync(
@@ -1039,14 +1129,16 @@ test("tracks implementation through DNA block identities without a second log", 
     "_documentation/_DNA-SAPP/00200_architecture/_DNA-SAPP-00201_system_context.md";
   assert.equal(manifest.framework.name, "_brainwave");
   assert.equal(manifest.framework.version, "0.1.0");
-  assert.equal(manifest.implementation.totals.blocks, 1);
-  assert.equal(manifest.implementation.totals.in_progress, 1);
-  assert.equal(manifest.implementation.current.id, "_DNA-SAPP-00201.01");
-  assert.equal(manifest.implementation.current.path.endsWith("_system_context.md"), true);
+  assert.equal(manifest.direction.totals.blocks, 1);
+  assert.equal(manifest.direction.totals.active, 1);
+  assert.equal(manifest.direction.blocks[0].id, "_DNA-SAPP-00201.01");
+  assert.equal(manifest.direction.blocks[0].path.endsWith("_system_context.md"), true);
   assert.equal(
-    manifest.implementation.current.details.direction,
+    manifest.direction.blocks[0].details.direction,
     "Keep the system boundary explicit."
   );
+  assert.equal(manifest.implementation.mode, "not_compiled");
+  assert.equal(manifest.implementation.totals.blocks, 0);
   assert.equal(
     manifest.presentation.content.seed.markdown,
     "A deliberately distinctive immutable seed.\n"
@@ -1064,108 +1156,163 @@ test("tracks implementation through DNA block identities without a second log", 
   );
 });
 
-test("requires implementation and verification evidence before advanced block states", (t) => {
+test("compiles every applicable DNA block into a versioned draft spine", (t) => {
   const { root } = createWorkspace(t, { expressed: true });
-  const documentPath = path.join(
-    root,
-    "_documentation",
-    "_DNA-SAPP",
-    "00200_architecture",
-    "_DNA-SAPP-00201_system_context.md"
-  );
+  acceptFoundation(root);
 
-  assert.equal(runEngine(root, "run").status, 0);
-  let content = fs
-    .readFileSync(documentPath, "utf8")
-    .replace("Status: in_progress", "Status: complete")
-    .replace("Status: not_started", "Status: implemented");
-  fs.writeFileSync(documentPath, content, "utf8");
-
-  const missingImplementationEvidence = runEngine(
-    root,
-    "transition",
-    "reviewing_brainwave_documentation"
-  );
-  assert.equal(missingImplementationEvidence.status, 1);
-  assert.match(missingImplementationEvidence.stderr, /has no Implementation Evidence/);
-  assert.equal(runEngine(root, "refresh").status, 0);
-  const invalidManifest = JSON.parse(
-    fs.readFileSync(path.join(root, "_manifest.yaml"), "utf8")
-  );
-  assert.equal(invalidManifest.delivery_alignment.coverage.built, 0);
-  assert.equal(invalidManifest.delivery_alignment.coverage.invalid, 1);
-  assert.equal(invalidManifest.implementation.blocks[0].contract_errors.length, 1);
-
-  content = content
-    .replace("Status: implemented", "Status: verified")
-    .replace(
-      "#### Implementation Evidence\n\nNot yet recorded.",
-      "#### Implementation Evidence\n\n- `src/system.ts` — implements the accepted system boundary."
-    );
-  fs.writeFileSync(documentPath, content, "utf8");
-
-  const missingVerificationEvidence = runEngine(
-    root,
-    "transition",
-    "reviewing_brainwave_documentation"
-  );
-  assert.equal(missingVerificationEvidence.status, 1);
-  assert.match(missingVerificationEvidence.stderr, /has no Verification Evidence/);
-  assert.match(missingVerificationEvidence.stderr, /has no Last checked value/);
-  assert.match(missingVerificationEvidence.stderr, /has no Checked revision/);
-
-  content = content
-    .replace("Last checked: not yet", "Last checked: 2026-08-05T09:30:00.000Z")
-    .replace("Checked revision: none", "Checked revision: abc1234")
-    .replace(
-      "#### Verification Evidence\n\nNot yet recorded.",
-      "#### Verification Evidence\n\n- `system.test.ts` — relevant tests passed."
-    );
-  fs.writeFileSync(documentPath, content, "utf8");
-
-  const ready = runEngine(root, "transition", "reviewing_brainwave_documentation");
-  assert.equal(ready.status, 0);
+  const result = runEngine(root, "implementation-compile");
+  assert.equal(result.status, 0, result.stderr);
+  const spine = JSON.parse(fs.readFileSync(path.join(root, "_implementation.yaml"), "utf8"));
   const manifest = JSON.parse(fs.readFileSync(path.join(root, "_manifest.yaml"), "utf8"));
-  assert.equal(manifest.delivery_alignment.coverage.applicable, 1);
-  assert.equal(manifest.delivery_alignment.coverage.built, 1);
+
+  assert.equal(spine.schema_version, "0.1.0");
+  assert.equal(spine.plan_version, 1);
+  assert.equal(spine.plan_status, "draft");
+  assert.equal(spine.slices.length, 1);
+  assert.equal(spine.slices[0].requires_refinement, true);
+  assert.equal(spine.work_items["_DNA-SAPP-00201.01"].primary_slice, spine.slices[0].id);
+  assert.equal(manifest.implementation.mode, "compiled");
+  assert.equal(manifest.implementation.coverage.applicable, 1);
+  assert.equal(manifest.implementation.coverage.built, 0);
+});
+
+test("requires semantic slice refinement and explicit approval before implementation", (t) => {
+  const { root } = createWorkspace(t, { expressed: true });
+  acceptFoundation(root);
+  assert.equal(runEngine(root, "implementation-compile").status, 0);
+
+  const premature = runEngine(root, "implementation-approve", "Product", "owner");
+  assert.equal(premature.status, 1);
+  assert.match(premature.stderr, /semantically refined|requires semantic refinement/);
+
+  const spinePath = path.join(root, "_implementation.yaml");
+  const spine = JSON.parse(fs.readFileSync(spinePath, "utf8"));
+  for (const slice of spine.slices) {
+    slice.requires_refinement = false;
+    slice.refinement_note = null;
+    slice.outcome = `Deliver and verify ${slice.title} as one coherent outcome.`;
+  }
+  writeJson(spinePath, spine);
+  const approval = runEngine(root, "implementation-approve", "Product", "owner");
+  assert.equal(approval.status, 0, approval.stderr);
+
+  const context = runEngine(root, "implementation-context");
+  assert.equal(context.status, 0, context.stderr);
+  assert.match(context.stdout, /Current\/next:/);
+  assert.match(context.stdout, /DNA blocks: _DNA-SAPP-00201\.01/);
+  assert.ok(context.stdout.length < 10000);
+});
+
+test("guards slice progress with implementation, verification, and acceptance evidence", (t) => {
+  const { root } = createWorkspace(t, { expressed: true });
+  acceptFoundation(root);
+  compileAndApproveSpine(root);
+  const { sliceId, blockId } = verifySingleSlice(root);
+
+  const spine = JSON.parse(fs.readFileSync(path.join(root, "_implementation.yaml"), "utf8"));
+  const manifest = JSON.parse(fs.readFileSync(path.join(root, "_manifest.yaml"), "utf8"));
+  assert.equal(spine.slices.find((slice) => slice.id === sliceId).state, "verified");
+  assert.equal(spine.work_items[blockId].state, "verified");
+  assert.equal(spine.work_items[blockId].implementation_evidence[0].ref, "src/system.ts");
+  assert.equal(spine.work_items[blockId].verification_evidence[0].ref, "system.test.ts");
+  assert.ok(spine.work_items[blockId].last_checked);
   assert.equal(manifest.delivery_alignment.coverage.checked, 1);
   assert.equal(manifest.delivery_alignment.coverage.checked_pct, 100);
-  assert.equal(
-    manifest.implementation.blocks[0].details.implementation_evidence,
-    "- `src/system.ts` — implements the accepted system boundary."
+});
+
+test("rejects unsupported verification and records the rejected transition", (t) => {
+  const { root } = createWorkspace(t, { expressed: true });
+  acceptFoundation(root);
+  const approved = compileAndApproveSpine(root);
+  const slice = approved.slices[0];
+  const blockId = Object.keys(approved.work_items)[0];
+  assert.equal(runEngine(root, "implementation-start", slice.id).status, 0);
+
+  const rejected = runEngine(
+    root,
+    "implementation-record",
+    blockId,
+    "verified",
+    "automated_test",
+    "system.test.ts",
+    "Attempted verification without implementation evidence."
   );
-  assert.equal(manifest.implementation.blocks[0].checked_revision, "abc1234");
+  assert.equal(rejected.status, 1);
+  assert.match(rejected.stderr, /needs implementation evidence/);
+
+  const spine = JSON.parse(fs.readFileSync(path.join(root, "_implementation.yaml"), "utf8"));
+  assert.equal(spine.work_items[blockId].state, "in_progress");
+  assert.equal(spine.audit.rejected_transitions, 1);
+});
+
+test("blocks new slice work when accepted DNA direction makes the spine stale", (t) => {
+  const { root } = createWorkspace(t, { expressed: true });
+  const documentPath = acceptFoundation(root);
+  const approved = compileAndApproveSpine(root);
+  const changedDirection = fs
+    .readFileSync(documentPath, "utf8")
+    .replace("#### Direction\n\n", "#### Direction\n\nA changed accepted system boundary.\n\n");
+  fs.writeFileSync(documentPath, changedDirection, "utf8");
+
+  const context = runEngine(root, "implementation-context");
+  assert.equal(context.status, 0, context.stderr);
+  assert.match(context.stdout, /STOP: the spine is stale/);
+
+  const start = runEngine(root, "implementation-start", approved.slices[0].id);
+  assert.equal(start.status, 1);
+  assert.match(start.stderr, /spine is stale/i);
+});
+
+test("imports legacy DNA delivery status once into the separate spine", (t) => {
+  const { root } = createWorkspace(t, { expressed: true });
+  assert.equal(runEngine(root, "run").status, 0);
+  const documentPath = scaffoldedDocumentPath(root);
+  const legacy = fs
+    .readFileSync(documentPath, "utf8")
+    .replace("Documentation status: in_progress", "Status: complete")
+    .replace("Direction status: active", "Status: verified")
+    .replace(
+      "Supersedes: none",
+      "Supersedes: none\nLast checked: 2026-08-05T09:30:00.000Z\nChecked revision: abc1234"
+    )
+    .replace(
+      "## Document Open Questions",
+      "#### Implementation Evidence\n\n- `src/system.ts` — implements the boundary.\n\n#### Verification Evidence\n\n- `system.test.ts` — tests passed.\n\n## Document Open Questions"
+    );
+  fs.writeFileSync(documentPath, legacy, "utf8");
+  assert.equal(runEngine(root, "transition", "reviewing_brainwave_documentation").status, 0);
+  assert.equal(runEngine(root, "transition", "brainwave_documentation_complete").status, 0);
+  assert.equal(runEngine(root, "implementation-compile").status, 0);
+
+  const spine = JSON.parse(fs.readFileSync(path.join(root, "_implementation.yaml"), "utf8"));
+  const item = spine.work_items["_DNA-SAPP-00201.01"];
+  assert.equal(item.state, "verified");
+  assert.equal(item.imported_legacy_status, "verified");
+  assert.equal(item.implementation_evidence.length, 1);
+  assert.equal(item.verification_evidence.length, 1);
+  assert.equal(item.checked_revision, "abc1234");
+});
+
+test("exports a portable implementation-spine audit without writing another repository", (t) => {
+  const { root } = createWorkspace(t, { expressed: true });
+  acceptFoundation(root);
+  compileAndApproveSpine(root);
+  verifySingleSlice(root);
+
+  const result = runEngine(root, "implementation-audit");
+  assert.equal(result.status, 0, result.stderr);
+  const report = fs.readFileSync(path.join(root, "_implementation_audit.md"), "utf8");
+  assert.match(report, /Implementation Spine Audit/);
+  assert.match(report, /Applicable blocks: 1/);
+  assert.match(report, /Verified: 1/);
+  assert.match(report, /Recommendation: adopt/);
 });
 
 test("records a fresh-context alignment review against a verified revision", (t) => {
   const { root } = createWorkspace(t, { expressed: true });
-  const documentPath = path.join(
-    root,
-    "_documentation",
-    "_DNA-SAPP",
-    "00200_architecture",
-    "_DNA-SAPP-00201_system_context.md"
-  );
-
-  assert.equal(runEngine(root, "run").status, 0);
-  const verified = fs
-    .readFileSync(documentPath, "utf8")
-    .replace("Status: in_progress", "Status: complete")
-    .replace("Status: not_started", "Status: verified")
-    .replace("Last checked: not yet", "Last checked: 2026-08-05T09:30:00.000Z")
-    .replace("Checked revision: none", "Checked revision: abc1234")
-    .replace(
-      "#### Implementation Evidence\n\nNot yet recorded.",
-      "#### Implementation Evidence\n\n- `src/system.ts` — implements the accepted system boundary."
-    )
-    .replace(
-      "#### Verification Evidence\n\nNot yet recorded.",
-      "#### Verification Evidence\n\n- `system.test.ts` — relevant tests passed."
-    );
-  fs.writeFileSync(documentPath, verified, "utf8");
-
-  assert.equal(runEngine(root, "transition", "reviewing_brainwave_documentation").status, 0);
-  assert.equal(runEngine(root, "transition", "brainwave_documentation_complete").status, 0);
+  acceptFoundation(root);
+  compileAndApproveSpine(root);
+  verifySingleSlice(root);
   const recorded = runEngine(root, "alignment-review", "aligned", "abc1234");
   assert.equal(recorded.status, 0);
   assert.match(recorded.stdout, /alignment_review: aligned/);
@@ -1222,7 +1369,7 @@ test("allows review when every complete document follows the DNA block contract"
   assert.equal(runEngine(root, "run").status, 0);
   const complete = fs
     .readFileSync(documentPath, "utf8")
-    .replace("Status: in_progress", "Status: complete");
+    .replace("Documentation status: in_progress", "Documentation status: complete");
   fs.writeFileSync(documentPath, complete, "utf8");
 
   const result = runEngine(root, "transition", "reviewing_brainwave_documentation");
@@ -1249,9 +1396,60 @@ test("session hook restores ambient delivery alignment when DNA documentation is
   assert.equal(result.status, 0);
   assert.equal(response.continue, true);
   assert.match(response.additional_context, /ambient delivery alignment is active/);
-  assert.match(response.additional_context, /identify only the directly affected DNA blocks/);
+  assert.match(response.additional_context, /implementation spine has not been compiled/i);
+  assert.match(response.additional_context, /implementation-compile/);
   assert.match(response.additional_context, /Run a fresh-context `_brainwave` implementation alignment review/);
   assert.doesNotMatch(response.additional_context, /_brainwave is active at stage/);
+});
+
+test("session hook restores only the approved implementation slice after a context restart", (t) => {
+  const { root } = createWorkspace(t, { expressed: true, copyHooks: true });
+  acceptFoundation(root);
+  const spine = compileAndApproveSpine(root);
+  const result = spawnSync(
+    process.execPath,
+    [path.join(root, "_engine", "adapters", "cursor.js"), "session-start"],
+    {
+      cwd: SOURCE_ROOT,
+      input: JSON.stringify({ cwd: root }),
+      encoding: "utf8"
+    }
+  );
+  const response = JSON.parse(result.stdout);
+
+  assert.equal(result.status, 0);
+  assert.match(response.additional_context, new RegExp(spine.slices[0].id));
+  assert.match(response.additional_context, /DNA blocks: _DNA-SAPP-00201\.01/);
+  assert.match(response.additional_context, /Work only on the active or recommended slice/);
+  assert.doesNotMatch(response.additional_context, /Current direction\. Current direction/);
+});
+
+test("session hook stops slice work when accepted direction makes the spine stale", (t) => {
+  const { root } = createWorkspace(t, { expressed: true, copyHooks: true });
+  const documentPath = acceptFoundation(root);
+  compileAndApproveSpine(root);
+  const changedDirection = fs
+    .readFileSync(documentPath, "utf8")
+    .replace(/#### Direction\r?\n\r?\n/, "#### Direction\n\nAccepted direction changed after plan approval.\n\n");
+  fs.writeFileSync(documentPath, changedDirection, "utf8");
+  assert.equal(runEngine(root, "refresh").status, 0);
+
+  const result = spawnSync(
+    process.execPath,
+    [path.join(root, "_engine", "adapters", "cursor.js"), "session-start"],
+    {
+      cwd: SOURCE_ROOT,
+      input: JSON.stringify({ cwd: root }),
+      encoding: "utf8"
+    }
+  );
+  const response = JSON.parse(result.stdout);
+
+  assert.equal(result.status, 0);
+  assert.match(response.additional_context, /STOP: the spine is stale/);
+  assert.match(response.additional_context, /Next command: Run implementation-compile/);
+  assert.match(response.additional_context, /Do not change product code until/);
+  assert.doesNotMatch(response.additional_context, /Next command: node .*implementation-start/);
 });
 
 test("locks the seed when entering North Star shaping", (t) => {
@@ -1697,8 +1895,10 @@ test("integrates a nested _brainwave without replacing existing project guidance
   assert.match(claudeGuide, /all user-facing output must follow the accepted Product Design and Experience and Brand documentation/);
   assert.match(agents, /`project_profile` and its referenced `_brainwave\/_assets\/` files/);
   assert.match(claudeGuide, /`project_profile` and its referenced `_brainwave\/_assets\/` files/);
-  assert.match(agents, /use ambient delivery alignment/);
-  assert.match(claudeGuide, /use ambient delivery alignment/);
+  assert.match(agents, /implementation-context/);
+  assert.match(claudeGuide, /implementation-context/);
+  assert.match(agents, /sole authority for implementation sequence, state, and evidence/);
+  assert.match(claudeGuide, /sole authority for implementation sequence, state, and evidence/);
   assert.match(agents, /recommend a fresh-context review in a new chat/);
   assert.match(claudeGuide, /recommend a fresh-context review in a new chat/);
   assert.equal((agents.match(/_brainwave:project-bridge:start/g) || []).length, 1);

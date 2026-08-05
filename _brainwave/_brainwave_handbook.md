@@ -114,7 +114,7 @@ _DNA-SAPP-00302           document
 _DNA-SAPP-00302.01        block
 ```
 
-The minimum DNA block contract, implementation statuses, and supersession rules live in `_dna/README.md`.
+The DNA document-maturity contract, block direction statuses, implementation-spine states, and supersession rules live in `_dna/README.md`.
 
 ## Project Placement
 
@@ -183,7 +183,7 @@ It shows:
 
 The interface is intentionally presentation-led: icons, state, sequence, and visual placeholders do most of the explanatory work. Source links remain available inside previews for users who want to work directly with the files.
 
-The dashboard is derived, not authoritative. `_dna/` owns module definitions, `_brainwave_state.yaml` owns selection, the decisions log owns material rationale, and DNA documents own block status. `_manifest.yaml` supplies the embedded dashboard snapshot.
+The dashboard is derived, not authoritative. `_dna/` owns module definitions, `_brainwave_state.yaml` owns selection, the decisions log owns material rationale, DNA documents own accepted direction, and `_implementation.yaml` owns delivery state and evidence. `_manifest.yaml` supplies the embedded dashboard snapshot.
 
 Refresh it from the project root:
 
@@ -197,13 +197,21 @@ After completing a fresh-context review, record its result and reviewed Git revi
 node _brainwave/_engine/brainwave_runner.js alignment-review <aligned|needs_attention|blocked> <revision>
 ```
 
-An `aligned` result is accepted only when every applicable DNA block is verified and no block is blocked or invalid.
+An `aligned` result is accepted only when the implementation spine is current and complete, every applicable DNA block is verified, and no block is blocked or invalid.
 
 ## Ambient Delivery Alignment
 
 `brainwave_documentation_complete` automatically enters ambient delivery alignment. This is not an eighth lifecycle stage and is not a user setting. Passive means _brainwave stops initiating foundation ceremony; it does not mean the accepted direction becomes invisible or optional.
 
-For ordinary implementation, the agent reads the North Star, uses `_manifest.yaml` as a compact block index, identifies only the DNA blocks directly affected by the task, reads their owning documents, and reconciles their status and evidence before claiming completion. `implemented` requires current Implementation Evidence. `verified` additionally requires Verification Evidence, `Last checked`, and `Checked revision`.
+At foundation acceptance, run `implementation-compile`. The command inventories every applicable current DNA block into a draft `_implementation.yaml`; because the deterministic engine cannot interpret product meaning, an agent must refine its provisional document groupings into coherent journey or outcome slices and obtain explicit user approval before `implementation-approve` activates delivery work.
+
+That semantic refinement is the narrow exception to command-owned mutation: while the plan is `draft`, the agent may edit its tracks, slice definitions, block mappings, dependencies, gates, and acceptance checks. Delivery states, evidence, holds, approval, revision counters, and audit fields remain command-owned.
+
+For ordinary implementation, `implementation-context` returns a bounded packet containing the previous result, active or next slice, relevant DNA IDs and owning paths, dependencies, gates, acceptance checks, coverage, and exact next command. The agent reads only those DNA passages, works on one slice, records concise evidence through guarded commands, closes a clean Git checkpoint, then asks for the next packet. `implemented` requires current implementation evidence. `verified` additionally requires verification evidence, check time, and checked revision.
+
+The checked behaviour must already exist at the current Git revision before the agent records `verified`; this prevents the evidence from pointing to an earlier build. The resulting spine and derived-state mutation is then committed before another slice begins.
+
+A blocked or deferred slice stays out of automatic next-slice selection. Once its recorded `reopen_when` condition is observably met, the agent may explicitly start that slice again; its hold remains visible until new evidence advances the affected work item.
 
 Alignment is an evidence-backed semantic assessment rather than mathematical proof. The engine can validate identities, states, evidence fields, and review metadata; the agent still judges which blocks are relevant and whether the inspected behaviour appears to satisfy them. A material-divergence scan focuses on consequential user behaviour, product promises, data use, permissions, risk, launch dependencies, and system boundaries rather than attempting to map every implementation detail to DNA. Human or qualified specialist judgement remains necessary where the decision requires it.
 
@@ -217,7 +225,7 @@ Counts are primary and percentages secondary. They describe coverage of document
 
 Before a release, pilot, major handoff, broad readiness claim, or overall alignment assessment, open a new chat and use the exact fresh-context review prompt provided in the dashboard. A separate chat reduces anchoring and creates an inspectable review transcript, but it is still a fresh-context model review rather than an independent professional audit.
 
-DNA documents remain controlled living specifications. An editorial clarification may update a block only when no reasonable downstream behaviour could change. When implementation learning produces a local behavioural change without changing the North Star, relevant domains, or document scope, the agent explains the conflict, proposes the new direction, obtains explicit user approval, creates a superseding block, and retains the former block as a compact tombstone. Reopen the existing lifecycle at the appropriate stage when the North Star, module selection, or document scope changes. Git and supersession preserve lineage; do not add chronological changelog sections to each block.
+DNA documents remain controlled living specifications. An editorial clarification may update a block only when no reasonable downstream behaviour could change. When implementation learning produces a local behavioural change without changing the North Star, relevant domains, or document scope, the agent explains the conflict, proposes the new direction, obtains explicit user approval, creates a superseding block, retains the former block as a compact tombstone, then recompiles and reviews the spine. Reopen the existing lifecycle at the appropriate stage when the North Star, module selection, or document scope changes. Git and supersession preserve lineage; do not add chronological changelog sections to each block.
 
 ## Bundled DNA
 
@@ -252,7 +260,7 @@ The library direction is concentric rather than monolithic. A venture-building e
 - Obtain explicit user agreement before recording DNA module selection or DNA document scope.
 - Keep DNA definitions unchanged during a project. Project selection belongs in `_brainwave_state.yaml`.
 - Record a decision in its owning DNA block or ADR, not in the seed or a duplicate ledger.
-- After DNA documentation is complete, use ambient delivery alignment and update only the status and concise current evidence of blocks affected by downstream work.
+- After DNA documentation is complete, use the implementation spine for sequence, delivery status, evidence, and compact cross-context handoff. Do not put delivery state back into DNA documents.
 - Never silently rewrite accepted DNA direction to match implementation. Use user-approved supersession for a local behavioural change, and reopen the appropriate lifecycle stage when the North Star, relevant domains, or DNA document scope changes.
 - Describe built and checked block counts as DNA direction coverage, never as overall product completion or release readiness.
 - Recommend the dashboard's copyable fresh-context review prompt before releases, pilots, major handoffs, broad readiness claims, and overall alignment assessments.
@@ -277,6 +285,8 @@ Project-owned files must never be overwritten by an update:
 - `_assets/`
 - `_decisions_log.md`
 - `_documentation/`
+- `_implementation.yaml`
+- `_implementation_audit.md`
 
 `_manifest.yaml` and the state embedded in `_dashboard.html` are derived and may be regenerated. Root bridges and hook configurations are merged rather than replaced.
 
@@ -286,4 +296,4 @@ Until an automated updater exists, update framework-owned files only and run `in
 
 `brainwave_documentation_complete` means the initial DNA documentation foundation has been accepted. It does not mean the resulting product or brand has been implemented.
 
-At this stage, _brainwave stops announcing or initiating its foundation workflow during ordinary development and enters ambient delivery alignment. The relevant DNA blocks remain lightweight traceability anchors: downstream agents update a block from `not_started` through `implemented` and `verified`, record concise current evidence, or mark it `blocked`, `not_applicable`, or `superseded` when appropriate. The dashboard turns these exact block states into honest DNA direction coverage and provides the fresh-context review journey when broader assurance is needed.
+At this stage, _brainwave stops announcing or initiating its foundation workflow during ordinary development and enters ambient delivery alignment. DNA blocks remain lightweight direction and traceability anchors. `_implementation.yaml` maps every applicable block to a coherent slice and owns the states `not_started`, `in_progress`, `implemented`, `verified`, `blocked`, and `deferred`. The dashboard derives honest direction coverage and provides the fresh-context review journey when broader assurance is needed.

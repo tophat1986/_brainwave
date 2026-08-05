@@ -18,3 +18,4 @@ Notable changes will be recorded here.
 - Added explicit module ownership contracts, progressive high-leverage discovery, cross-domain coverage guidance, real-user interface quality rules, and dashboard-visible domain boundaries.
 - Added consequence-based module timing, explicit specialist-coverage gap handling, and guarded legal review gates.
 - Added experience checkpoints for the dashboard introduction and project-basics check, a reusable project profile for early identity inputs, flexible repeatable colour roles and usage, and a dashboard overview that presents project names, descriptions, logos, colours, setup choices, and onboarding progress.
+- Added the experimental implementation spine: a separate delivery-state authority, legacy DNA-status import, user-approved journey-sized planning, bounded context packets, guarded evidence transitions, stale-source detection, dashboard visibility, and portable audit reports.

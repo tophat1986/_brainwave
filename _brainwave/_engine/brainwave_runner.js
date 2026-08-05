@@ -4,10 +4,27 @@
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
+const { spawnSync } = require("child_process");
 const {
   integrateProjectRoot,
   removeProjectRootIntegration
 } = require("./project_integration");
+const {
+  buildImplementationSpine,
+  validateImplementationSpine,
+  summarizeImplementationSpine,
+  approveImplementationSpine,
+  startImplementationSlice,
+  recordWorkItemEvidence,
+  holdWorkItem,
+  recordAcceptanceCheck,
+  checkImplementationSlice,
+  closeImplementationSlice,
+  implementationContextPayload,
+  formatImplementationContext,
+  buildImplementationAudit,
+  recordRejectedTransition
+} = require("./implementation_spine");
 
 const ROOT = path.resolve(__dirname, "..");
 const PATHS = Object.freeze({
@@ -19,6 +36,8 @@ const PATHS = Object.freeze({
   settings: path.join(ROOT, "_settings.yaml"),
   dnaDir: path.join(ROOT, "_dna"),
   documentationDir: path.join(ROOT, "_documentation"),
+  implementation: path.join(ROOT, "_implementation.yaml"),
+  implementationAudit: path.join(ROOT, "_implementation_audit.md"),
   manifest: path.join(ROOT, "_manifest.yaml"),
   dashboard: path.join(ROOT, "_dashboard.html")
 });
@@ -40,12 +59,12 @@ const FRESH_ALIGNMENT_REVIEW_PROMPT = [
   "Run a fresh-context `_brainwave` implementation alignment review for this repository.",
   "Work from the accepted North Star and DNA documentation, not previous implementation claims.",
   "Do not change product code or DNA direction.",
-  "Compare each applicable current DNA block with inspectable implementation evidence and scan for material divergence in product behaviour, experience, data use, permissions, risk, launch dependencies, or system boundaries.",
+  "Compare each applicable current DNA block with the implementation spine and inspectable evidence, and scan for material divergence in product behaviour, experience, data use, permissions, risk, launch dependencies, or system boundaries.",
   "Report gaps and uncertainty before suggesting fixes.",
-  "Update block status and evidence only where supported, record the reviewed Git revision and result with `node _brainwave/_engine/brainwave_runner.js alignment-review <aligned|needs_attention|blocked> <revision>`, then refresh the dashboard."
+  "Do not rewrite DNA direction. Update implementation-spine state and evidence only where supported, record the reviewed Git revision and result with `node _brainwave/_engine/brainwave_runner.js alignment-review <aligned|needs_attention|blocked> <revision>`, then refresh the dashboard."
 ].join(" ");
 
-const DNA_BLOCK_STATUSES = Object.freeze([
+const LEGACY_DNA_BLOCK_STATUSES = Object.freeze([
   "not_started",
   "in_progress",
   "implemented",
@@ -54,6 +73,7 @@ const DNA_BLOCK_STATUSES = Object.freeze([
   "superseded",
   "not_applicable"
 ]);
+const DNA_DIRECTION_STATUSES = Object.freeze(["active", "superseded", "not_applicable"]);
 
 const STAGES = Object.freeze([
   "awaiting_seed",
@@ -152,9 +172,11 @@ function fileStatusFromContent(content) {
   if (!content.trim()) return "not_started";
   const header = content.split(/^###\s+_DNA-[A-Z]{4}-\d{5}\.\d{2}\b/m)[0];
   const status = header.match(
-    /^\s*status:\s*(not_started|in_progress|complete)\s*$/im
+    /^\s*(?:documentation\s+)?status:\s*(not_started|in_progress|complete)\s*$/im
   )?.[1]?.toLowerCase();
-  return status === "complete" ? "complete" : "in_progress";
+  return ["not_started", "in_progress", "complete"].includes(status)
+    ? status
+    : "in_progress";
 }
 
 function northStarStatusFromContent(content) {
@@ -420,6 +442,7 @@ function defaultManifestSkeleton() {
         pending_check: 0,
         not_started: 0,
         blocked: 0,
+        deferred: 0,
         invalid: 0,
         built_pct: 0,
         checked_pct: 0
@@ -472,7 +495,30 @@ function defaultManifestSkeleton() {
       documentation_completion_pct: 0,
       modules: {}
     },
+    direction: {
+      totals: {
+        blocks: 0,
+        active: 0,
+        superseded: 0,
+        not_applicable: 0,
+        invalid: 0
+      },
+      blocks: []
+    },
     implementation: {
+      path: "_implementation.yaml",
+      mode: "not_compiled",
+      schema_version: null,
+      plan_version: null,
+      state_revision: null,
+      plan_status: null,
+      source_stale: false,
+      readiness: {
+        technical_health: "unknown",
+        product_coverage: "not_assessed",
+        external_gates: "unknown",
+        release_readiness: "not_assessed"
+      },
       totals: {
         blocks: 0,
         not_started: 0,
@@ -480,13 +526,28 @@ function defaultManifestSkeleton() {
         implemented: 0,
         verified: 0,
         blocked: 0,
-        superseded: 0,
-        not_applicable: 0,
+        deferred: 0,
         invalid: 0
+      },
+      coverage: {
+        applicable: 0,
+        built: 0,
+        checked: 0,
+        underway: 0,
+        pending_check: 0,
+        not_started: 0,
+        blocked: 0,
+        deferred: 0,
+        invalid: 0,
+        built_pct: 0,
+        checked_pct: 0
       },
       current: null,
       next: null,
-      blocks: []
+      tracks: [],
+      slices: [],
+      work_items: [],
+      validation: { errors: [], warnings: [] }
     },
     presentation: {
       project_title: null,
@@ -867,7 +928,42 @@ function loadWorkspace(options = {}) {
     northStarText: readText(PATHS.northStar),
     decisionsText: readText(PATHS.decisions),
     handbookText: readText(PATHS.handbook),
+    implementationSpine: exists(PATHS.implementation)
+      ? readJsonYaml(PATHS.implementation, null)
+      : null,
     previousManifest: readJsonYaml(PATHS.manifest, defaultManifestSkeleton())
+  };
+}
+
+function gitRevision() {
+  const result = spawnSync("git", ["rev-parse", "HEAD"], {
+    cwd: path.resolve(ROOT, ".."),
+    encoding: "utf8",
+    windowsHide: true
+  });
+  return result.status === 0 && result.stdout.trim() ? result.stdout.trim() : "unavailable";
+}
+
+function implementationSource(workspace, directionBlocks) {
+  const directionSnapshot = directionBlocks.map((block) => ({
+    id: block.id,
+    title: block.title,
+    direction_status: block.direction_status,
+    supersedes: block.supersedes,
+    superseded_by: block.superseded_by,
+    path: block.path,
+    details: block.details
+  }));
+  return {
+    generated_at: nowIso(),
+    git_revision: gitRevision(),
+    north_star_sha256: workspace.northStarText.trim() ? sha256(workspace.northStarText) : null,
+    dna_scope_sha256: sha256(
+      JSON.stringify({ selected_dna: workspace.state.selected_dna, blocks: directionSnapshot })
+    ),
+    applicable_block_count: directionBlocks.filter(
+      (block) => !["superseded", "not_applicable"].includes(block.direction_status)
+    ).length
   };
 }
 
@@ -995,7 +1091,7 @@ function buildScaffoldContent(module, fileNode) {
   return [
     `# ${fileNode.title || fileNode.id}`,
     "",
-    "Status: in_progress",
+    "Documentation status: in_progress",
     `Last updated: ${nowIso()}`,
     `DNA document: \`${documentId}\``,
     `DNA module: \`${canonicalModuleId(module)}\` version \`${module.dna_version}\``,
@@ -1011,10 +1107,8 @@ function buildScaffoldContent(module, fileNode) {
     "",
     `### ${firstBlockId} - Initial Direction`,
     "",
-    "Status: not_started",
+    "Direction status: active",
     "Supersedes: none",
-    "Last checked: not yet",
-    "Checked revision: none",
     "",
     "#### Context",
     "",
@@ -1029,14 +1123,6 @@ function buildScaffoldContent(module, fileNode) {
     "#### Future Fit",
     "",
     "#### Verification",
-    "",
-    "#### Implementation Evidence",
-    "",
-    "Not yet recorded.",
-    "",
-    "#### Verification Evidence",
-    "",
-    "Not yet recorded.",
     "",
     "## Document Open Questions",
     ""
@@ -1060,8 +1146,16 @@ function parseDnaBlocks(module, fileNode, content) {
       match.index,
       matches[index + 1]?.index ?? content.length
     );
-    const rawStatus = section.match(/^\s*Status:\s*([a-z_]+)\s*$/im)?.[1]?.toLowerCase();
-    const status = DNA_BLOCK_STATUSES.includes(rawStatus) ? rawStatus : "invalid";
+    const explicitDirectionStatus = section
+      .match(/^\s*Direction status:\s*([a-z_]+)\s*$/im)?.[1]?.toLowerCase();
+    const legacyStatus = section.match(/^\s*Status:\s*([a-z_]+)\s*$/im)?.[1]?.toLowerCase();
+    const directionStatus = DNA_DIRECTION_STATUSES.includes(explicitDirectionStatus)
+      ? explicitDirectionStatus
+      : ["superseded", "not_applicable"].includes(legacyStatus)
+        ? legacyStatus
+        : LEGACY_DNA_BLOCK_STATUSES.includes(legacyStatus)
+          ? "active"
+          : "invalid";
     const supersedes = section.match(/^\s*Supersedes:\s*(.+?)\s*$/im)?.[1]?.trim() || null;
     const supersededBy =
       section.match(/^\s*Superseded by:\s*(.+?)\s*$/im)?.[1]?.trim() || null;
@@ -1082,9 +1176,11 @@ function parseDnaBlocks(module, fileNode, content) {
     }
     if (seen.has(id)) addBlockError(`${id} is duplicated.`);
     seen.add(id);
-    if (status === "invalid") addBlockError(`${id} has a missing or invalid Status.`);
+    if (directionStatus === "invalid") {
+      addBlockError(`${id} has a missing or invalid Direction status.`);
+    }
 
-    if (status === "superseded") {
+    if (directionStatus === "superseded") {
       if (!supersededBy || !/^_DNA-[A-Z]{4}-\d{5}\.\d{2}$/.test(supersededBy)) {
         addBlockError(`${id} must identify its replacement with Superseded by.`);
       }
@@ -1102,31 +1198,22 @@ function parseDnaBlocks(module, fileNode, content) {
         const pattern = new RegExp(`^####\\s+${heading}\\s*$`, "im");
         if (!pattern.test(section)) addBlockError(`${id} is missing ${heading}.`);
       }
-      if (["implemented", "verified"].includes(status) && !evidenceIsRecorded(implementationEvidence)) {
-        addBlockError(`${id} is ${status} but has no Implementation Evidence.`);
-      }
-      if (status === "verified") {
-        if (!evidenceIsRecorded(verificationEvidence)) {
-          addBlockError(`${id} is verified but has no Verification Evidence.`);
-        }
-        if (!evidenceIsRecorded(lastChecked)) {
-          addBlockError(`${id} is verified but has no Last checked value.`);
-        }
-        if (!evidenceIsRecorded(checkedRevision)) {
-          addBlockError(`${id} is verified but has no Checked revision.`);
-        }
-      }
     }
 
     blocks.push({
       id,
       slice: id.split(".").pop(),
       title,
-      status,
+      direction_status: directionStatus,
       supersedes,
       superseded_by: supersededBy,
-      last_checked: lastChecked,
-      checked_revision: checkedRevision,
+      legacy_delivery_status: LEGACY_DNA_BLOCK_STATUSES.includes(legacyStatus)
+        ? legacyStatus
+        : null,
+      legacy_implementation_evidence: implementationEvidence,
+      legacy_verification_evidence: verificationEvidence,
+      legacy_last_checked: lastChecked,
+      legacy_checked_revision: checkedRevision,
       contract_errors: blockErrors,
       details: {
         context: blockSectionMarkdown(section, "Context"),
@@ -1136,8 +1223,6 @@ function parseDnaBlocks(module, fileNode, content) {
         consequences: blockSectionMarkdown(section, "Consequences"),
         future_fit: blockSectionMarkdown(section, "Future Fit"),
         verification: blockSectionMarkdown(section, "Verification"),
-        implementation_evidence: implementationEvidence,
-        verification_evidence: verificationEvidence,
         former_direction:
           section.match(/^\s*Former direction:\s*(.+?)\s*$/im)?.[1]?.trim() || ""
       }
@@ -1304,7 +1389,7 @@ function buildManifest(workspace, command, taskPlan = [], prior = null) {
 
   const trackedFiles = {};
   const missingExpressedFiles = [];
-  const implementationBlocks = [];
+  const directionBlocks = [];
   let totalNodes = 0;
   let totalDirectories = 0;
   let totalFiles = 0;
@@ -1342,7 +1427,7 @@ function buildManifest(workspace, command, taskPlan = [], prior = null) {
         blockCount = parsedBlocks.blocks.length;
         contractErrors = parsedBlocks.errors;
         for (const block of parsedBlocks.blocks) {
-          implementationBlocks.push({
+          directionBlocks.push({
             ...block,
             module_id: moduleId,
             module_name: module.name,
@@ -1456,58 +1541,72 @@ function buildManifest(workspace, command, taskPlan = [], prior = null) {
       ? 0
       : Math.round((completedFilesAcrossModules / expressedFilesAcrossModules) * 100);
 
-  implementationBlocks.sort(
+  directionBlocks.sort(
     (a, b) =>
       a.module_id.localeCompare(b.module_id) ||
       a.document_id.localeCompare(b.document_id) ||
       a.id.localeCompare(b.id)
   );
-  manifest.implementation.blocks = implementationBlocks;
-  manifest.implementation.totals.blocks = implementationBlocks.length;
-  for (const block of implementationBlocks) {
-    manifest.implementation.totals[block.status] += 1;
+  manifest.direction.blocks = directionBlocks;
+  manifest.direction.totals.blocks = directionBlocks.length;
+  for (const block of directionBlocks) {
+    const key = block.contract_errors?.length ? "invalid" : block.direction_status;
+    if (Object.prototype.hasOwnProperty.call(manifest.direction.totals, key)) {
+      manifest.direction.totals[key] += 1;
+    }
   }
-  manifest.implementation.current =
-    implementationBlocks.find((block) => block.status === "in_progress") || null;
-  manifest.implementation.next =
-    implementationBlocks.find((block) => block.status === "not_started") || null;
 
-  const applicableBlocks = implementationBlocks.filter(
-    (block) => !["superseded", "not_applicable"].includes(block.status)
-  );
-  const invalidBlocks = applicableBlocks.filter(
-    (block) => block.status === "invalid" || block.contract_errors?.length
-  );
-  const validApplicableBlocks = applicableBlocks.filter(
-    (block) => block.status !== "invalid" && !block.contract_errors?.length
-  );
+  const source = implementationSource(workspace, directionBlocks);
+  const applicableBlockIds = directionBlocks
+    .filter((block) => !["superseded", "not_applicable"].includes(block.direction_status))
+    .map((block) => block.id);
+  const directionById = new Map(directionBlocks.map((block) => [block.id, block]));
   const alignmentCoverage = manifest.delivery_alignment.coverage;
-  alignmentCoverage.applicable = applicableBlocks.length;
-  alignmentCoverage.built = validApplicableBlocks.filter((block) =>
-    ["implemented", "verified"].includes(block.status)
-  ).length;
-  alignmentCoverage.checked = validApplicableBlocks.filter(
-    (block) => block.status === "verified"
-  ).length;
-  alignmentCoverage.underway = validApplicableBlocks.filter(
-    (block) => block.status === "in_progress"
-  ).length;
-  alignmentCoverage.pending_check = validApplicableBlocks.filter(
-    (block) => block.status === "implemented"
-  ).length;
-  alignmentCoverage.not_started = validApplicableBlocks.filter(
-    (block) => block.status === "not_started"
-  ).length;
-  alignmentCoverage.blocked = validApplicableBlocks.filter(
-    (block) => block.status === "blocked"
-  ).length;
-  alignmentCoverage.invalid = invalidBlocks.length;
-  alignmentCoverage.built_pct = alignmentCoverage.applicable
-    ? Math.round((alignmentCoverage.built / alignmentCoverage.applicable) * 100)
-    : 0;
-  alignmentCoverage.checked_pct = alignmentCoverage.applicable
-    ? Math.round((alignmentCoverage.checked / alignmentCoverage.applicable) * 100)
-    : 0;
+  alignmentCoverage.applicable = applicableBlockIds.length;
+  alignmentCoverage.invalid = directionBlocks.filter((block) => block.contract_errors?.length).length;
+
+  if (workspace.implementationSpine) {
+    const validation = validateImplementationSpine(workspace.implementationSpine, {
+      source,
+      applicableBlockIds
+    });
+    const summary = summarizeImplementationSpine(workspace.implementationSpine, validation);
+    const context = implementationContextPayload(workspace.implementationSpine, {
+      source,
+      applicableBlockIds
+    });
+    manifest.implementation = {
+      ...manifest.implementation,
+      mode: "compiled",
+      schema_version: workspace.implementationSpine.schema_version || null,
+      plan_version: workspace.implementationSpine.plan_version || null,
+      state_revision: workspace.implementationSpine.state_revision ?? null,
+      plan_status: workspace.implementationSpine.plan_status || null,
+      source_stale: validation.stale,
+      totals: summary.totals,
+      coverage: summary.coverage,
+      readiness: summary.readiness,
+      current:
+        workspace.implementationSpine.active_slice
+          ? context.current_or_next_slice
+          : null,
+      next:
+        workspace.implementationSpine.active_slice
+          ? null
+          : context.current_or_next_slice,
+      tracks: workspace.implementationSpine.tracks || [],
+      slices: workspace.implementationSpine.slices || [],
+      work_items: Object.entries(workspace.implementationSpine.work_items || {})
+        .map(([id, item]) => ({ id, ...item, direction: directionById.get(id) || null }))
+        .sort((a, b) => a.id.localeCompare(b.id)),
+      validation: { errors: validation.errors, warnings: validation.warnings }
+    };
+    Object.assign(alignmentCoverage, summary.coverage);
+  } else {
+    manifest.implementation.coverage.applicable = applicableBlockIds.length;
+    Object.assign(alignmentCoverage, manifest.implementation.coverage);
+    alignmentCoverage.invalid = manifest.direction.totals.invalid;
+  }
 
   return manifest;
 }
@@ -1978,6 +2077,255 @@ function transitionStage(targetStage) {
   console.log(`${CONSOLE_PREFIX} stage: ${currentStage} -> ${targetStage}`);
 }
 
+function implementationCommandContext({ requireSpine = true } = {}) {
+  const workspace = loadWorkspace();
+  if (workspace.state.stage !== "brainwave_documentation_complete") {
+    throw new Error(
+      "The implementation spine is available after the DNA foundation has been accepted."
+    );
+  }
+  const manifest = buildWorkspaceManifest(workspace, "implementation");
+  const directionBlocks = manifest.direction.blocks || [];
+  const directionErrors = directionBlocks.flatMap((block) => block.contract_errors || []);
+  if (directionErrors.length) {
+    throw new Error(`DNA direction contract failed: ${directionErrors.join(" ")}`);
+  }
+  const source = implementationSource(workspace, directionBlocks);
+  const applicableBlockIds = directionBlocks
+    .filter((block) => !["superseded", "not_applicable"].includes(block.direction_status))
+    .map((block) => block.id);
+  if (requireSpine && !workspace.implementationSpine) {
+    throw new Error(
+      "No implementation spine exists. Run `node _brainwave/_engine/brainwave_runner.js implementation-compile`."
+    );
+  }
+  return { workspace, manifest, directionBlocks, source, applicableBlockIds };
+}
+
+function persistImplementationSpine(spine, command) {
+  writeJsonYaml(PATHS.implementation, spine);
+  const workspace = loadWorkspace();
+  const manifest = persistWorkspaceManifest(workspace, command);
+  return manifest;
+}
+
+function recordRejectedImplementationMutation(context) {
+  if (!context.workspace.implementationSpine) return;
+  const rejected = recordRejectedTransition(context.workspace.implementationSpine, nowIso());
+  writeJsonYaml(PATHS.implementation, rejected);
+}
+
+function runImplementationMutation(command, mutator) {
+  const context = implementationCommandContext();
+  try {
+    const validation = validateImplementationSpine(context.workspace.implementationSpine, {
+      source: context.source,
+      applicableBlockIds: context.applicableBlockIds
+    });
+    if (validation.errors.length && command !== "implementation-approve") {
+      throw new Error(`Implementation spine is invalid: ${validation.errors.join(" ")}`);
+    }
+    const updated = mutator(context);
+    persistImplementationSpine(updated, command);
+    return updated;
+  } catch (error) {
+    recordRejectedImplementationMutation(context);
+    throw error;
+  }
+}
+
+function compileImplementationSpine() {
+  const context = implementationCommandContext({ requireSpine: false });
+  if (context.applicableBlockIds.length === 0) {
+    throw new Error("No applicable DNA blocks are available to compile.");
+  }
+  const spine = buildImplementationSpine({
+    source: context.source,
+    blocks: context.directionBlocks,
+    existing: context.workspace.implementationSpine,
+    now: nowIso()
+  });
+  persistImplementationSpine(spine, "implementation-compile");
+  const validation = validateImplementationSpine(spine, {
+    source: context.source,
+    applicableBlockIds: context.applicableBlockIds
+  });
+  console.log(
+    `${CONSOLE_PREFIX} implementation spine draft ${spine.plan_version} compiled: ${context.applicableBlockIds.length} applicable blocks across ${spine.slices.length} provisional slices.`
+  );
+  console.log(
+    `${CONSOLE_PREFIX} refine the document-based draft into coherent journey or outcome slices, set requires_refinement to false, then obtain user approval.`
+  );
+  for (const warning of validation.warnings) console.log(`${CONSOLE_PREFIX} warning: ${warning}`);
+}
+
+function approveImplementationPlan(args) {
+  const approvedBy = args.join(" ").trim();
+  const updated = runImplementationMutation("implementation-approve", (context) =>
+    approveImplementationSpine(context.workspace.implementationSpine, {
+      approvedBy,
+      revision: gitRevision(),
+      now: nowIso(),
+      source: context.source,
+      applicableBlockIds: context.applicableBlockIds
+    })
+  );
+  console.log(
+    `${CONSOLE_PREFIX} implementation plan ${updated.plan_version} approved by ${updated.approval.approved_by}.`
+  );
+}
+
+function printImplementationContext(args) {
+  const context = implementationCommandContext();
+  const payload = implementationContextPayload(context.workspace.implementationSpine, {
+    source: context.source,
+    applicableBlockIds: context.applicableBlockIds
+  });
+  if (args.includes("--json")) {
+    const output = JSON.stringify(payload, null, 2);
+    if (output.length > 10000) {
+      throw new Error(
+        `Implementation context packet is ${output.length} characters; split the selected slice before continuing.`
+      );
+    }
+    console.log(output);
+    return;
+  }
+  const output = formatImplementationContext(payload);
+  if (output.length > 10000) {
+    throw new Error(
+      `Implementation context packet is ${output.length} characters; split the selected slice before continuing.`
+    );
+  }
+  console.log(output);
+}
+
+function startImplementationPlanSlice(args) {
+  const sliceId = args[0];
+  if (!sliceId) throw new Error("Provide an implementation slice ID.");
+  const updated = runImplementationMutation("implementation-start", (context) =>
+    startImplementationSlice(context.workspace.implementationSpine, {
+      sliceId,
+      now: nowIso(),
+      source: context.source
+    })
+  );
+  console.log(`${CONSOLE_PREFIX} implementation slice active: ${updated.active_slice}`);
+}
+
+function recordImplementationEvidence(args) {
+  const [blockId, targetState, kind, ref, ...noteParts] = args;
+  if (!blockId || !targetState || !kind || !ref || !noteParts.length) {
+    throw new Error(
+      "Usage: implementation-record <block-id> <implemented|verified> <kind> <ref> <note>."
+    );
+  }
+  const updated = runImplementationMutation("implementation-record", (context) =>
+    recordWorkItemEvidence(context.workspace.implementationSpine, {
+      blockId,
+      targetState,
+      kind,
+      ref,
+      note: noteParts.join(" "),
+      revision: gitRevision(),
+      now: nowIso(),
+      source: context.source
+    })
+  );
+  console.log(`${CONSOLE_PREFIX} ${blockId}: ${updated.work_items[blockId].state}`);
+}
+
+function holdImplementationWorkItem(args) {
+  const [blockId, state, owner, reopenWhen, ...reasonParts] = args;
+  if (!blockId || !state || !owner || !reopenWhen || !reasonParts.length) {
+    throw new Error(
+      "Usage: implementation-hold <block-id> <blocked|deferred> <owner> <reopen-when> <reason>. Quote values containing spaces."
+    );
+  }
+  const updated = runImplementationMutation("implementation-hold", (context) =>
+    holdWorkItem(context.workspace.implementationSpine, {
+      blockId,
+      state,
+      owner,
+      reopenWhen,
+      reason: reasonParts.join(" "),
+      now: nowIso(),
+      source: context.source
+    })
+  );
+  console.log(`${CONSOLE_PREFIX} ${blockId}: ${updated.work_items[blockId].state}`);
+}
+
+function recordImplementationAcceptance(args) {
+  const [sliceId, checkId, status, kind, ref, ...noteParts] = args;
+  if (!sliceId || !checkId || !status || !kind || !ref || !noteParts.length) {
+    throw new Error(
+      "Usage: implementation-acceptance <slice-id> <check-id> <passed|failed|blocked> <kind> <ref> <note>."
+    );
+  }
+  runImplementationMutation("implementation-acceptance", (context) =>
+    recordAcceptanceCheck(context.workspace.implementationSpine, {
+      sliceId,
+      checkId,
+      status,
+      kind,
+      ref,
+      note: noteParts.join(" "),
+      now: nowIso(),
+      source: context.source
+    })
+  );
+  console.log(`${CONSOLE_PREFIX} ${checkId}: ${status}`);
+}
+
+function checkImplementationPlanSlice(args) {
+  const context = implementationCommandContext();
+  const validation = validateImplementationSpine(context.workspace.implementationSpine, {
+    source: context.source,
+    applicableBlockIds: context.applicableBlockIds
+  });
+  if (validation.errors.length) {
+    throw new Error(`Implementation spine is invalid: ${validation.errors.join(" ")}`);
+  }
+  const sliceId = args[0] || context.workspace.implementationSpine.active_slice;
+  if (!sliceId) {
+    console.log(`${CONSOLE_PREFIX} implementation spine valid; no slice is active.`);
+    return;
+  }
+  const check = checkImplementationSlice(context.workspace.implementationSpine, sliceId);
+  console.log(
+    `${CONSOLE_PREFIX} ${sliceId}: ${check.work_items.length} work items; ${check.pending_checks.length} acceptance checks pending.`
+  );
+  if (check.errors.length) throw new Error(check.errors.join(" "));
+}
+
+function closeImplementationPlanSlice(args) {
+  const sliceId = args[0];
+  if (!sliceId) throw new Error("Provide the active implementation slice ID.");
+  const updated = runImplementationMutation("implementation-close", (context) =>
+    closeImplementationSlice(context.workspace.implementationSpine, {
+      sliceId,
+      revision: gitRevision(),
+      now: nowIso(),
+      source: context.source
+    })
+  );
+  const slice = updated.slices.find((entry) => entry.id === sliceId);
+  console.log(`${CONSOLE_PREFIX} implementation slice ${sliceId}: ${slice.state}`);
+}
+
+function writeImplementationAudit() {
+  const context = implementationCommandContext();
+  const report = buildImplementationAudit(context.workspace.implementationSpine, {
+    source: context.source,
+    applicableBlockIds: context.applicableBlockIds,
+    currentRevision: gitRevision(),
+    generatedAt: nowIso()
+  });
+  writeText(PATHS.implementationAudit, report);
+  console.log(`${CONSOLE_PREFIX} implementation audit written to _implementation_audit.md`);
+}
+
 function printStatus() {
   const workspace = loadWorkspace();
   const manifest = buildWorkspaceManifest(workspace, "status");
@@ -1990,6 +2338,7 @@ function printStatus() {
   console.log(
     `${CONSOLE_PREFIX} documentation_completion_pct: ${manifest.progress.documentation_completion_pct}%`
   );
+  console.log(`${CONSOLE_PREFIX} implementation_spine: ${manifest.implementation.mode}`);
   console.log(`${CONSOLE_PREFIX} implementation_blocks: ${manifest.implementation.totals.blocks}`);
   if (manifest.delivery_alignment.mode === "ambient") {
     const coverage = manifest.delivery_alignment.coverage;
@@ -2029,15 +2378,19 @@ function recordAlignmentReview(args) {
 
   const before = buildWorkspaceManifest(workspace, "alignment-review");
   const coverage = before.delivery_alignment.coverage;
+  const implementation = before.implementation || {};
   if (
     result === "aligned" &&
-    (coverage.applicable === 0 ||
+    (implementation.mode !== "compiled" ||
+      implementation.plan_status !== "complete" ||
+      implementation.source_stale === true ||
+      coverage.applicable === 0 ||
       coverage.checked !== coverage.applicable ||
       coverage.blocked > 0 ||
       coverage.invalid > 0)
   ) {
     throw new Error(
-      "An aligned review requires every applicable DNA block to be verified with no blocked or invalid blocks. Record `needs_attention` or `blocked` instead."
+      "An aligned review requires every applicable DNA block to be verified in a current, complete implementation spine, with no blocked or invalid blocks. Record `needs_attention` or `blocked` instead."
     );
   }
 
@@ -2095,6 +2448,16 @@ function printHelp() {
   console.log("  node _brainwave/_engine/brainwave_runner.js unintegrate  (from project root)");
   console.log("  node _brainwave/_engine/brainwave_runner.js status");
   console.log("  node _brainwave/_engine/brainwave_runner.js refresh");
+  console.log("  node _brainwave/_engine/brainwave_runner.js implementation-compile");
+  console.log("  node _brainwave/_engine/brainwave_runner.js implementation-approve <approved-by>");
+  console.log("  node _brainwave/_engine/brainwave_runner.js implementation-context [--json]");
+  console.log("  node _brainwave/_engine/brainwave_runner.js implementation-start <slice-id>");
+  console.log("  node _brainwave/_engine/brainwave_runner.js implementation-record <block-id> <implemented|verified> <kind> <ref> <note>");
+  console.log("  node _brainwave/_engine/brainwave_runner.js implementation-hold <block-id> <blocked|deferred> <owner> <reopen-when> <reason>");
+  console.log("  node _brainwave/_engine/brainwave_runner.js implementation-acceptance <slice-id> <check-id> <passed|failed|blocked> <kind> <ref> <note>");
+  console.log("  node _brainwave/_engine/brainwave_runner.js implementation-check [slice-id]");
+  console.log("  node _brainwave/_engine/brainwave_runner.js implementation-close <slice-id>");
+  console.log("  node _brainwave/_engine/brainwave_runner.js implementation-audit");
   console.log(
     "  node _brainwave/_engine/brainwave_runner.js alignment-review <aligned|needs_attention|blocked> <revision>"
   );
@@ -2137,6 +2500,16 @@ async function main() {
   }
   if (command === "status") return printStatus();
   if (command === "refresh") return refreshDerivedState();
+  if (command === "implementation-compile") return compileImplementationSpine();
+  if (command === "implementation-approve") return approveImplementationPlan(args);
+  if (command === "implementation-context") return printImplementationContext(args);
+  if (command === "implementation-start") return startImplementationPlanSlice(args);
+  if (command === "implementation-record") return recordImplementationEvidence(args);
+  if (command === "implementation-hold") return holdImplementationWorkItem(args);
+  if (command === "implementation-acceptance") return recordImplementationAcceptance(args);
+  if (command === "implementation-check") return checkImplementationPlanSlice(args);
+  if (command === "implementation-close") return closeImplementationPlanSlice(args);
+  if (command === "implementation-audit") return writeImplementationAudit();
   if (command === "alignment-review") return recordAlignmentReview(args);
   if (command === "watch") return watchWorkspace();
   if (command === "run") return runCycle("run");

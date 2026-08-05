@@ -2,7 +2,7 @@
 
 Deterministic execution arm for _brainwave.
 
-`brainwave_runner.js` owns lifecycle and generated state. `project_integration.js` is isolated because it is the only engine component allowed to write small managed bridges outside `_brainwave/`.
+`brainwave_runner.js` owns lifecycle and generated state. `implementation_spine.js` owns the implementation-plan contract, guarded transitions, compact context packets, and audit output. `project_integration.js` is isolated because it is the only engine component allowed to write small managed bridges outside `_brainwave/`.
 
 Tool-neutral session policy lives in `runtime/`. Thin adapters in `adapters/` translate that policy into Cursor, Claude Code, and Codex hook output. Platform configuration remains at the host repository root.
 
@@ -16,8 +16,10 @@ Tool-neutral session policy lives in `runtime/`. Thin adapters in `adapters/` tr
 - Validate project-owned module selection and expressed entries.
 - Scaffold only scoped DNA documents beneath `_documentation/_DNA-CODE/`.
 - Track explicit document status, hashes, module progress, and completion.
-- Parse DNA blocks as the single implementation-traceability identity and status source.
-- Validate concise implementation evidence for `implemented` blocks and verification evidence, checked time, and reviewed revision for `verified` blocks.
+- Parse DNA blocks as the stable traceability identity and accepted-direction source.
+- Compile applicable blocks into `_implementation.yaml`, the sole source of implementation sequence, state, and evidence.
+- Validate plan approval, slice dependencies, one active slice, concise evidence, holds, acceptance checks, and checked revisions.
+- Reconstruct a bounded current-slice context packet without loading the full DNA corpus.
 - Derive built and checked DNA direction coverage and record fresh-context alignment review attestations.
 - Refresh `_manifest.yaml` and `_dashboard.html`.
 - Enter ambient delivery alignment after `brainwave_documentation_complete` without resuming active documentation reconciliation.
@@ -27,10 +29,10 @@ The engine does not interpret the seed or North Star, call an AI model, or decid
 
 ## Storage
 
-DNA modules, `_manifest.yaml`, `_settings.yaml`, and `_brainwave_state.yaml` use JSON-compatible YAML so the engine has no external runtime dependencies.
+DNA modules, `_implementation.yaml`, `_manifest.yaml`, `_settings.yaml`, and `_brainwave_state.yaml` use JSON-compatible YAML so the engine has no external runtime dependencies.
 
 Module definitions are immutable project inputs named by their canonical `_DNA-CODE` identity. The engine records selected module versions, expressed entries, and experience checkpoints only in `_brainwave_state.yaml`. `_settings.yaml` holds the user's working preferences, confirmed build outcome, and lightweight project profile; supplied profile assets remain separate files beneath `_assets/`.
 
-DNA documents own their block statuses and concise current evidence. The manifest and dashboard derive implementation visibility and DNA direction coverage from those documents; they are not parallel logs. `_brainwave_state.yaml` records only the latest fresh-context review kind, time, revision, and result.
+DNA documents own documentation state, accepted direction, applicability, and supersession. `_implementation.yaml` owns delivery state and concise current evidence. The manifest and dashboard are derived views, Git owns history, and `_brainwave_state.yaml` records only the latest fresh-context review kind, time, revision, and result.
 
 Lifecycle, terminology, and project-integration instructions live in `_brainwave_handbook.md`; the repository-root `README.md` provides the release quick start.

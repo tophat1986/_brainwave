@@ -164,14 +164,14 @@ During `building_brainwave_documentation`:
 - Work in coherent, dependency-aware slices, including dependencies between modules.
 - Use the North Star as current direction.
 - Reconcile each newly agreed decision against the North Star before completing affected documentation. If the North Star remains accurate, keep the decision in its owning document. If the decision exposes ambiguity without changing direction, clarify the living North Star minimally. If it changes direction materially, log the rationale and return to `shaping_north_star`.
-- Mark completion explicitly with `Status: complete`; word count never determines completion.
+- Mark document completion explicitly with `Documentation status: complete`; legacy `Status: complete` remains readable during migration. Word count never determines completion.
 - Record decisions in their owning document or ADR, not in the immutable seed.
 - Avoid duplicating North Star direction or decisions owned by another module.
 - Treat a change as editorial only when no reasonable downstream behaviour could differ. Otherwise present it for explicit user agreement.
 - Express each coherent direction, obligation, or verifiable rule as one DNA block using `_DNA-CODE-00000.01`. Follow the minimum block contract in `_dna/README.md`; subsection headings do not receive separate IDs.
 - When direction materially changes, create the next block, link it with `Supersedes`, and retain the old block only as a compact `superseded` tombstone. Do not silently rewrite agreed history.
-- Keep implementation and verification evidence concise and current. Evidence is operational proof, not a chronological work log; Git preserves history.
-- In Legal, Policy and Market Access documentation, `Status: complete` means the detection, evidence, questions, and review route are documented; it never means legal approval or compliance. For each material issue, state the jurisdiction and applicability uncertainty, cite current authoritative sources with dates, distinguish inference from confirmed review, name the accountable owner or qualified-review gate, and keep unresolved high-consequence conclusions explicit.
+- Keep each block focused on accepted direction and its verification criteria. Delivery state and evidence belong only in `_implementation.yaml` after compilation.
+- In Legal, Policy and Market Access documentation, `Documentation status: complete` means the detection, evidence, questions, and review route are documented; it never means legal approval or compliance. For each material issue, state the jurisdiction and applicability uncertainty, cite current authoritative sources with dates, distinguish inference from confirmed review, name the accountable owner or qualified-review gate, and keep unresolved high-consequence conclusions explicit.
 
 For anything users will see or experience:
 
@@ -213,17 +213,23 @@ If direction changes after completion:
 - Return to `selecting_dna` when the relevant domains change.
 - Return to `scoping_brainwave_documentation` when the North Star and DNA module selection remain valid but DNA document scope changes.
 
-When implementation learning changes a direction without changing the North Star, relevant domains, or DNA document scope, do not replay the full lifecycle. Explain the conflict and proposed direction, obtain explicit user approval, create a superseding block in the owning document, and retain the former block as the compact tombstone defined in `_dna/README.md`. An editorial clarification may update the current block only when no reasonable downstream behaviour could differ. Never change accepted DNA direction silently to make existing implementation appear aligned.
+When implementation learning changes a direction without changing the North Star, relevant domains, or DNA document scope, do not replay the full lifecycle. Explain the conflict and proposed direction, obtain explicit user approval, create a superseding block in the owning document, retain the former block as the compact tombstone defined in `_dna/README.md`, then recompile and review the implementation spine. An editorial clarification may update the current block only when no reasonable downstream behaviour could differ. Never change accepted DNA direction silently to make existing implementation appear aligned.
 
 After completion, _brainwave enters **ambient delivery alignment**. Remain passive as a lifecycle—do not announce or restart the seven-stage workflow during ordinary development—while quietly protecting the accepted foundation:
 
-- Read the North Star before project work and use `_manifest.yaml` as the compact index for identifying the DNA blocks directly affected by the task.
-- Read only those blocks' owning documents before editing. Move affected blocks to `in_progress` where appropriate.
-- Before claiming work is complete, reconcile the affected blocks and record concise current Implementation Evidence. Use `implemented` only when the direction exists with evidence. Use `verified` only when Verification Evidence, `Last checked`, and `Checked revision` are recorded.
+- DNA documents remain the authority for accepted direction. `_implementation.yaml` is the sole authority for implementation sequence, state, evidence, checked time, and checked Git revision.
+- If no spine exists, run `implementation-compile`. Refine its provisional document groupings into coherent journey or outcome slices, obtain explicit user approval, then run `implementation-approve <approved-by>` before downstream product work.
+- While the plan is `draft`, the agent may edit only its tracks, slices, mappings, dependencies, gates, and acceptance checks for semantic refinement. Delivery states, evidence, holds, approval, revisions, and audit fields remain command-owned.
+- At session start, resume, and after compaction, run `implementation-context`. Work only on the active or recommended slice and read only its referenced DNA passages and direct dependencies.
+- Use `implementation-start`, `implementation-record`, `implementation-hold`, `implementation-acceptance`, `implementation-check`, and `implementation-close` for delivery-state changes. Do not directly edit delivery states in the sidecar.
+- A blocked or deferred slice is not automatically recommended. Start it explicitly only after its recorded `reopen_when` condition has been met.
+- Use `implemented` only with concise inspectable implementation evidence. Use `verified` only with verification evidence, check time, and checked Git revision.
+- Before recording `verified`, ensure the checked behaviour exists at the current Git revision; then commit the resulting spine and derived-state update before selecting another slice.
 - Treat alignment as an evidence-backed semantic assessment, not mathematical proof. Look for material divergence in user behaviour, product promises, data use, permissions, risk, launch dependencies, and system boundaries; do not map every implementation detail to DNA.
 - Reuse confirmed project-profile materials and referenced `_assets/`; accepted Brand documentation governs their application.
-- Do not create a second implementation ID or duplicate implementation log. DNA documents own block status and evidence; `_manifest.yaml` and `_dashboard.html` are derived views.
-- Run `refresh` after block updates.
+- Do not create another implementation ID or duplicate implementation log. DNA block IDs remain the traceability identity; `_manifest.yaml` and `_dashboard.html` are derived views.
+- Keep technical health, DNA direction coverage, external gates, and release readiness as separate states. A runnable application is not evidence that the accepted product is complete.
+- Commit a clean checkpoint before selecting another slice. Run `implementation-audit` for the experiment record.
 - For a release, pilot, major handoff, broad readiness claim, or overall alignment request, recommend a fresh-context review in a new chat. Provide the exact copyable prompt shown in the dashboard so the user does not need to invent review instructions. Describe this honestly as a fresh-context review, not an independent professional audit.
 
 ## Local README Rule

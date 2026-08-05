@@ -2,15 +2,19 @@
 
 const fs = require("fs");
 const path = require("path");
+const {
+  implementationContextPayload,
+  formatImplementationContext
+} = require("../implementation_spine");
 
 const COMPLETE_STAGE = "brainwave_documentation_complete";
 const FRESH_ALIGNMENT_REVIEW_PROMPT = [
   "Run a fresh-context `_brainwave` implementation alignment review for this repository.",
   "Work from the accepted North Star and DNA documentation, not previous implementation claims.",
   "Do not change product code or DNA direction.",
-  "Compare each applicable current DNA block with inspectable implementation evidence and scan for material divergence in product behaviour, experience, data use, permissions, risk, launch dependencies, or system boundaries.",
+  "Compare each applicable current DNA block with the implementation spine and inspectable evidence, and scan for material divergence in product behaviour, experience, data use, permissions, risk, launch dependencies, or system boundaries.",
   "Report gaps and uncertainty before suggesting fixes.",
-  "Update block status and evidence only where supported, record the reviewed Git revision and result with `node _brainwave/_engine/brainwave_runner.js alignment-review <aligned|needs_attention|blocked> <revision>`, then refresh the dashboard."
+  "Do not rewrite DNA direction. Update implementation-spine state and evidence only where supported, record the reviewed Git revision and result with `node _brainwave/_engine/brainwave_runner.js alignment-review <aligned|needs_attention|blocked> <revision>`, then refresh the dashboard."
 ].join(" ");
 const STAGE_DISPLAY_LABELS = {
   awaiting_seed: "Capture the idea",
@@ -138,6 +142,7 @@ function loadRuntime(adapterDirectory, payload = {}) {
     state: readJson(path.join(root, "_brainwave_state.yaml")),
     settings: readJson(path.join(root, "_settings.yaml")),
     manifest: readJson(path.join(root, "_manifest.yaml")),
+    implementationSpine: readJson(path.join(root, "_implementation.yaml")),
     seed: readText(path.join(root, "_my_brainwave_seed.md")),
     northStar: readText(path.join(root, "_my_brainwave_north_star.md"))
   };
@@ -147,25 +152,46 @@ function buildSessionContext(runtime) {
   const stage = runtime.state.stage || "awaiting_seed";
   if (stage === COMPLETE_STAGE) {
     const at = (artifact) => `\`${artifactPath(runtime.root, runtime.cwd, artifact)}\``;
-    const coverage = runtime.manifest?.delivery_alignment?.coverage || {};
-    const blocks = Array.isArray(runtime.manifest?.implementation?.blocks)
-      ? runtime.manifest.implementation.blocks
-      : [];
-    const attentionIds = blocks
-      .filter((block) => ["blocked", "invalid", "in_progress", "implemented"].includes(block.status))
-      .slice(0, 8)
-      .map((block) => block.id);
-    const coverageSummary = coverage.applicable
-      ? `Current DNA direction coverage is built ${coverage.built || 0}/${coverage.applicable} and checked ${coverage.checked || 0}/${coverage.applicable}, with ${coverage.blocked || 0} blocked.`
-      : "No applicable DNA blocks are currently indexed.";
-    return [
-      `_brainwave has accepted its foundation and ambient delivery alignment is active. Do not announce or restart the seven-stage workflow during ordinary development. Read ${at("_my_brainwave_north_star.md")} before project work and use ${at("_manifest.yaml")} as the compact DNA-block index.`,
-      `From the user's task, identify only the directly affected DNA blocks, then read their owning files in ${at("_documentation/")}. Before editing, move affected blocks to \`in_progress\` where appropriate. Before claiming work is complete, reconcile those blocks and record concise Implementation Evidence. Use \`implemented\` only when the direction exists with evidence; use \`verified\` only when Verification Evidence, Last checked, and Checked revision are recorded. Run \`node _brainwave/_engine/brainwave_runner.js refresh\` after updates.`,
-      "Treat semantic alignment as an evidence-backed assessment, not mathematical proof. Look for material divergence in user behaviour, product promises, data use, permissions, risk, launch dependencies, and system boundaries; do not attempt to map every implementation detail to DNA.",
-      `Never silently rewrite accepted direction to match the implementation. Editorial clarifications may update a block only when no reasonable downstream behaviour changes. For a user-approved local behavioural change, create a superseding block and retain the former block as a compact tombstone. Reopen the appropriate lifecycle stage when the North Star, relevant domains, or DNA document scope changes.`,
-      `${coverageSummary}${attentionIds.length ? ` Blocks currently needing attention include ${attentionIds.join(", ")}.` : ""}`,
+    const lines = [
+      `_brainwave has accepted its foundation and ambient delivery alignment is active. Do not announce or restart the seven-stage workflow during ordinary development. DNA documents in ${at("_documentation/")} are the authority for direction; ${at("_implementation.yaml")} is the sole authority for delivery state and evidence.`,
+      `Read ${at("_my_brainwave_north_star.md")} before project work. Do not read the full DNA corpus. Use \`node _brainwave/_engine/brainwave_runner.js implementation-context\` to retrieve the current slice and only its owning DNA passages.`
+    ];
+    const spine = runtime.implementationSpine;
+    if (!spine?.schema_version) {
+      lines.push(
+        `The implementation spine has not been compiled. Before downstream product work, run \`node _brainwave/_engine/brainwave_runner.js implementation-compile\`, refine the generated document-based draft into coherent journey or outcome slices, obtain explicit user approval, and run \`implementation-approve <approved-by>\`.`
+      );
+    } else if (spine.plan_status === "draft") {
+      lines.push(
+        `Implementation plan ${spine.plan_version || "unknown"} is still a draft. Refine every provisional slice, remove each \`requires_refinement\` marker only after semantic review, obtain explicit user approval, then run \`implementation-approve <approved-by>\`. Do not begin product implementation yet.`
+      );
+    } else {
+      const payload = implementationContextPayload(spine, {
+        source: spine.source,
+        applicableBlockIds: Object.keys(spine.work_items || {})
+      });
+      if (runtime.manifest?.implementation?.source_stale) {
+        payload.source_stale = true;
+        payload.exact_next_command =
+          "Run implementation-compile, refine the changed plan, and obtain approval before continuing.";
+      }
+      lines.push(formatImplementationContext(payload));
+      lines.push(
+        payload.source_stale || payload.validation_errors?.length
+          ? "Do not change product code until the implementation plan is current and structurally valid."
+          : "Work only on the active or recommended slice. Record implementation and verification evidence through the implementation commands, run the slice check, close it at a clean Git checkpoint, then request the next compact packet."
+      );
+    }
+    lines.push(
+      "Treat semantic alignment as an evidence-backed assessment, not mathematical proof. Keep technical health, product coverage, external gates, and release readiness separate."
+    );
+    lines.push(
+      `Never silently rewrite accepted direction to match implementation. Editorial clarifications may update a block only when no reasonable downstream behaviour changes. For a user-approved local behavioural change, create a superseding block and recompile the spine. Reopen the appropriate lifecycle stage when the North Star, relevant domains, or DNA document scope changes.`
+    );
+    lines.push(
       `When the user asks about a release, pilot, major handoff, broad readiness, or overall alignment, recommend opening a fresh chat and give them this exact copyable prompt: ${FRESH_ALIGNMENT_REVIEW_PROMPT}`
-    ].join(" ");
+    );
+    return lines.join(" ");
   }
 
   const at = (artifact) => `\`${artifactPath(runtime.root, runtime.cwd, artifact)}\``;

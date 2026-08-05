@@ -216,9 +216,9 @@ _DNA-SAPP-00302
 _DNA-SAPP-00302.01
 ```
 
-The final decimal position identifies a DNA block inside a document. That same block carries its downstream implementation status and concise current evidence, so there is no parallel task-ID system or duplicate implementation log.
+The final decimal position identifies a DNA block inside a document. The block remains the stable traceability identity and source of accepted direction. `_implementation.yaml` references those same IDs and is the separate single source of implementation sequence, status, and concise current evidence; no second task-ID system is introduced.
 
-After the foundation is accepted, _brainwave enters ambient delivery alignment. It remains passive as a lifecycle while downstream agents quietly identify the blocks affected by their work, reconcile them before claiming completion, and keep the dashboard's built and checked DNA direction coverage current. Before a release, pilot, major handoff, broad readiness claim, or overall alignment review, the dashboard provides the exact prompt for opening a separate fresh-context review chat.
+After the foundation is accepted, _brainwave compiles a reviewable implementation spine. Agents work through one coherent slice at a time, retrieve only its referenced DNA passages, persist evidence outside their context window, and reconstruct previous, current, and next work with one command. Before a release, pilot, major handoff, broad readiness claim, or overall alignment review, the dashboard provides the exact prompt for opening a separate fresh-context review chat.
 
 DNA direction coverage is deliberately narrower than a project-completion estimate: it counts applicable documented directions that are built or checked, while blockers remain visible separately. It does not claim to measure effort remaining, time-to-finish, or release readiness.
 
@@ -232,6 +232,16 @@ node _brainwave/_engine/brainwave_runner.js unintegrate
 node _brainwave/_engine/brainwave_runner.js dna
 node _brainwave/_engine/brainwave_runner.js status
 node _brainwave/_engine/brainwave_runner.js refresh
+node _brainwave/_engine/brainwave_runner.js implementation-compile
+node _brainwave/_engine/brainwave_runner.js implementation-approve <approved-by>
+node _brainwave/_engine/brainwave_runner.js implementation-context [--json]
+node _brainwave/_engine/brainwave_runner.js implementation-start <slice-id>
+node _brainwave/_engine/brainwave_runner.js implementation-record <block-id> <implemented|verified> <kind> <ref> <note>
+node _brainwave/_engine/brainwave_runner.js implementation-hold <block-id> <blocked|deferred> <owner> <reopen-when> <reason>
+node _brainwave/_engine/brainwave_runner.js implementation-acceptance <slice-id> <check-id> <passed|failed|blocked> <kind> <ref> <note>
+node _brainwave/_engine/brainwave_runner.js implementation-check [slice-id]
+node _brainwave/_engine/brainwave_runner.js implementation-close <slice-id>
+node _brainwave/_engine/brainwave_runner.js implementation-audit
 node _brainwave/_engine/brainwave_runner.js alignment-review <aligned|needs_attention|blocked> <revision>
 node _brainwave/_engine/brainwave_runner.js transition <stage>
 node _brainwave/_engine/brainwave_runner.js select-dna <_DNA-CODE...>

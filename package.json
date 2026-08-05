@@ -24,6 +24,9 @@
     "brainwave:watch": "node _brainwave/_engine/brainwave_runner.js watch",
     "brainwave:status": "node _brainwave/_engine/brainwave_runner.js status",
     "brainwave:refresh": "node _brainwave/_engine/brainwave_runner.js refresh",
+    "brainwave:implementation:compile": "node _brainwave/_engine/brainwave_runner.js implementation-compile",
+    "brainwave:implementation:context": "node _brainwave/_engine/brainwave_runner.js implementation-context",
+    "brainwave:implementation:audit": "node _brainwave/_engine/brainwave_runner.js implementation-audit",
     "test": "node --test _brainwave/_engine/*.test.js"
   },
   "keywords": [
