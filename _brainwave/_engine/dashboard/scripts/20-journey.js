@@ -137,52 +137,12 @@
         return alignmentStates[status] || alignmentStates.invalid;
       }
 
-      function alignmentBlockMap() {
-        if (!blocks.length) return quietEmpty("DNA directions will appear here once their blocks are complete");
-
-        const documents = [...blocksByDocument.entries()].map(([documentId, documentBlocks]) => ({
-          qualified_id: documentId,
-          title: documentBlocks[0]?.document_title || documentId,
-          moduleId: documentBlocks[0]?.module_id,
-          moduleName: documentBlocks[0]?.module_name
-        }));
-        const documentCountsByModule = documents.reduce((counts, document) => {
-          counts.set(document.moduleId, (counts.get(document.moduleId) || 0) + 1);
-          return counts;
-        }, new Map());
-
-        return `<div class="alignment-matrix"><div class="alignment-matrix-head"><div><span class="alignment-kicker">Direction coverage</span><h3>DNA blocks</h3></div><span>${esc(alignmentCoverage.applicable || 0)} applicable</span></div><div class="block-map">${documents.map((document, index) => {
-          const documentBlocks = blocksByDocument.get(document.qualified_id) || [];
-          const moduleChanged = index === 0 || documents[index - 1]?.moduleId !== document.moduleId;
-          return `${moduleChanged ? moduleSectionHeading(document.moduleId, document.moduleName || modules[document.moduleId]?.name || document.moduleId, documentCountsByModule.get(document.moduleId) || 0, "block-module-title") : ""}
-          <div class="implementation-document">
-            <div class="document-heading"><div class="document-title">${esc(document.title)}</div><div class="document-id">${esc(document.qualified_id)}</div></div>
-            <div class="blocks">${documentBlocks.map((block) => {
-              const workItem = implementationItemByBlockId.get(block.id);
-              const status = block.contract_errors?.length
-                ? "invalid"
-                : workItem?.state || (implementation.mode === "not_compiled" ? "not_started" : "invalid");
-              const display = alignmentState(status);
-              const plannedSlice = implementationSliceById.get(workItem?.primary_slice);
-              return `<button class="dna-block ${esc(status)}" type="button" data-action="block" data-block="${esc(block.id)}" title="${esc(`${block.id}: ${display.label}`)}">
-                <span class="block-copy"><span class="block-slice">.${esc(block.slice)}</span><span class="block-title">${esc(block.title)}</span><span class="alignment-status-tag ${esc(display.tone)}">${esc(display.label)}</span>${plannedSlice ? `<small>Planned in: ${esc(plannedSlice.title)}</small>` : ""}</span>
-              </button>`;
-            }).join("")}</div>
-          </div>`;
-        }).join("")}</div></div>`;
-      }
-
       function alignmentReviewCard() {
-        const resultLabels = {
-          aligned: "Aligned",
-          needs_attention: "Needs attention",
-          blocked: "Blocked"
-        };
         const reviewStatus = lastAlignmentReview
-          ? `${resultLabels[lastAlignmentReview.result] || titleCase(lastAlignmentReview.result)} · ${lastAlignmentReview.reviewed_at ? new Date(lastAlignmentReview.reviewed_at).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }) : "date not recorded"}`
-          : "Not run yet";
+          ? `Last reviewed ${lastAlignmentReview.reviewed_at ? new Date(lastAlignmentReview.reviewed_at).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }) : "date not recorded"}`
+          : "Not reviewed yet";
         return `<section class="implementation-action">
-          <div><span class="alignment-kicker">Independent check</span><h3>Run a fresh alignment review</h3><small>${esc(reviewStatus)}</small></div>
+          <div><h3>Fresh implementation review</h3><small>${esc(reviewStatus)}</small></div>
           <div class="alignment-review-actions"><button class="copy-review-prompt" type="button" data-action="copy-alignment-prompt">Copy review prompt</button><span class="copy-review-status" id="copy-review-status" role="status" aria-live="polite"></span></div>
           <details class="alignment-prompt"><summary>View the prompt</summary><div id="alignment-review-prompt">${esc(alignmentReviewPrompt)}</div></details>
         </section>`;
@@ -205,12 +165,6 @@
         return "";
       }
 
-      function alignmentCoverageDisclosure() {
-        const applicable = Number(alignmentCoverage.applicable || 0);
-        const checked = Number(alignmentCoverage.checked || 0);
-        return `<details class="implementation-detail"><summary><span>DNA direction coverage</span><strong>${checked}/${applicable} checked</strong><span class="chevron" aria-hidden="true"></span></summary><div>${alignmentBlockMap()}</div></details>`;
-      }
-
       function foundationReadyContent() {
         if (!foundationComplete) {
           return `<div class="review-card"><div class="progress-ring" style="--progress:0"><strong>○</strong></div><div><div class="review-title">Ready after review</div></div></div>`;
@@ -223,35 +177,10 @@
           return `<div class="review-card"><div class="progress-ring" style="--progress:0"><strong>○</strong></div><div><div class="review-title">Available after foundation acceptance</div></div></div>`;
         }
 
-        const applicable = Number(alignmentCoverage.applicable || 0);
-        const built = Number(alignmentCoverage.built || 0);
-        const checked = Number(alignmentCoverage.checked || 0);
-        const underway = Number(alignmentCoverage.underway || 0);
-        const pendingCheck = Number(alignmentCoverage.pending_check || 0);
-        const blocked = Number(alignmentCoverage.blocked || 0);
-        const deferred = Number(alignmentCoverage.deferred || 0);
-        const invalid = Number(alignmentCoverage.invalid || 0);
-        const title = implementation.mode === "not_compiled"
-          ? "Delivery plan needed"
-          : implementation.plan_status === "draft"
-            ? "Delivery plan needs review"
-            : implementation.source_stale
-              ? "Delivery plan needs refreshing"
-            : blocked || invalid
-          ? `${blocked + invalid} direction${blocked + invalid === 1 ? "" : "s"} need attention`
-          : applicable && checked === applicable
-            ? "All documented directions checked"
-            : applicable && built === applicable
-              ? "Built; checks remain"
-              : "Implementation underway";
-        const ringProgress = applicable ? Math.round((checked / applicable) * 100) : 0;
-
         return `<div class="alignment-shell">
-          <div class="review-card implementation-summary ${blocked || invalid ? "attention" : ""}"><div class="progress-ring" style="--progress:${ringProgress}"><strong>${checked}/${applicable}</strong></div><div><div class="review-title">${esc(title)}</div><div class="review-metrics"><span class="metric">${built} built</span><span class="metric">${underway} underway</span>${pendingCheck ? `<span class="metric">${pendingCheck} check pending</span>` : ""}${blocked || invalid ? `<span class="metric warn">${blocked + invalid} need attention</span>` : ""}${deferred ? `<span class="metric">${deferred} deferred</span>` : ""}</div></div></div>
           ${implementationPlanCard()}
           ${implementationRoadmap()}
           ${alignmentReviewCard()}
-          ${alignmentCoverageDisclosure()}
         </div>`;
       }
 

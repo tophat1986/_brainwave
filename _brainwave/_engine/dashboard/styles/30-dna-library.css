@@ -527,6 +527,12 @@
     }
 
     .dna-block.blocked,
+    .dna-block.waiting {
+      border-color: rgba(148, 163, 184, 0.62);
+      border-style: dashed;
+      background: rgba(248, 250, 252, 0.9);
+    }
+
     .dna-block.invalid {
       border-color: rgba(251, 113, 133, 0.72);
       background: var(--rose-soft);

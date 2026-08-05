@@ -21,9 +21,10 @@
       .implementation-action { grid-template-columns: 1fr; }
       .implementation-action .alignment-prompt { grid-column: auto; }
       .implementation-plan-note { align-items: flex-start; flex-direction: column; }
-      .roadmap-slice > summary { grid-template-columns: auto minmax(0, 1fr) auto; }
-      .roadmap-slice-context { display: none; }
-      .roadmap-block { grid-template-columns: 1fr; gap: 3px; }
+      .roadmap-slice-heading,
+      .roadmap-document-heading { grid-template-columns: 1fr; gap: 6px; }
+      .roadmap-slice-reference { justify-content: space-between; }
+      .roadmap-document-heading .document-id { text-align: left; }
       :root {
         --journey-rail-x: 1.1rem;
         --journey-node-center: 38px;
@@ -74,11 +75,6 @@
     }
 
     @media (max-width: 420px) {
-      .roadmap-head,
-      .roadmap-tracks { padding: 14px; }
-      .roadmap-notices { margin-inline: 14px; }
-      .roadmap-slice > summary { grid-template-columns: minmax(0, 1fr) auto; }
-      .roadmap-order { display: none; }
       .brand-mark { font-size: 14px; }
       .brand { padding-left: 0; }
       .stage-subtitle { max-width: 190px; }

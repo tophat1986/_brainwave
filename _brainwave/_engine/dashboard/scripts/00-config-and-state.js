@@ -22,9 +22,9 @@
       const alignmentStates = Object.freeze({
         not_started: { label: "Not addressed", detail: "No implementation evidence yet", tone: "empty" },
         in_progress: { label: "Underway", detail: "This direction is currently being implemented", tone: "working" },
-        implemented: { label: "Built · check pending", detail: "Implementation evidence exists; verification is pending", tone: "working" },
+        implemented: { label: "Ready to check", detail: "Implementation evidence exists; verification is pending", tone: "working" },
         verified: { label: "Aligned and checked", detail: "Implementation and verification evidence are recorded", tone: "complete" },
-        blocked: { label: "Needs attention", detail: "Progress is blocked or requires a decision", tone: "issue" },
+        blocked: { label: "Waiting", detail: "This item is waiting for its recorded dependency or gate", tone: "muted" },
         deferred: { label: "Deferred", detail: "Work is intentionally held until its recorded reopening condition", tone: "muted" },
         invalid: { label: "State needs correction", detail: "The direction or implementation-spine contract is invalid", tone: "issue" }
       });
