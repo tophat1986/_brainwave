@@ -55,27 +55,40 @@
     .roadmap-track-head .module-section-title { font-size: 13px; }
     .roadmap-track-head .module-section-count { font-size: 12px; }
     .roadmap-track-reference { display: flex; gap: 12px; align-items: center; }
-    .roadmap-track-body { padding: 0 12px 12px; }
+    .roadmap-track-body {
+      position: relative;
+      padding: 0 12px 12px;
+    }
+    .roadmap-track-body::before {
+      position: absolute;
+      z-index: 0;
+      top: -18px;
+      left: 31px;
+      width: 2px;
+      height: 47px;
+      background: rgba(34, 211, 238, 0.52);
+      content: "";
+    }
     .roadmap-slices {
       position: relative;
       display: grid;
       gap: 0;
     }
-    .roadmap-slices::before {
-      position: absolute;
-      z-index: 0;
-      top: -18px;
-      bottom: 29px;
-      left: 19px;
-      width: 2px;
-      background: linear-gradient(rgba(34, 211, 238, 0.48), rgba(203, 213, 225, 0.82));
-      content: "";
-    }
-
     .roadmap-slice {
+      position: relative;
       overflow: visible;
       padding-top: 0;
       border-top: 0;
+    }
+    .roadmap-slice:not(:last-child)::after {
+      position: absolute;
+      z-index: 0;
+      top: 29px;
+      bottom: -29px;
+      left: 19px;
+      width: 2px;
+      background: linear-gradient(rgba(34, 211, 238, 0.52), rgba(203, 213, 225, 0.88));
+      content: "";
     }
     .roadmap-slice-heading {
       display: grid;
