@@ -170,6 +170,7 @@ During `building_brainwave_documentation`:
 - Treat a change as editorial only when no reasonable downstream behaviour could differ. Otherwise present it for explicit user agreement.
 - Express each coherent direction, obligation, or verifiable rule as one DNA block using `_DNA-CODE-00000.01`. Follow the minimum block contract in `_dna/README.md`; subsection headings do not receive separate IDs.
 - When direction materially changes, create the next block, link it with `Supersedes`, and retain the old block only as a compact `superseded` tombstone. Do not silently rewrite agreed history.
+- Keep implementation and verification evidence concise and current. Evidence is operational proof, not a chronological work log; Git preserves history.
 - In Legal, Policy and Market Access documentation, `Status: complete` means the detection, evidence, questions, and review route are documented; it never means legal approval or compliance. For each material issue, state the jurisdiction and applicability uncertainty, cite current authoritative sources with dates, distinguish inference from confirmed review, name the accountable owner or qualified-review gate, and keep unresolved high-consequence conclusions explicit.
 
 For anything users will see or experience:
@@ -212,7 +213,18 @@ If direction changes after completion:
 - Return to `selecting_dna` when the relevant domains change.
 - Return to `scoping_brainwave_documentation` when the North Star and DNA module selection remain valid but DNA document scope changes.
 
-During normal downstream implementation after completion, remain passive but update the status of directly affected DNA blocks: `not_started`, `in_progress`, `implemented`, `verified`, `blocked`, `not_applicable`, or `superseded`. Reuse confirmed project-profile materials and referenced `_assets/`; accepted Brand documentation governs their application. Do not create a second implementation ID or duplicate implementation log. Run `refresh` only when the dashboard needs an updated derived view.
+When implementation learning changes a direction without changing the North Star, relevant domains, or DNA document scope, do not replay the full lifecycle. Explain the conflict and proposed direction, obtain explicit user approval, create a superseding block in the owning document, and retain the former block as the compact tombstone defined in `_dna/README.md`. An editorial clarification may update the current block only when no reasonable downstream behaviour could differ. Never change accepted DNA direction silently to make existing implementation appear aligned.
+
+After completion, _brainwave enters **ambient delivery alignment**. Remain passive as a lifecycle—do not announce or restart the seven-stage workflow during ordinary development—while quietly protecting the accepted foundation:
+
+- Read the North Star before project work and use `_manifest.yaml` as the compact index for identifying the DNA blocks directly affected by the task.
+- Read only those blocks' owning documents before editing. Move affected blocks to `in_progress` where appropriate.
+- Before claiming work is complete, reconcile the affected blocks and record concise current Implementation Evidence. Use `implemented` only when the direction exists with evidence. Use `verified` only when Verification Evidence, `Last checked`, and `Checked revision` are recorded.
+- Treat alignment as an evidence-backed semantic assessment, not mathematical proof. Look for material divergence in user behaviour, product promises, data use, permissions, risk, launch dependencies, and system boundaries; do not map every implementation detail to DNA.
+- Reuse confirmed project-profile materials and referenced `_assets/`; accepted Brand documentation governs their application.
+- Do not create a second implementation ID or duplicate implementation log. DNA documents own block status and evidence; `_manifest.yaml` and `_dashboard.html` are derived views.
+- Run `refresh` after block updates.
+- For a release, pilot, major handoff, broad readiness claim, or overall alignment request, recommend a fresh-context review in a new chat. Provide the exact copyable prompt shown in the dashboard so the user does not need to invent review instructions. Describe this honestly as a fresh-context review, not an independent professional audit.
 
 ## Local README Rule
 

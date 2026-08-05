@@ -17,8 +17,10 @@ Tool-neutral session policy lives in `runtime/`. Thin adapters in `adapters/` tr
 - Scaffold only scoped DNA documents beneath `_documentation/_DNA-CODE/`.
 - Track explicit document status, hashes, module progress, and completion.
 - Parse DNA blocks as the single implementation-traceability identity and status source.
+- Validate concise implementation evidence for `implemented` blocks and verification evidence, checked time, and reviewed revision for `verified` blocks.
+- Derive built and checked DNA direction coverage and record fresh-context alignment review attestations.
 - Refresh `_manifest.yaml` and `_dashboard.html`.
-- Become passive after `brainwave_documentation_complete`.
+- Enter ambient delivery alignment after `brainwave_documentation_complete` without resuming active documentation reconciliation.
 - Install or remove minimal, idempotent project-root bridges and session registrations without touching project-owned _brainwave artifacts.
 
 The engine does not interpret the seed or North Star, call an AI model, or decide which DNA modules or entries are relevant.
@@ -29,6 +31,6 @@ DNA modules, `_manifest.yaml`, `_settings.yaml`, and `_brainwave_state.yaml` use
 
 Module definitions are immutable project inputs named by their canonical `_DNA-CODE` identity. The engine records selected module versions, expressed entries, and experience checkpoints only in `_brainwave_state.yaml`. `_settings.yaml` holds the user's working preferences, confirmed build outcome, and lightweight project profile; supplied profile assets remain separate files beneath `_assets/`.
 
-DNA documents own their block statuses. The manifest and dashboard derive implementation visibility from those documents; they are not parallel logs.
+DNA documents own their block statuses and concise current evidence. The manifest and dashboard derive implementation visibility and DNA direction coverage from those documents; they are not parallel logs. `_brainwave_state.yaml` records only the latest fresh-context review kind, time, revision, and result.
 
 Lifecycle, terminology, and project-integration instructions live in `_brainwave_handbook.md`; the repository-root `README.md` provides the release quick start.

@@ -59,6 +59,8 @@ An active block uses:
 
 Status: not_started
 Supersedes: none
+Last checked: not yet
+Checked revision: none
 
 #### Context
 #### Direction
@@ -67,6 +69,8 @@ Supersedes: none
 #### Consequences
 #### Future Fit
 #### Verification
+#### Implementation Evidence
+#### Verification Evidence
 ```
 
 The headings prompt deliberate thinking without prescribing domain-specific answers. Write `Not applicable — <reason>` where a consideration genuinely does not apply; do not add filler.
@@ -83,6 +87,10 @@ Implementation status is one of:
 
 `verified` means the direction has been implemented and checked. `implemented` means the change exists but its verification is not complete.
 
+`implemented` requires concise, inspectable Implementation Evidence. `verified` additionally requires Verification Evidence, `Last checked`, and `Checked revision`. These fields contain only useful current evidence, not a chronological activity log. Use `Not yet recorded.` while evidence is pending. Semantic alignment remains an agent assessment supported by evidence; the engine validates the contract and recorded proof but cannot mechanically prove that the implementation satisfies the direction.
+
+During ordinary downstream work, identify and update only the blocks directly affected by the task. Counts derived from applicable blocks express **DNA direction coverage**, not effort remaining, time-to-finish, overall product completion, or release readiness. `superseded` and explicitly justified `not_applicable` blocks are excluded from applicable coverage; open blockers remain visible regardless of the coverage percentage.
+
 When direction materially changes, add the next block, set its `Supersedes` field to the previous block, and turn the old block into a compact tombstone:
 
 ```markdown
@@ -94,6 +102,8 @@ Former direction: One concise sentence preserving what changed.
 ```
 
 Git preserves the full history; the current document preserves only enough lineage for an agent to understand why the inactive block remains.
+
+After documentation completion, an editorial clarification may update an active block only when no reasonable implementation behaviour could change. A local behavioural change requires an explanation, explicit user approval, and a superseding block. Reopen the appropriate _brainwave lifecycle stage when the North Star, relevant domains, or DNA document scope changes. Never silently rewrite accepted direction to make divergent implementation appear aligned, and do not add per-block changelog sections beside the supersession lineage.
 
 ## Boundary
 

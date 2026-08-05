@@ -11,5 +11,8 @@
     "dashboard_introduced_at": null,
     "project_basics_checked_at": null
   },
+  "delivery_alignment": {
+    "last_review": null
+  },
   "selected_dna": {}
 }

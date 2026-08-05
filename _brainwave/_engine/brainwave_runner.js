@@ -30,6 +30,21 @@ const CONSOLE_PREFIX = "[_brainwave]";
 const INTERNAL_WRITE_GUARD_MS = 2500;
 const internalWrites = new Map();
 
+const ALIGNMENT_REVIEW_RESULTS = Object.freeze([
+  "aligned",
+  "needs_attention",
+  "blocked"
+]);
+
+const FRESH_ALIGNMENT_REVIEW_PROMPT = [
+  "Run a fresh-context `_brainwave` implementation alignment review for this repository.",
+  "Work from the accepted North Star and DNA documentation, not previous implementation claims.",
+  "Do not change product code or DNA direction.",
+  "Compare each applicable current DNA block with inspectable implementation evidence and scan for material divergence in product behaviour, experience, data use, permissions, risk, launch dependencies, or system boundaries.",
+  "Report gaps and uncertainty before suggesting fixes.",
+  "Update block status and evidence only where supported, record the reviewed Git revision and result with `node _brainwave/_engine/brainwave_runner.js alignment-review <aligned|needs_attention|blocked> <revision>`, then refresh the dashboard."
+].join(" ");
+
 const DNA_BLOCK_STATUSES = Object.freeze([
   "not_started",
   "in_progress",
@@ -274,6 +289,26 @@ function blockSectionMarkdown(section, heading) {
   return body.slice(0, nextHeadingIndex === -1 ? body.length : nextHeadingIndex).trim();
 }
 
+function evidenceIsRecorded(value) {
+  const normalized = String(value || "")
+    .replace(/[`*_]/g, "")
+    .replace(/^[-+*]\s*/gm, "")
+    .trim()
+    .toLowerCase()
+    .replace(/[.!?]+$/, "")
+    .trim();
+  if (!normalized) return false;
+  return ![
+    "none",
+    "not recorded",
+    "not yet recorded",
+    "not yet",
+    "pending",
+    "n/a",
+    "not applicable"
+  ].includes(normalized);
+}
+
 function defaultSettings() {
   return {
     schema_version: "1.3.0",
@@ -335,6 +370,9 @@ function defaultState() {
       dashboard_introduced_at: null,
       project_basics_checked_at: null
     },
+    delivery_alignment: {
+      last_review: null
+    },
     selected_dna: {}
   };
 }
@@ -369,6 +407,23 @@ function defaultManifestSkeleton() {
       stage: "awaiting_seed",
       stage_updated_at: null,
       passive: false
+    },
+    delivery_alignment: {
+      mode: "inactive",
+      review_prompt: FRESH_ALIGNMENT_REVIEW_PROMPT,
+      last_review: null,
+      coverage: {
+        applicable: 0,
+        built: 0,
+        checked: 0,
+        underway: 0,
+        pending_check: 0,
+        not_started: 0,
+        blocked: 0,
+        invalid: 0,
+        built_pct: 0,
+        checked_pct: 0
+      }
     },
     experience: {
       checkpoints: {
@@ -728,6 +783,31 @@ function validateState(state, modules, options = {}) {
       throw new Error(`Experience checkpoint ${key} must be a timestamp or null.`);
     }
   }
+  if (state.delivery_alignment === undefined) {
+    state.delivery_alignment = { last_review: null };
+  }
+  if (!isPlainObject(state.delivery_alignment)) {
+    throw new Error("`delivery_alignment` must be an object.");
+  }
+  const lastReview = state.delivery_alignment.last_review;
+  if (lastReview !== undefined && lastReview !== null) {
+    if (!isPlainObject(lastReview)) {
+      throw new Error("`delivery_alignment.last_review` must be an object or null.");
+    }
+    if (lastReview.kind !== "fresh_context") {
+      throw new Error("`delivery_alignment.last_review.kind` must be `fresh_context`.");
+    }
+    if (!ALIGNMENT_REVIEW_RESULTS.includes(lastReview.result)) {
+      throw new Error(
+        "`delivery_alignment.last_review.result` must be `aligned`, `needs_attention`, or `blocked`."
+      );
+    }
+    for (const key of ["reviewed_at", "revision"]) {
+      if (typeof lastReview[key] !== "string" || !lastReview[key].trim()) {
+        throw new Error(`\`delivery_alignment.last_review.${key}\` must be a non-empty string.`);
+      }
+    }
+  }
   if (state.selected_dna === undefined) state.selected_dna = {};
   if (!isPlainObject(state.selected_dna)) {
     throw new Error("`selected_dna` must be an object.");
@@ -933,6 +1013,8 @@ function buildScaffoldContent(module, fileNode) {
     "",
     "Status: not_started",
     "Supersedes: none",
+    "Last checked: not yet",
+    "Checked revision: none",
     "",
     "#### Context",
     "",
@@ -947,6 +1029,14 @@ function buildScaffoldContent(module, fileNode) {
     "#### Future Fit",
     "",
     "#### Verification",
+    "",
+    "#### Implementation Evidence",
+    "",
+    "Not yet recorded.",
+    "",
+    "#### Verification Evidence",
+    "",
+    "Not yet recorded.",
     "",
     "## Document Open Questions",
     ""
@@ -975,20 +1065,31 @@ function parseDnaBlocks(module, fileNode, content) {
     const supersedes = section.match(/^\s*Supersedes:\s*(.+?)\s*$/im)?.[1]?.trim() || null;
     const supersededBy =
       section.match(/^\s*Superseded by:\s*(.+?)\s*$/im)?.[1]?.trim() || null;
+    const lastChecked =
+      section.match(/^\s*Last checked:\s*(.+?)\s*$/im)?.[1]?.trim() || null;
+    const checkedRevision =
+      section.match(/^\s*Checked revision:\s*(.+?)\s*$/im)?.[1]?.trim() || null;
+    const implementationEvidence = blockSectionMarkdown(section, "Implementation Evidence");
+    const verificationEvidence = blockSectionMarkdown(section, "Verification Evidence");
+    const blockErrors = [];
+    const addBlockError = (message) => {
+      blockErrors.push(message);
+      errors.push(message);
+    };
 
     if (!id.startsWith(`${documentId}.`)) {
-      errors.push(`${id} does not belong to ${documentId}.`);
+      addBlockError(`${id} does not belong to ${documentId}.`);
     }
-    if (seen.has(id)) errors.push(`${id} is duplicated.`);
+    if (seen.has(id)) addBlockError(`${id} is duplicated.`);
     seen.add(id);
-    if (status === "invalid") errors.push(`${id} has a missing or invalid Status.`);
+    if (status === "invalid") addBlockError(`${id} has a missing or invalid Status.`);
 
     if (status === "superseded") {
       if (!supersededBy || !/^_DNA-[A-Z]{4}-\d{5}\.\d{2}$/.test(supersededBy)) {
-        errors.push(`${id} must identify its replacement with Superseded by.`);
+        addBlockError(`${id} must identify its replacement with Superseded by.`);
       }
     } else {
-      if (!supersedes) errors.push(`${id} must define Supersedes: none or a block ID.`);
+      if (!supersedes) addBlockError(`${id} must define Supersedes: none or a block ID.`);
       for (const heading of [
         "Context",
         "Direction",
@@ -999,7 +1100,21 @@ function parseDnaBlocks(module, fileNode, content) {
         "Verification"
       ]) {
         const pattern = new RegExp(`^####\\s+${heading}\\s*$`, "im");
-        if (!pattern.test(section)) errors.push(`${id} is missing ${heading}.`);
+        if (!pattern.test(section)) addBlockError(`${id} is missing ${heading}.`);
+      }
+      if (["implemented", "verified"].includes(status) && !evidenceIsRecorded(implementationEvidence)) {
+        addBlockError(`${id} is ${status} but has no Implementation Evidence.`);
+      }
+      if (status === "verified") {
+        if (!evidenceIsRecorded(verificationEvidence)) {
+          addBlockError(`${id} is verified but has no Verification Evidence.`);
+        }
+        if (!evidenceIsRecorded(lastChecked)) {
+          addBlockError(`${id} is verified but has no Last checked value.`);
+        }
+        if (!evidenceIsRecorded(checkedRevision)) {
+          addBlockError(`${id} is verified but has no Checked revision.`);
+        }
       }
     }
 
@@ -1010,6 +1125,9 @@ function parseDnaBlocks(module, fileNode, content) {
       status,
       supersedes,
       superseded_by: supersededBy,
+      last_checked: lastChecked,
+      checked_revision: checkedRevision,
+      contract_errors: blockErrors,
       details: {
         context: blockSectionMarkdown(section, "Context"),
         direction: blockSectionMarkdown(section, "Direction"),
@@ -1018,6 +1136,8 @@ function parseDnaBlocks(module, fileNode, content) {
         consequences: blockSectionMarkdown(section, "Consequences"),
         future_fit: blockSectionMarkdown(section, "Future Fit"),
         verification: blockSectionMarkdown(section, "Verification"),
+        implementation_evidence: implementationEvidence,
+        verification_evidence: verificationEvidence,
         former_direction:
           section.match(/^\s*Former direction:\s*(.+?)\s*$/im)?.[1]?.trim() || ""
       }
@@ -1177,6 +1297,10 @@ function buildManifest(workspace, command, taskPlan = [], prior = null) {
   manifest.lifecycle.stage = workspace.state.stage;
   manifest.lifecycle.stage_updated_at = workspace.state.stage_updated_at || null;
   manifest.lifecycle.passive = workspace.state.stage === "brainwave_documentation_complete";
+  manifest.delivery_alignment.mode =
+    workspace.state.stage === "brainwave_documentation_complete" ? "ambient" : "inactive";
+  manifest.delivery_alignment.last_review =
+    workspace.state.delivery_alignment?.last_review || null;
 
   const trackedFiles = {};
   const missingExpressedFiles = [];
@@ -1347,6 +1471,43 @@ function buildManifest(workspace, command, taskPlan = [], prior = null) {
     implementationBlocks.find((block) => block.status === "in_progress") || null;
   manifest.implementation.next =
     implementationBlocks.find((block) => block.status === "not_started") || null;
+
+  const applicableBlocks = implementationBlocks.filter(
+    (block) => !["superseded", "not_applicable"].includes(block.status)
+  );
+  const invalidBlocks = applicableBlocks.filter(
+    (block) => block.status === "invalid" || block.contract_errors?.length
+  );
+  const validApplicableBlocks = applicableBlocks.filter(
+    (block) => block.status !== "invalid" && !block.contract_errors?.length
+  );
+  const alignmentCoverage = manifest.delivery_alignment.coverage;
+  alignmentCoverage.applicable = applicableBlocks.length;
+  alignmentCoverage.built = validApplicableBlocks.filter((block) =>
+    ["implemented", "verified"].includes(block.status)
+  ).length;
+  alignmentCoverage.checked = validApplicableBlocks.filter(
+    (block) => block.status === "verified"
+  ).length;
+  alignmentCoverage.underway = validApplicableBlocks.filter(
+    (block) => block.status === "in_progress"
+  ).length;
+  alignmentCoverage.pending_check = validApplicableBlocks.filter(
+    (block) => block.status === "implemented"
+  ).length;
+  alignmentCoverage.not_started = validApplicableBlocks.filter(
+    (block) => block.status === "not_started"
+  ).length;
+  alignmentCoverage.blocked = validApplicableBlocks.filter(
+    (block) => block.status === "blocked"
+  ).length;
+  alignmentCoverage.invalid = invalidBlocks.length;
+  alignmentCoverage.built_pct = alignmentCoverage.applicable
+    ? Math.round((alignmentCoverage.built / alignmentCoverage.applicable) * 100)
+    : 0;
+  alignmentCoverage.checked_pct = alignmentCoverage.applicable
+    ? Math.round((alignmentCoverage.checked / alignmentCoverage.applicable) * 100)
+    : 0;
 
   return manifest;
 }
@@ -1830,6 +1991,12 @@ function printStatus() {
     `${CONSOLE_PREFIX} documentation_completion_pct: ${manifest.progress.documentation_completion_pct}%`
   );
   console.log(`${CONSOLE_PREFIX} implementation_blocks: ${manifest.implementation.totals.blocks}`);
+  if (manifest.delivery_alignment.mode === "ambient") {
+    const coverage = manifest.delivery_alignment.coverage;
+    console.log(
+      `${CONSOLE_PREFIX} dna_direction_coverage: built ${coverage.built}/${coverage.applicable}; checked ${coverage.checked}/${coverage.applicable}; blocked ${coverage.blocked}`
+    );
+  }
   console.log(`${CONSOLE_PREFIX} expressed_files: ${manifest.dna.totals.expressed_files}`);
   console.log(
     `${CONSOLE_PREFIX} missing_expressed_files: ${manifest.filesystem.missing_expressed_files.length}`
@@ -1840,6 +2007,58 @@ function refreshDerivedState() {
   const workspace = loadWorkspace();
   persistWorkspaceManifest(workspace, "refresh");
   console.log(`${CONSOLE_PREFIX} derived state refreshed at ${nowIso()}`);
+}
+
+function recordAlignmentReview(args) {
+  const [result, revision] = args;
+  if (!ALIGNMENT_REVIEW_RESULTS.includes(result)) {
+    throw new Error(
+      "Alignment review result must be `aligned`, `needs_attention`, or `blocked`."
+    );
+  }
+  if (!revision || !String(revision).trim()) {
+    throw new Error("Provide the reviewed Git revision.");
+  }
+
+  const workspace = loadWorkspace();
+  if (workspace.state.stage !== "brainwave_documentation_complete") {
+    throw new Error(
+      "Fresh-context alignment reviews are recorded after DNA documentation is complete."
+    );
+  }
+
+  const before = buildWorkspaceManifest(workspace, "alignment-review");
+  const coverage = before.delivery_alignment.coverage;
+  if (
+    result === "aligned" &&
+    (coverage.applicable === 0 ||
+      coverage.checked !== coverage.applicable ||
+      coverage.blocked > 0 ||
+      coverage.invalid > 0)
+  ) {
+    throw new Error(
+      "An aligned review requires every applicable DNA block to be verified with no blocked or invalid blocks. Record `needs_attention` or `blocked` instead."
+    );
+  }
+
+  workspace.state.delivery_alignment = workspace.state.delivery_alignment || {};
+  workspace.state.delivery_alignment.last_review = {
+    kind: "fresh_context",
+    reviewed_at: nowIso(),
+    revision: String(revision).trim(),
+    result
+  };
+  writeJsonYaml(PATHS.state, workspace.state);
+
+  const manifest = buildWorkspaceManifest(workspace, "alignment-review", before);
+  addEvent(manifest, "delivery_alignment", `Fresh-context alignment review recorded as ${result}.`, {
+    revision: String(revision).trim()
+  });
+  writeJsonYaml(PATHS.manifest, manifest);
+  injectManifestIntoDashboard(manifest);
+  console.log(
+    `${CONSOLE_PREFIX} alignment_review: ${result} at ${workspace.state.delivery_alignment.last_review.reviewed_at}`
+  );
 }
 
 async function watchWorkspace() {
@@ -1876,6 +2095,9 @@ function printHelp() {
   console.log("  node _brainwave/_engine/brainwave_runner.js unintegrate  (from project root)");
   console.log("  node _brainwave/_engine/brainwave_runner.js status");
   console.log("  node _brainwave/_engine/brainwave_runner.js refresh");
+  console.log(
+    "  node _brainwave/_engine/brainwave_runner.js alignment-review <aligned|needs_attention|blocked> <revision>"
+  );
   console.log("  node _brainwave/_engine/brainwave_runner.js dna");
   console.log("  node _brainwave/_engine/brainwave_runner.js select-dna <_DNA-CODE...>");
   console.log("  node _brainwave/_engine/brainwave_runner.js transition <stage>");
@@ -1915,6 +2137,7 @@ async function main() {
   }
   if (command === "status") return printStatus();
   if (command === "refresh") return refreshDerivedState();
+  if (command === "alignment-review") return recordAlignmentReview(args);
   if (command === "watch") return watchWorkspace();
   if (command === "run") return runCycle("run");
   printHelp();

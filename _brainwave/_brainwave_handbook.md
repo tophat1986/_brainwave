@@ -159,7 +159,7 @@ Static discovery is the dependable baseline:
 | Claude Code | `CLAUDE.md` | `.claude/settings.json` |
 | Codex | `AGENTS.md` | `.codex/hooks.json` |
 
-All three session hooks call thin platform adapters backed by the same tool-neutral runtime. The runtime reads lifecycle state and supplies relevant context; it never interprets the concept, infers profile values from keywords, or chooses DNA.
+All three session hooks call thin platform adapters backed by the same tool-neutral runtime. The runtime reads lifecycle state and supplies relevant context; it never interprets the concept, infers profile values from keywords, or chooses DNA. After the foundation is accepted, the runtime supplies compact ambient delivery-alignment guidance at session start, resume, and supported context-compaction events without restarting or announcing the seven-stage workflow.
 
 Command hooks execute local code. Cursor, Claude Code, and Codex may ask the user to review or trust project hooks before running them. `integrate` registers all three bundled hooks for portability, but registrations are inert in tools that do not read them and may be left untrusted or disabled in supported tools. There is currently no separate static-only integration mode. Hooks are enhancements rather than the source of truth: disabling them does not remove the governing instructions or deterministic engine safeguards.
 
@@ -177,6 +177,8 @@ It shows:
 - in-dashboard previews of the seed, North Star, decisions, handbook, and expressed documents
 - the installed DNA Library, including each module's full DNA document catalogue before a concept is selected
 - document and DNA-block progress using canonical IDs and expandable block-level detail
+- after foundation acceptance, a **Staying aligned** view showing built, checked, underway, and blocked DNA direction coverage together with the latest fresh-context review
+- a copyable fresh-context review prompt at the point where a release, pilot, major handoff, or broad readiness review becomes useful
 - a quiet project-state view for technical provenance without placing it in the main journey
 
 The interface is intentionally presentation-led: icons, state, sequence, and visual placeholders do most of the explanatory work. Source links remain available inside previews for users who want to work directly with the files.
@@ -188,6 +190,34 @@ Refresh it from the project root:
 ```text
 node _brainwave/_engine/brainwave_runner.js refresh
 ```
+
+After completing a fresh-context review, record its result and reviewed Git revision with:
+
+```text
+node _brainwave/_engine/brainwave_runner.js alignment-review <aligned|needs_attention|blocked> <revision>
+```
+
+An `aligned` result is accepted only when every applicable DNA block is verified and no block is blocked or invalid.
+
+## Ambient Delivery Alignment
+
+`brainwave_documentation_complete` automatically enters ambient delivery alignment. This is not an eighth lifecycle stage and is not a user setting. Passive means _brainwave stops initiating foundation ceremony; it does not mean the accepted direction becomes invisible or optional.
+
+For ordinary implementation, the agent reads the North Star, uses `_manifest.yaml` as a compact block index, identifies only the DNA blocks directly affected by the task, reads their owning documents, and reconciles their status and evidence before claiming completion. `implemented` requires current Implementation Evidence. `verified` additionally requires Verification Evidence, `Last checked`, and `Checked revision`.
+
+Alignment is an evidence-backed semantic assessment rather than mathematical proof. The engine can validate identities, states, evidence fields, and review metadata; the agent still judges which blocks are relevant and whether the inspected behaviour appears to satisfy them. A material-divergence scan focuses on consequential user behaviour, product promises, data use, permissions, risk, launch dependencies, and system boundaries rather than attempting to map every implementation detail to DNA. Human or qualified specialist judgement remains necessary where the decision requires it.
+
+DNA direction coverage gives a more grounded view than an invented project percentage:
+
+- **Built** = `implemented` + `verified`
+- **Checked** = `verified`
+- **Applicable** excludes `superseded` and explicitly justified `not_applicable` blocks
+
+Counts are primary and percentages secondary. They describe coverage of documented directions, not effort remaining, overall product completion, time-to-finish, or release readiness. Open blockers remain prominent regardless of coverage.
+
+Before a release, pilot, major handoff, broad readiness claim, or overall alignment assessment, open a new chat and use the exact fresh-context review prompt provided in the dashboard. A separate chat reduces anchoring and creates an inspectable review transcript, but it is still a fresh-context model review rather than an independent professional audit.
+
+DNA documents remain controlled living specifications. An editorial clarification may update a block only when no reasonable downstream behaviour could change. When implementation learning produces a local behavioural change without changing the North Star, relevant domains, or document scope, the agent explains the conflict, proposes the new direction, obtains explicit user approval, creates a superseding block, and retains the former block as a compact tombstone. Reopen the existing lifecycle at the appropriate stage when the North Star, module selection, or document scope changes. Git and supersession preserve lineage; do not add chronological changelog sections to each block.
 
 ## Bundled DNA
 
@@ -222,7 +252,10 @@ The library direction is concentric rather than monolithic. A venture-building e
 - Obtain explicit user agreement before recording DNA module selection or DNA document scope.
 - Keep DNA definitions unchanged during a project. Project selection belongs in `_brainwave_state.yaml`.
 - Record a decision in its owning DNA block or ADR, not in the seed or a duplicate ledger.
-- After DNA documentation is complete, update only the statuses of blocks affected by downstream work. Do not reopen the lifecycle unless direction, DNA module selection, or DNA document scope changes.
+- After DNA documentation is complete, use ambient delivery alignment and update only the status and concise current evidence of blocks affected by downstream work.
+- Never silently rewrite accepted DNA direction to match implementation. Use user-approved supersession for a local behavioural change, and reopen the appropriate lifecycle stage when the North Star, relevant domains, or DNA document scope changes.
+- Describe built and checked block counts as DNA direction coverage, never as overall product completion or release readiness.
+- Recommend the dashboard's copyable fresh-context review prompt before releases, pilots, major handoffs, broad readiness claims, and overall alignment assessments.
 - Create a local README only for non-obvious purpose, boundaries, invariants, relationships, working rules, or known traps—not to list visible files.
 
 ## Framework and Project Ownership
@@ -253,4 +286,4 @@ Until an automated updater exists, update framework-owned files only and run `in
 
 `brainwave_documentation_complete` means the initial DNA documentation foundation has been accepted. It does not mean the resulting product or brand has been implemented.
 
-At this stage, _brainwave stops announcing or initiating its workflow during ordinary development. The relevant DNA blocks remain lightweight traceability anchors: downstream agents update a block from `not_started` through `implemented` and `verified`, or mark it `blocked`, `not_applicable`, or `superseded` when appropriate.
+At this stage, _brainwave stops announcing or initiating its foundation workflow during ordinary development and enters ambient delivery alignment. The relevant DNA blocks remain lightweight traceability anchors: downstream agents update a block from `not_started` through `implemented` and `verified`, record concise current evidence, or mark it `blocked`, `not_applicable`, or `superseded` when appropriate. The dashboard turns these exact block states into honest DNA direction coverage and provides the fresh-context review journey when broader assurance is needed.
