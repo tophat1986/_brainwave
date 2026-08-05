@@ -395,6 +395,7 @@ test("dashboard JavaScript parses and presents the expanded DNA boundaries", () 
   assert.match(html, /seedIcon\("large"\)/);
   assert.match(html, /Deliver the implementation/);
   assert.match(html, /implementationRoadmap/);
+  assert.match(html, /Starts after foundation/);
   assert.match(html, /Outcome-led delivery slices/);
   assert.match(html, /Primary directions/);
   assert.match(html, /Approx\. context/);

@@ -115,6 +115,18 @@
         ).join("");
         const dashboardReady = Boolean(experienceCheckpoints.dashboard_introduced_at);
         const basicsReady = Boolean(experienceCheckpoints.project_basics_checked_at);
+        const implementationProgress = (() => {
+          if (!foundationComplete) return "Starts after foundation";
+          if (implementation.mode === "not_compiled") return "Plan not compiled";
+          if (implementation.source_stale) return "Plan needs refreshing";
+          const total = implementationSlices.length;
+          if (implementation.plan_status === "draft") {
+            const synthesis = implementation.planning?.synthesis_status || "inventory_ready";
+            if (synthesis === "inventory_ready") return "Inventory ready";
+            return `${total} slice${total === 1 ? "" : "s"} ready for approval`;
+          }
+          return `${dashboardStats.verifiedSlices}/${total} slices checked`;
+        })();
         openInspector({
           eyebrow: "Your project",
           title: projectProfile.name || presentation.project_title || "Project basics",
@@ -132,6 +144,7 @@
               <div class="state-row"><span>North Star</span><strong>${esc(titleCase(state.north_star?.status || "Waiting"))}</strong></div>
               <div class="state-row"><span>DNA modules</span><strong>${esc(dashboardStats.selectedModuleNames.join(" · ") || "—")}</strong></div>
               <div class="state-row"><span>DNA documents</span><strong>${dashboardStats.completeDocuments}/${dashboardStats.expressedDocuments}</strong></div>
+              <div class="state-row"><span>Implementation</span><strong>${esc(implementationProgress)}</strong></div>
             </div></section>
             <details class="technical-details"><summary>Technical details</summary><div class="state-grid">
               <div class="state-row"><span>Updated</span><strong>${esc(snapshot)}</strong></div>
