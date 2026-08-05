@@ -23,7 +23,7 @@
         not_started: { label: "Not addressed", detail: "No implementation evidence yet", tone: "empty" },
         in_progress: { label: "Underway", detail: "This direction is currently being implemented", tone: "working" },
         implemented: { label: "Ready to check", detail: "Implementation evidence exists; verification is pending", tone: "working" },
-        verified: { label: "Aligned and checked", detail: "Implementation and verification evidence are recorded", tone: "complete" },
+        verified: { label: "Complete", detail: "Implementation and verification evidence are recorded", tone: "complete" },
         blocked: { label: "Waiting", detail: "This item is waiting for its recorded dependency or gate", tone: "muted" },
         deferred: { label: "Deferred", detail: "Work is intentionally held until its recorded reopening condition", tone: "muted" },
         invalid: { label: "State needs correction", detail: "The direction or implementation-spine contract is invalid", tone: "issue" }

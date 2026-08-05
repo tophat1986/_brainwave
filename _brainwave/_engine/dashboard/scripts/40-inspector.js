@@ -125,7 +125,7 @@
             if (synthesis === "inventory_ready") return "Inventory ready";
             return `${total} slice${total === 1 ? "" : "s"} ready for approval`;
           }
-          return `${dashboardStats.verifiedSlices}/${total} slices checked`;
+          return `${dashboardStats.verifiedSlices}/${total} slices complete`;
         })();
         openInspector({
           eyebrow: "Your project",

@@ -399,7 +399,10 @@ test("dashboard JavaScript parses and presents the expanded DNA boundaries", () 
   assert.match(html, /implementationRoadmap/);
   assert.match(html, /Starts after foundation/);
   assert.match(html, /implementationStatusKey/);
-  assert.match(html, /Ready to check/);
+  assert.match(html, /statusKeyControl/);
+  assert.match(html, /roadmap-slice-ring/);
+  assert.match(html, /slice\.state === "active" \? "open"/);
+  assert.doesNotMatch(html, /Acceptance checks/);
   assert.match(html, /Fresh implementation review/);
   assert.match(html, /Copy review prompt/);
   assert.match(html, /alignmentReviewPrompt/);

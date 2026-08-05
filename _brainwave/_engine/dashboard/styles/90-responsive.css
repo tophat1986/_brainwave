@@ -21,9 +21,9 @@
       .implementation-action { grid-template-columns: 1fr; }
       .implementation-action .alignment-prompt { grid-column: auto; }
       .implementation-plan-note { align-items: flex-start; flex-direction: column; }
-      .roadmap-slice-heading,
+      .roadmap-slice-heading { grid-template-columns: auto minmax(0, 1fr); gap: 8px 10px; }
+      .roadmap-slice-reference { grid-column: 2; justify-content: space-between; }
       .roadmap-document-heading { grid-template-columns: 1fr; gap: 6px; }
-      .roadmap-slice-reference { justify-content: space-between; }
       .roadmap-document-heading .document-id { text-align: left; }
       :root {
         --journey-rail-x: 1.1rem;

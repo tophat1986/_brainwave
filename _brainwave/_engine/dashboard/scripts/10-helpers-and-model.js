@@ -120,6 +120,10 @@
           : `role="img" aria-label="${esc(ring.ringLabel)}"`;
         return `<span class="block-progress-ring ${esc(ring.ringTone)} ${esc(className)}" style="--block-progress:${ring.progress}" ${accessibility}><span>${esc(ring.ringGlyph)}</span></span>`;
       }
+
+      function statusKeyControl(rows, panelClass = "") {
+        return `<div class="block-map-tools"><details class="status-key"><summary><span class="ui-icon key" aria-hidden="true"></span><span>Status key</span><span class="chevron" aria-hidden="true"></span></summary><div class="status-key-panel ${esc(panelClass)}">${rows.map((row) => `<div class="status-key-row">${row.visual}<span><strong>${esc(row.label)}</strong>${row.detail ? esc(row.detail) : ""}</span></div>`).join("")}</div></details></div>`;
+      }
       const searchKindLabels = Object.freeze({
         module: "Module",
         group: "Doc group",

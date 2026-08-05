@@ -1,43 +1,47 @@
       // Implementation roadmap
       function roadmapSliceState(state) {
         return {
-          queued: { label: "Planned", tone: "muted" },
-          ready: { label: "Ready next", tone: "ready" },
+          queued: { label: "", tone: "empty" },
+          ready: { label: "", tone: "empty" },
           active: { label: "In progress", tone: "active" },
-          implemented: { label: "Ready to check", tone: "working" },
-          verified: { label: "Checked", tone: "complete" },
-          blocked: { label: "Waiting", tone: "waiting" },
-          deferred: { label: "Deferred", tone: "muted" }
-        }[state] || { label: titleCase(state || "Unknown"), tone: "muted" };
+          implemented: { label: "", tone: "empty" },
+          verified: { label: "", tone: "complete" },
+          blocked: { label: "", tone: "empty" },
+          deferred: { label: "", tone: "empty" }
+        }[state] || { label: "", tone: "empty" };
       }
 
       function roadmapWorkItemState(state) {
         return {
-          not_started: { label: "Planned", tone: "empty", progress: 0, glyph: "" },
+          queued: { label: "", tone: "empty", progress: 0, glyph: "" },
+          ready: { label: "", tone: "empty", progress: 0, glyph: "" },
+          active: { label: "In progress", tone: "working", progress: 45, glyph: "" },
+          not_started: { label: "", tone: "empty", progress: 0, glyph: "" },
           in_progress: { label: "In progress", tone: "working", progress: 45, glyph: "" },
-          implemented: { label: "Ready to check", tone: "working", progress: 75, glyph: "" },
-          verified: { label: "Checked", tone: "complete", progress: 100, glyph: "✓" },
-          blocked: { label: "Waiting", tone: "muted", progress: 0, glyph: "" },
-          deferred: { label: "Deferred", tone: "muted", progress: 0, glyph: "" },
+          implemented: { label: "", tone: "empty", progress: 0, glyph: "" },
+          verified: { label: "", tone: "complete", progress: 100, glyph: "✓" },
+          blocked: { label: "", tone: "empty", progress: 0, glyph: "" },
+          deferred: { label: "", tone: "empty", progress: 0, glyph: "" },
           invalid: { label: "Needs correction", tone: "issue", progress: 0, glyph: "!" }
         }[state] || { label: "Not recorded", tone: "empty", progress: 0, glyph: "" };
       }
 
-      function roadmapImplementationRing(state) {
+      function roadmapImplementationRing(state, className = "") {
         const display = roadmapWorkItemState(state);
-        return `<span class="block-progress-ring ${esc(display.tone)}" style="--block-progress:${display.progress}" role="img" aria-label="${esc(display.label)}"><span>${esc(display.glyph)}</span></span>`;
+        const ariaLabel = display.tone === "complete" ? "Complete" : display.label || "Incomplete";
+        return `<span class="block-progress-ring ${esc(display.tone)} ${esc(className)}" style="--block-progress:${display.progress}" role="img" aria-label="${esc(ariaLabel)}"><span>${esc(display.glyph)}</span></span>`;
       }
 
       function implementationStatusKey() {
         const rows = [
-          ["not_started", "Planned"],
+          ["verified", "Complete"],
           ["in_progress", "In progress"],
-          ["implemented", "Ready to check"],
-          ["verified", "Checked"],
-          ["blocked", "Waiting"],
-          ["deferred", "Deferred"]
+          ["not_started", "Incomplete"]
         ];
-        return `<div class="block-map-tools"><details class="status-key"><summary><span class="ui-icon key" aria-hidden="true"></span><span>Status key</span><span class="chevron" aria-hidden="true"></span></summary><div class="status-key-panel implementation-status-key">${rows.map(([state, label]) => `<div class="status-key-row">${roadmapImplementationRing(state)}<span><strong>${esc(label)}</strong></span></div>`).join("")}</div></details></div>`;
+        return statusKeyControl(rows.map(([state, label]) => ({
+          visual: roadmapImplementationRing(state, "status-key-ring"),
+          label
+        })), "implementation-status-key");
       }
 
       function roadmapSliceItems(slice) {
@@ -73,8 +77,8 @@
               const block = blockById.get(item.id);
               const display = roadmapWorkItemState(item.state);
               const stateClass = item.state === "blocked" ? "waiting" : item.state;
-              return `<button class="dna-block roadmap-dna-block ${esc(stateClass || "not_started")}" type="button" data-action="block" data-block="${esc(item.id)}" title="${esc(`${item.id}: ${display.label}`)}">
-                <span class="block-copy"><span class="block-slice">${esc(item.id)}</span><span class="block-title">${esc(item.direction?.title || item.title || block?.title || item.id)}</span><span class="roadmap-block-state">${esc(display.label)}</span></span>
+              return `<button class="dna-block roadmap-dna-block ${esc(stateClass || "not_started")}" type="button" data-action="block" data-block="${esc(item.id)}" title="${esc(`${item.id}: ${display.tone === "complete" ? "Complete" : display.label || "Incomplete"}`)}">
+                <span class="block-copy"><span class="block-slice">${esc(item.id)}</span><span class="block-title">${esc(item.direction?.title || item.title || block?.title || item.id)}</span>${display.label ? `<span class="roadmap-block-state">${esc(display.label)}</span>` : ""}</span>
                 ${roadmapImplementationRing(item.state)}
               </button>`;
             }).join("")}</div>
@@ -86,17 +90,15 @@
         const stateDisplay = roadmapSliceState(slice.state);
         const dependencies = (slice.depends_on || []).map((id) => implementationSliceById.get(id) || { id, title: id });
         const gates = Array.isArray(slice.blocking_gates) ? slice.blocking_gates : [];
-        const checks = Array.isArray(slice.acceptance_checks) ? slice.acceptance_checks : [];
-        const passedChecks = checks.filter((check) => ["passed", "verified", "complete"].includes(check.status)).length;
-        return `<details class="implementation-document roadmap-slice ${esc(stateDisplay.tone)}">
+        return `<details class="implementation-document roadmap-slice ${esc(stateDisplay.tone)}" ${slice.state === "active" ? "open" : ""}>
           <summary class="roadmap-slice-heading">
-            <span class="document-title ${stateDisplay.tone === "complete" ? "complete" : ""}">${esc(slice.title)}<span class="roadmap-state ${esc(stateDisplay.tone)}">${esc(stateDisplay.label)}</span></span>
+            ${roadmapImplementationRing(slice.state, "roadmap-slice-ring")}
+            <span class="document-title">${esc(slice.title)}${stateDisplay.label ? `<span class="roadmap-state ${esc(stateDisplay.tone)}">${esc(stateDisplay.label)}</span>` : ""}</span>
             <span class="roadmap-slice-reference"><span class="document-id">${esc(slice.id)}</span><span class="chevron" aria-hidden="true"></span></span>
           </summary>
           <div class="roadmap-slice-body">
             ${dependencies.length || gates.length ? `<div class="roadmap-sequence">${dependencies.length ? `<span><strong>After</strong>${dependencies.map((dependency) => esc(dependency.title)).join(" · ")}</span>` : ""}${gates.length ? `<span><strong>Waiting for</strong>${gates.map((gate) => esc(typeof gate === "string" ? gate : gate.title || gate.id || "Gate")).join(" · ")}</span>` : ""}</div>` : ""}
             ${roadmapDnaMap(slice)}
-            ${checks.length ? `<details class="roadmap-checks"><summary>Acceptance checks <strong>${passedChecks}/${checks.length}</strong><span class="chevron" aria-hidden="true"></span></summary><ul>${checks.map((check) => `<li><span class="acceptance-state ${esc(check.status || "pending")}">${esc(["passed", "verified", "complete"].includes(check.status) ? "✓" : "○")}</span><span>${esc(check.description)}</span></li>`).join("")}</ul></details>` : ""}
           </div>
         </details>`;
       }

@@ -79,9 +79,11 @@
           ["complete", "Complete", "The DNA document is complete"],
           ["issue", "Needs attention", "Documentation requires correction"]
         ];
-        return `<div class="block-map-tools"><details class="status-key"><summary><span class="ui-icon key" aria-hidden="true"></span><span>Status key</span><span class="chevron" aria-hidden="true"></span></summary><div class="status-key-panel">${rows.map(([status, label, detail]) =>
-          `<div class="status-key-row">${documentationRing(status, "status-key-ring", true)}<span><strong>${esc(label)}</strong>${esc(detail)}</span></div>`
-        ).join("")}</div></details></div>`;
+        return statusKeyControl(rows.map(([status, label, detail]) => ({
+          visual: documentationRing(status, "status-key-ring", true),
+          label,
+          detail
+        })), "documentation-status-key");
       }
 
       function blockMap() {
@@ -219,10 +221,10 @@
           return "Foundation accepted";
         }
         if (index === 7 && foundationComplete && implementationSlices.length) {
-          return `${dashboardStats.verifiedSlices} of ${implementationSlices.length} slices checked`;
+          return `${dashboardStats.verifiedSlices} of ${implementationSlices.length} slices complete`;
         }
         if (index === 7 && foundationComplete && dashboardStats.blockTotal) {
-          return `${alignmentCoverage.checked || 0} of ${alignmentCoverage.applicable || 0} directions checked`;
+          return `${alignmentCoverage.checked || 0} of ${alignmentCoverage.applicable || 0} DNA blocks complete`;
         }
         return "";
       }
