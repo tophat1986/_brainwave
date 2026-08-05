@@ -31,6 +31,7 @@ const {
   buildImplementationAudit,
   recordRejectedTransition
 } = require("./implementation_spine");
+const { writeDashboard } = require("./dashboard_renderer");
 
 const ROOT = path.resolve(__dirname, "..");
 const PATHS = Object.freeze({
@@ -1630,17 +1631,8 @@ function buildManifest(workspace, command, taskPlan = [], prior = null) {
 }
 
 function injectManifestIntoDashboard(manifest) {
-  if (!exists(PATHS.dashboard)) return;
-  const html = readText(PATHS.dashboard);
-  const scriptJson = JSON.stringify(manifest).replace(/</g, "\\u003c").replace(/>/g, "\\u003e");
-  const embedded = `<script id="brainwave-state" type="application/json">${scriptJson}</script>`;
-  const pattern = /<script id="brainwave-state" type="application\/json">[\s\S]*?<\/script>/;
-  const updated = pattern.test(html)
-    ? html.replace(pattern, () => embedded)
-    : html.includes("</body>")
-      ? html.replace("</body>", () => `  ${embedded}\n</body>`)
-      : `${html}\n${embedded}\n`;
-  if (updated !== html) writeText(PATHS.dashboard, updated);
+  // Keep the existing facade so every runner command follows one rendering path.
+  writeDashboard(PATHS.dashboard, manifest);
 }
 
 function markInternalWrite(filePath) {

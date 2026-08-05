@@ -13,6 +13,8 @@ const SOURCE_PROJECT_ROOT = path.resolve(SOURCE_ROOT, "..");
 const SOURCE_RUNNER = path.join(__dirname, "brainwave_runner.js");
 const SOURCE_IMPLEMENTATION_SPINE = path.join(__dirname, "implementation_spine.js");
 const SOURCE_PROJECT_INTEGRATION = path.join(__dirname, "project_integration.js");
+const SOURCE_DASHBOARD_RENDERER = path.join(__dirname, "dashboard_renderer.js");
+const SOURCE_DASHBOARD = path.join(__dirname, "dashboard");
 const SOURCE_CURSOR_CONFIG = path.join(SOURCE_PROJECT_ROOT, ".cursor", "hooks.json");
 const SOURCE_CLAUDE_CONFIG = path.join(SOURCE_PROJECT_ROOT, ".claude", "settings.json");
 const SOURCE_CODEX_CONFIG = path.join(SOURCE_PROJECT_ROOT, ".codex", "hooks.json");
@@ -139,6 +141,11 @@ function createWorkspace(t, options = {}) {
     SOURCE_PROJECT_INTEGRATION,
     path.join(root, "_engine", "project_integration.js")
   );
+  fs.copyFileSync(
+    SOURCE_DASHBOARD_RENDERER,
+    path.join(root, "_engine", "dashboard_renderer.js")
+  );
+  fs.cpSync(SOURCE_DASHBOARD, path.join(root, "_engine", "dashboard"), { recursive: true });
   if (options.copyHooks) {
     const adaptersTarget = path.join(root, "_engine", "adapters");
     const runtimeTarget = path.join(root, "_engine", "runtime");

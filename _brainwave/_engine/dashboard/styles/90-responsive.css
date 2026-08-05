@@ -1,0 +1,99 @@
+    /* Responsive adjustments */
+    @media (max-width: 820px) {
+      .alignment-coverage-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .alignment-review-card { grid-template-columns: 1fr; }
+      .alignment-prompt { grid-column: auto; }
+      .hub {
+        grid-template-columns: 1fr auto;
+      }
+      .view-switch {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        width: 100%;
+      }
+      .view-tab { flex: 1; }
+      .library-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .implementation-document { grid-template-columns: 1fr; }
+      .blocks { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .project-overview-inner { grid-template-columns: auto minmax(0, 1fr); }
+      .project-overview-meta { grid-column: 2; justify-content: flex-start; }
+    }
+
+    @media (max-width: 620px) {
+      .alignment-review-actions { align-items: flex-start; flex-direction: column; }
+      :root {
+        --journey-rail-x: 1.1rem;
+        --journey-node-center: 38px;
+        --journey-connector-end: -51px;
+      }
+      .shell { width: min(100% - 20px, 1080px); padding-top: 10px; }
+      .hub { top: 10px; gap: 12px; min-height: 76px; padding: 13px; border-radius: 1.55rem; }
+      .hub::before { border-radius: 1.55rem 1.55rem 0 0; }
+      .brand { padding-left: 8px; }
+      .utilities { gap: 4px; }
+      .icon-button { width: 31px; height: 31px; }
+      main { margin-top: 38px; }
+      .view-heading { display: block; margin-left: 58px; }
+      .project-overview { margin-left: 58px; padding: 19px; }
+      .project-overview-inner { grid-template-columns: 54px minmax(0, 1fr); gap: 14px; }
+      .project-logo { width: 54px; height: 54px; border-radius: 16px; font-size: 19px; }
+      .project-overview-meta { grid-column: 1 / -1; }
+      #library-view .view-heading { margin-left: 0; }
+      .snapshot { margin-top: 8px; text-align: left; }
+      .stage { padding-left: 58px; }
+      .stage-node { width: 36px; height: 36px; top: 20px; border-radius: 13px; }
+      .stage-toggle { padding: 14px; }
+      .stage-body { padding: 0 14px 16px; }
+      .module-mini-grid,
+      .library-grid { grid-template-columns: 1fr; }
+      .library-grid { margin-left: 0; }
+      .module-mini-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .module-add { grid-column: 1 / -1; min-height: 64px; }
+      .blocks { grid-template-columns: 1fr; }
+      .dna-block,
+      .skeleton-block { min-height: 62px; }
+      .inspector {
+        inset: 8px 8px 8px auto;
+        width: calc(100vw - 16px);
+        max-height: none;
+        border-radius: 1.75rem;
+        transform: translateX(calc(100% + 20px));
+      }
+      .inspector.open { transform: translateX(0); }
+      .tip { display: none; }
+      .page-footer {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 72px;
+        padding-inline: 8px;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .alignment-coverage-grid { grid-template-columns: 1fr; }
+      .alignment-stat { min-height: 78px; }
+      .brand-mark { font-size: 14px; }
+      .brand { padding-left: 0; }
+      .stage-subtitle { max-width: 190px; }
+      .blocks { grid-template-columns: 1fr; }
+      .review-card { grid-template-columns: 1fr; }
+      .project-overview { margin-left: 0; }
+      .project-overview-inner { grid-template-columns: 1fr; }
+      .project-logo { width: 48px; height: 48px; }
+      .project-overview-meta { grid-column: 1; flex-wrap: wrap; }
+      .module-doc > span:first-child {
+        grid-template-columns: 1fr;
+        gap: 2px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+      }
+    }
