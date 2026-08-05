@@ -276,6 +276,30 @@ test("dashboard JavaScript parses and presents the expanded DNA boundaries", () 
   assert.doesNotMatch(html, /artifact-symbol idea/);
 });
 
+test("dashboard embeds manifest text without expanding replacement tokens", (t) => {
+  const { root } = createWorkspace(t, { expressed: true });
+  const northStarPath = path.join(root, "_my_brainwave_north_star.md");
+  fs.appendFileSync(
+    northStarPath,
+    "\nAll `$` amounts remain literal alongside $& and $' and $$ sequences.\n",
+    "utf8"
+  );
+
+  const result = runEngine(root, "refresh");
+  const html = fs.readFileSync(path.join(root, "_dashboard.html"), "utf8");
+  const stateScript = html.match(
+    /<script id="brainwave-state" type="application\/json">([\s\S]*?)<\/script>/
+  );
+
+  assert.equal(result.status, 0);
+  assert.ok(stateScript);
+  const state = JSON.parse(stateScript[1]);
+  assert.match(
+    state.presentation.content.north_star.markdown,
+    /All `\$` amounts remain literal alongside \$& and \$' and \$\$ sequences\./
+  );
+});
+
 test("keeps user-facing lifecycle terminology aligned across surfaces", () => {
   const sources = {
     readme: fs.readFileSync(path.join(SOURCE_PROJECT_ROOT, "README.md"), "utf8"),
