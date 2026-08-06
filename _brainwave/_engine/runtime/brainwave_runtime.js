@@ -25,6 +25,14 @@ const STAGE_DISPLAY_LABELS = {
   reviewing_brainwave_documentation: "Review the foundation",
   brainwave_documentation_complete: "Ready for implementation"
 };
+const DOCUMENTATION_DETAIL_INSTRUCTIONS = Object.freeze({
+  lean:
+    "Use minimum-sufficient content: compact decisions, essential boundaries, material unknowns, and the smallest useful verification criteria. Remove narrative setup, generic best practice, tutorials, decorative examples, rejected alternatives, and speculative future branches that do not change downstream behaviour or verification.",
+  standard:
+    "Be concise and complete, not near-exhaustive. State each material decision once with brief rationale, its main boundary or exception, and the verification consequence where relevant. Stop when downstream work can proceed without guessing; omit broad background, tutorials, long option catalogues, extensive examples, speculative branches, and comprehensive edge-case inventories unless they materially change a decision.",
+  exhaustive:
+    "Give deep treatment within the already agreed scope: cover material rationale, alternatives and trade-offs, assumptions, dependencies, scenarios, exceptions, failure and recovery behaviour, consequences, and verification. Do not pad, duplicate, speculate, add documents, or widen product direction merely to produce more content."
+});
 
 function readStdin() {
   try {
@@ -126,6 +134,13 @@ function settingsAreConfigured(settings) {
   );
 }
 
+function documentationDetailInstruction(settings) {
+  const mode = hasAllowedValue(settings, "verbosity_budget")
+    ? settings.verbosity_budget
+    : "standard";
+  return `Documentation detail is \`${mode}\`, read from the persistent \`_settings.yaml\` \`verbosity_budget\`. ${DOCUMENTATION_DETAIL_INSTRUCTIONS[mode]} This controls depth inside agreed outputs only; it never changes approved DNA document scope, material-risk coverage, factual confidence, verification quality, or the completion standard. Model capability, reasoning effort, context size, and available source volume do not authorize greater depth. During review, compress excess as well as filling material gaps.`;
+}
+
 function northStarStatus(content) {
   return (
     content.match(/^\s*status:\s*(shaping|agreed)\s*$/im)?.[1]?.toLowerCase() ||
@@ -224,7 +239,7 @@ function buildSessionContext(runtime) {
 
   if (!settingsConfigured) {
     lines.push(
-      `The profile is incomplete. Ask whether this is the user's first time with _brainwave before the other three concise profile questions. Map "Yes — guide me" to \`guided\` and "No — keep it concise" to \`concise\`, prefer the host's native structured-choice UI when available, and update ${at("_settings.yaml")} after the user answers. Immediately after that first answer, give the friendly dashboard introduction below before asking the other profile questions. Apply the selected working mode immediately. Do not infer profile values from keywords.`
+      `The profile is incomplete. Ask whether this is the user's first time with _brainwave before the other three concise profile questions. Map "Yes — guide me" to \`guided\` and "No — keep it concise" to \`concise\`, prefer the host's native structured-choice UI when available, and update ${at("_settings.yaml")} after the user answers. When asking documentation detail, describe \`lean\` as minimum sufficient, \`standard\` as concise and complete rather than near-exhaustive, and \`exhaustive\` as deep treatment within agreed scope. Immediately after that first answer, give the friendly dashboard introduction below before asking the other profile questions. Apply the selected working mode immediately and apply the selected documentation detail immediately. Do not infer profile values from keywords or model capability.`
     );
   } else if (guidanceMode === "guided") {
     lines.push(
@@ -234,6 +249,10 @@ function buildSessionContext(runtime) {
     lines.push(
       "Guidance mode is `concise`. State the current step and immediate next action without the full journey block; explain a term only when needed for the decision."
     );
+  }
+
+  if (settingsConfigured) {
+    lines.push(documentationDetailInstruction(runtime.settings));
   }
 
   if (experienceRequired && !dashboardIntroduced) {

@@ -51,6 +51,18 @@ Use `technical_proficiency` to calibrate language and technical detail throughou
 - In `concise` mode, state the current step and immediate next action without the full journey block. Explain a term only when needed for the decision.
 - Do not repeat the journey block during routine shaping questions. Guided mode means clearer signposting, not longer general answers.
 
+## Documentation Detail Budget
+
+Use `_settings.yaml` `verbosity_budget` as the persistent depth contract for working outputs and for content inside the explicitly scoped DNA documents. Read the current value at session start, resume, and before scoping, authoring, or reviewing documentation. Apply a changed value immediately after writing it to `_settings.yaml`; do not infer a different preference from the model selected, its reasoning effort, the size of its context window, or the amount of source material available.
+
+The setting controls depth inside the agreed output. It never changes the approved DNA document scope, the minimum DNA-block contract, material-risk coverage, factual confidence, verification quality, or completion standard. A higher detail level is not permission to add documents, broaden the product direction, repeat content owned elsewhere, invent decisions, or turn non-blocking unknowns into research projects.
+
+- `lean` — minimum sufficient. Prefer compact bullets, tables, and short DNA blocks. Keep only the accepted decision or rule, an essential boundary, a material unresolved question, and the smallest useful verification criterion. Omit narrative setup, generic best practice, tutorials, non-essential rationale, illustrative examples, rejected alternatives, and speculative future possibilities. If removing a passage would not change downstream behaviour, a decision, or the ability to verify it, remove it.
+- `standard` — concise and complete, not near-exhaustive. State each material decision once with brief rationale, its main boundary or exception, and the verification consequence where relevant. Stop when a downstream team can act without guessing. Do not add broad background, tutorial explanation, long option catalogues, extensive examples, speculative branches, or comprehensive edge-case inventories unless they materially change the decision.
+- `exhaustive` — deep treatment within the already agreed scope. Cover the material rationale, alternatives and trade-offs, assumptions, dependencies, scenarios, exceptions, failure and recovery behaviour, consequences, and verification. Remain purposeful: do not pad, duplicate, speculate, or expand scope merely to create a longer artifact.
+
+In every mode, write information once in its owning artifact and cross-reference it elsewhere. Do not fill a heading merely because it exists. During review, compress content that exceeds the selected budget as well as filling material gaps. `Documentation status: complete` means decision-ready and verifiable at the selected depth; it does not mean long.
+
 ## Experience Protocol
 
 Preserve a natural conversation while delivering a small, consistent set of intentional service moments. Keep these separate from approval gates and adaptive discovery questions.
@@ -111,7 +123,7 @@ When the user says `build concept`:
 2. If profile settings are incomplete, ask the guidance question first. After the user answers it, introduce the dashboard as required by the Experience Protocol, record `dashboard_introduced_at`, then ask:
    - Technical proficiency: `beginner`, `intermediate`, or `architect`
    - Working mode: `thought_partner` or `fast_execution`
-   - Detail level: `lean`, `standard`, or `exhaustive`
+   - Documentation detail: `lean` (minimum sufficient), `standard` (concise and complete), or `exhaustive` (deep treatment within agreed scope)
    If the profile is already complete but the dashboard checkpoint is missing, deliver and record the dashboard introduction before continuing.
 3. Write profile answers to `_settings.yaml` automatically and set:
    - `guidance_mode: guided` or `guidance_mode: concise`

@@ -14,7 +14,7 @@
         { key: "guidance_mode", label: "Level of guidance", values: { guided: "Guide me", concise: "Keep it concise" } },
         { key: "technical_proficiency", label: "Technical comfort", values: { beginner: "Beginner-friendly", intermediate: "Comfortable", architect: "Architect-level" } },
         { key: "ideation_mode", label: "Working together", values: { thought_partner: "Thought partner", fast_execution: "Fast execution" } },
-        { key: "verbosity_budget", label: "Level of detail", values: { lean: "Lean", standard: "Standard", exhaustive: "Exhaustive" } },
+        { key: "verbosity_budget", label: "Documentation detail", values: { lean: "Lean — minimum sufficient", standard: "Standard — concise and complete", exhaustive: "Exhaustive — deep within scope" } },
         { key: "build_outcome", label: "Build goal", values: { demonstration: "Show me the idea", usable_first_version: "Build a usable first version", complete_product: "Build the complete product", custom: "Custom outcome" } }
       ]);
 

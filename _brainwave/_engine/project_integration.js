@@ -52,6 +52,7 @@ function bridgeBlock() {
     "",
     "- Read `_brainwave/_brainwave_state.yaml` before project work.",
     "- Use `_brainwave/_my_brainwave_north_star.md` as current direction and the relevant files in `_brainwave/_documentation/` as detailed authority.",
+    "- While the lifecycle is active, read `_brainwave/_settings.yaml` `verbosity_budget` and enforce it as the documentation-depth contract: `lean` is minimum sufficient, `standard` is concise and complete rather than near-exhaustive, and `exhaustive` is deep only within agreed scope. Model capability never authorizes more depth than the selected value.",
     "- Read `_brainwave/_settings.yaml` `project_profile` and its referenced `_brainwave/_assets/` files when project identity is relevant; accepted Brand documentation governs how those inputs are applied.",
     "- Follow `_brainwave/AGENTS.md` whenever the lifecycle is active or the user explicitly invokes `_brainwave`.",
     "- Always refer to the framework by its canonical name, `_brainwave`; preserve the leading underscore and lowercase spelling in all prose.",

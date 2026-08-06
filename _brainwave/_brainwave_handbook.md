@@ -49,6 +49,16 @@ Working mode changes how _brainwave shapes direction, not its quality or approva
 
 Guidance mode controls process explanation. Working mode controls decision collaboration. Detail level controls depth.
 
+## Documentation Detail
+
+The selected documentation detail lives in `_settings.yaml` as `verbosity_budget` and remains in force until the user changes it. It controls depth inside working outputs and the DNA documents already agreed during scoping:
+
+- `lean` — minimum sufficient: compact decisions, essential boundaries, material unknowns, and the smallest useful verification criteria; no generic background, tutorials, decorative examples, or speculative branches
+- `standard` — concise and complete: each material decision once, with brief rationale, the main boundary or exception, and verification implications where useful; no long option catalogues or comprehensive edge-case inventories unless they change the decision
+- `exhaustive` — deep treatment within the agreed scope: material trade-offs, assumptions, dependencies, scenarios, exceptions, failure and recovery behaviour, consequences, and verification, without padding or duplication
+
+Detail is separate from scope and quality. It does not add DNA documents, widen product direction, reduce material-risk coverage, or change what “complete” and verifiable mean. A more capable model or larger context window must still honour the selected depth. During review, _brainwave removes avoidable excess as well as identifying gaps; `standard` is not a softened version of `exhaustive`.
+
 ## Providing the Seed
 
 The user can choose either route:

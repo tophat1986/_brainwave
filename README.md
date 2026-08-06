@@ -65,6 +65,8 @@ When an idea materially needs one of those uninstalled specialist owners, _brain
 
 Use the smartest, most capable model available while shaping the North Star and developing the DNA documentation. This stage carries the most ambiguity and requires the strongest reasoning, so it is the wrong place to optimise for cost.
 
+Model capability does not set documentation length. The persistent `_settings.yaml` `verbosity_budget` does: `lean` means minimum sufficient, `standard` means concise and complete rather than near-exhaustive, and `exhaustive` means deep treatment only within the agreed scope. Every level keeps the same material-risk, accuracy, verification, and completion standards.
+
 Once the foundation is agreed, implementation can often move to a more cost-effective capable model because the agent is following documented decisions rather than repeatedly guessing at intent.
 
 Read the [_brainwave handbook](./_brainwave/_brainwave_handbook.md) for the complete lifecycle and terminology. Open `_brainwave/_dashboard.html` for the guided journey, document previews, DNA library, and block progress.

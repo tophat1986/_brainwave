@@ -382,6 +382,9 @@ test("dashboard JavaScript parses and presents the expanded DNA boundaries", () 
   ]) {
     assert.match(html, new RegExp(`key: "${key}"`));
   }
+  assert.match(html, /Lean — minimum sufficient/);
+  assert.match(html, /Standard — concise and complete/);
+  assert.match(html, /Exhaustive — deep within scope/);
   assert.match(html, /Project basics/);
   assert.match(html, /Getting started/);
   assert.match(html, /implementationPlanCard/);
@@ -532,6 +535,79 @@ test("session context adapts user orientation to guidance mode", () => {
   assert.match(concise, /Guidance mode is `concise`/);
   assert.doesNotMatch(concise, /compact eight-step journey/);
   assert.match(legacy, /Guidance mode is `concise`/);
+});
+
+test("session context enforces distinct documentation detail budgets", () => {
+  const baseRuntime = {
+    root: SOURCE_ROOT,
+    cwd: SOURCE_PROJECT_ROOT,
+    state: { stage: "building_brainwave_documentation" },
+    seed: "A concept.",
+    northStar: "# North Star\n\nStatus: agreed\n"
+  };
+  const baseSettings = {
+    configured: true,
+    onboarding_status: "complete",
+    guidance_mode: "concise",
+    technical_proficiency: "intermediate",
+    ideation_mode: "thought_partner",
+    allowed_values: {
+      guidance_mode: ["guided", "concise"],
+      technical_proficiency: ["beginner", "intermediate", "architect"],
+      ideation_mode: ["thought_partner", "fast_execution"],
+      verbosity_budget: ["lean", "standard", "exhaustive"]
+    }
+  };
+  const contextFor = (verbosityBudget) =>
+    buildSessionContext({
+      ...baseRuntime,
+      settings: { ...baseSettings, verbosity_budget: verbosityBudget }
+    });
+
+  const lean = contextFor("lean");
+  const standard = contextFor("standard");
+  const exhaustive = contextFor("exhaustive");
+
+  assert.match(lean, /Documentation detail is `lean`/);
+  assert.match(lean, /minimum-sufficient content/);
+  assert.match(lean, /If removing a passage|Remove narrative setup/);
+  assert.doesNotMatch(lean, /material rationale, alternatives and trade-offs/);
+
+  assert.match(standard, /Documentation detail is `standard`/);
+  assert.match(standard, /concise and complete, not near-exhaustive/);
+  assert.match(standard, /Stop when downstream work can proceed without guessing/);
+  assert.doesNotMatch(standard, /deep treatment within the already agreed scope/);
+
+  assert.match(exhaustive, /Documentation detail is `exhaustive`/);
+  assert.match(exhaustive, /deep treatment within the already agreed scope/);
+  assert.match(exhaustive, /failure and recovery behaviour/);
+
+  for (const context of [lean, standard, exhaustive]) {
+    assert.match(context, /read from the persistent `_settings.yaml` `verbosity_budget`/);
+    assert.match(context, /never changes approved DNA document scope/);
+    assert.match(context, /Model capability, reasoning effort, context size/);
+    assert.match(context, /compress excess as well as filling material gaps/);
+  }
+});
+
+test("documentation detail contracts stay aligned across agent and user guidance", () => {
+  const directive = fs.readFileSync(path.join(SOURCE_ROOT, "AGENTS.md"), "utf8");
+  const handbook = fs.readFileSync(path.join(SOURCE_ROOT, "_brainwave_handbook.md"), "utf8");
+  const readme = fs.readFileSync(path.join(SOURCE_PROJECT_ROOT, "README.md"), "utf8");
+  const integration = fs.readFileSync(SOURCE_PROJECT_INTEGRATION, "utf8");
+  const settings = fs.readFileSync(path.join(SOURCE_ROOT, "_settings.yaml"), "utf8");
+
+  for (const content of [directive, handbook, readme, integration, settings]) {
+    assert.match(content, /lean/);
+    assert.match(content, /standard/);
+    assert.match(content, /exhaustive/);
+    assert.match(content, /minimum sufficient/);
+    assert.match(content, /concise and complete/);
+    assert.match(content, /agreed scope|within scope/);
+  }
+  assert.match(directive, /model selected, its reasoning effort/);
+  assert.match(handbook, /standard` is not a softened version of `exhaustive/);
+  assert.match(integration, /Model capability never authorizes more depth/);
 });
 
 test("new experience protocol introduces the dashboard once in both guidance modes", () => {
@@ -1050,6 +1126,9 @@ test("manifest carries the complete setup and project profile into the dashboard
   assert.equal(manifest.presentation.project_profile.colors[2].usage, "Warm highlights");
   assert.match(dashboard, /Signal Garden/);
   assert.match(dashboard, /#247A5A/);
+  const status = runEngine(root, "status");
+  assert.equal(status.status, 0, status.stderr);
+  assert.match(status.stdout, /documentation_detail: standard/);
 });
 
 test("rejects a seed changed after capture", (t) => {
@@ -1448,6 +1527,39 @@ test("session hook restores ambient delivery alignment when DNA documentation is
   assert.match(response.additional_context, /implementation-compile/);
   assert.match(response.additional_context, /Run a fresh-context `_brainwave` implementation alignment review/);
   assert.doesNotMatch(response.additional_context, /_brainwave is active at stage/);
+});
+
+test("session hook reloads the persistent documentation detail setting", (t) => {
+  const { root } = createWorkspace(t, { copyHooks: true });
+  const settingsPath = path.join(root, "_settings.yaml");
+  const adapterPath = path.join(root, "_engine", "adapters", "cursor.js");
+  const runHook = () =>
+    spawnSync(process.execPath, [adapterPath, "session-start"], {
+      cwd: SOURCE_ROOT,
+      input: JSON.stringify({ cwd: root }),
+      encoding: "utf8"
+    });
+  const settings = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
+
+  settings.verbosity_budget = "lean";
+  writeJson(settingsPath, settings);
+  const lean = runHook();
+  assert.equal(lean.status, 0, lean.stderr);
+  assert.match(JSON.parse(lean.stdout).additional_context, /Documentation detail is `lean`/);
+  assert.match(JSON.parse(lean.stdout).additional_context, /minimum-sufficient content/);
+
+  settings.verbosity_budget = "exhaustive";
+  writeJson(settingsPath, settings);
+  const exhaustive = runHook();
+  assert.equal(exhaustive.status, 0, exhaustive.stderr);
+  assert.match(
+    JSON.parse(exhaustive.stdout).additional_context,
+    /Documentation detail is `exhaustive`/
+  );
+  assert.match(
+    JSON.parse(exhaustive.stdout).additional_context,
+    /deep treatment within the already agreed scope/
+  );
 });
 
 test("session hook restores only the approved implementation slice after a context restart", (t) => {

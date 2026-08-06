@@ -370,7 +370,7 @@ function defaultSettings() {
       "Is this your first time using _brainwave? (yes — guide me / no — keep it concise)",
       "What is your technical proficiency? (beginner/intermediate/architect)",
       "How should I operate? (thought_partner/fast_execution)",
-      "How much detail do you prefer? (lean/standard/exhaustive)"
+      "How much documentation detail do you prefer? (lean — minimum sufficient / standard — concise and complete / exhaustive — deep treatment within agreed scope)"
     ],
     allowed_values: {
       guidance_mode: ["guided", "concise"],
@@ -2424,6 +2424,9 @@ function printStatus() {
   console.log(`${CONSOLE_PREFIX} selected_dna: ${selected.join(", ") || "none"}`);
   console.log(
     `${CONSOLE_PREFIX} documentation_completion_pct: ${manifest.progress.documentation_completion_pct}%`
+  );
+  console.log(
+    `${CONSOLE_PREFIX} documentation_detail: ${manifest.settings.verbosity_budget || "not_configured"}`
   );
   console.log(`${CONSOLE_PREFIX} implementation_spine: ${manifest.implementation.mode}`);
   console.log(`${CONSOLE_PREFIX} implementation_blocks: ${manifest.implementation.totals.blocks}`);
