@@ -2,15 +2,23 @@
 
 const fs = require("fs");
 const path = require("path");
+const {
+  implementationContextPayload,
+  formatGuardedImplementationContext
+} = require("../implementation_spine");
+const {
+  implementationProgressPolicy,
+  formatImplementationProgressPolicy
+} = require("../implementation_progress");
 
 const COMPLETE_STAGE = "brainwave_documentation_complete";
 const FRESH_ALIGNMENT_REVIEW_PROMPT = [
   "Run a fresh-context `_brainwave` implementation alignment review for this repository.",
   "Work from the accepted North Star and DNA documentation, not previous implementation claims.",
   "Do not change product code or DNA direction.",
-  "Compare each applicable current DNA block with inspectable implementation evidence and scan for material divergence in product behaviour, experience, data use, permissions, risk, launch dependencies, or system boundaries.",
+  "Compare each applicable current DNA block with the implementation spine and inspectable evidence, and scan for material divergence in product behaviour, experience, data use, permissions, risk, launch dependencies, or system boundaries.",
   "Report gaps and uncertainty before suggesting fixes.",
-  "Update block status and evidence only where supported, record the reviewed Git revision and result with `node _brainwave/_engine/brainwave_runner.js alignment-review <aligned|needs_attention|blocked> <revision>`, then refresh the dashboard."
+  "Do not rewrite DNA direction. Update implementation-spine state and evidence only where supported, record the reviewed Git revision and result with `node _brainwave/_engine/brainwave_runner.js alignment-review <aligned|needs_attention|blocked> <revision>`, then refresh the dashboard."
 ].join(" ");
 const STAGE_DISPLAY_LABELS = {
   awaiting_seed: "Capture the idea",
@@ -21,6 +29,14 @@ const STAGE_DISPLAY_LABELS = {
   reviewing_brainwave_documentation: "Review the foundation",
   brainwave_documentation_complete: "Ready for implementation"
 };
+const DOCUMENTATION_DETAIL_INSTRUCTIONS = Object.freeze({
+  lean:
+    "Use minimum-sufficient content: compact decisions, essential boundaries, material unknowns, and the smallest useful verification criteria. Remove narrative setup, generic best practice, tutorials, decorative examples, rejected alternatives, and speculative future branches that do not change downstream behaviour or verification.",
+  standard:
+    "Be concise and complete, not near-exhaustive. State each material decision once with brief rationale, its main boundary or exception, and the verification consequence where relevant. Stop when downstream work can proceed without guessing; omit broad background, tutorials, long option catalogues, extensive examples, speculative branches, and comprehensive edge-case inventories unless they materially change a decision.",
+  exhaustive:
+    "Give deep treatment within the already agreed scope: cover material rationale, alternatives and trade-offs, assumptions, dependencies, scenarios, exceptions, failure and recovery behaviour, consequences, and verification. Do not pad, duplicate, speculate, add documents, or widen product direction merely to produce more content."
+});
 
 function readStdin() {
   try {
@@ -122,6 +138,13 @@ function settingsAreConfigured(settings) {
   );
 }
 
+function documentationDetailInstruction(settings) {
+  const mode = hasAllowedValue(settings, "verbosity_budget")
+    ? settings.verbosity_budget
+    : "standard";
+  return `Documentation detail is \`${mode}\`, read from the persistent \`_settings.yaml\` \`verbosity_budget\`. ${DOCUMENTATION_DETAIL_INSTRUCTIONS[mode]} This controls depth inside agreed outputs only; it never changes approved DNA document scope, material-risk coverage, factual confidence, verification quality, or the completion standard. Model capability, reasoning effort, context size, and available source volume do not authorize greater depth. During review, compress excess as well as filling material gaps.`;
+}
+
 function northStarStatus(content) {
   return (
     content.match(/^\s*status:\s*(shaping|agreed)\s*$/im)?.[1]?.toLowerCase() ||
@@ -138,6 +161,7 @@ function loadRuntime(adapterDirectory, payload = {}) {
     state: readJson(path.join(root, "_brainwave_state.yaml")),
     settings: readJson(path.join(root, "_settings.yaml")),
     manifest: readJson(path.join(root, "_manifest.yaml")),
+    implementationSpine: readJson(path.join(root, "_implementation.yaml")),
     seed: readText(path.join(root, "_my_brainwave_seed.md")),
     northStar: readText(path.join(root, "_my_brainwave_north_star.md"))
   };
@@ -147,25 +171,52 @@ function buildSessionContext(runtime) {
   const stage = runtime.state.stage || "awaiting_seed";
   if (stage === COMPLETE_STAGE) {
     const at = (artifact) => `\`${artifactPath(runtime.root, runtime.cwd, artifact)}\``;
-    const coverage = runtime.manifest?.delivery_alignment?.coverage || {};
-    const blocks = Array.isArray(runtime.manifest?.implementation?.blocks)
-      ? runtime.manifest.implementation.blocks
-      : [];
-    const attentionIds = blocks
-      .filter((block) => ["blocked", "invalid", "in_progress", "implemented"].includes(block.status))
-      .slice(0, 8)
-      .map((block) => block.id);
-    const coverageSummary = coverage.applicable
-      ? `Current DNA direction coverage is built ${coverage.built || 0}/${coverage.applicable} and checked ${coverage.checked || 0}/${coverage.applicable}, with ${coverage.blocked || 0} blocked.`
-      : "No applicable DNA blocks are currently indexed.";
-    return [
-      `_brainwave has accepted its foundation and ambient delivery alignment is active. Do not announce or restart the seven-stage workflow during ordinary development. Read ${at("_my_brainwave_north_star.md")} before project work and use ${at("_manifest.yaml")} as the compact DNA-block index.`,
-      `From the user's task, identify only the directly affected DNA blocks, then read their owning files in ${at("_documentation/")}. Before editing, move affected blocks to \`in_progress\` where appropriate. Before claiming work is complete, reconcile those blocks and record concise Implementation Evidence. Use \`implemented\` only when the direction exists with evidence; use \`verified\` only when Verification Evidence, Last checked, and Checked revision are recorded. Run \`node _brainwave/_engine/brainwave_runner.js refresh\` after updates.`,
-      "Treat semantic alignment as an evidence-backed assessment, not mathematical proof. Look for material divergence in user behaviour, product promises, data use, permissions, risk, launch dependencies, and system boundaries; do not attempt to map every implementation detail to DNA.",
-      `Never silently rewrite accepted direction to match the implementation. Editorial clarifications may update a block only when no reasonable downstream behaviour changes. For a user-approved local behavioural change, create a superseding block and retain the former block as a compact tombstone. Reopen the appropriate lifecycle stage when the North Star, relevant domains, or DNA document scope changes.`,
-      `${coverageSummary}${attentionIds.length ? ` Blocks currently needing attention include ${attentionIds.join(", ")}.` : ""}`,
+    const lines = [
+      `_brainwave has accepted its foundation; the eighth user-facing step, Deliver the implementation, and ambient delivery alignment are active. Do not announce or restart the seven-stage foundation workflow during ordinary development. DNA documents in ${at("_documentation/")} are the authority for direction; ${at("_implementation.yaml")} is the sole authority for delivery state and evidence.`,
+      `Read ${at("_my_brainwave_north_star.md")} before project work. Do not read the full DNA corpus. Use \`node _brainwave/_engine/brainwave_runner.js implementation-context\` to retrieve the current slice and only its owning DNA passages.`
+    ];
+    const spine = runtime.implementationSpine;
+    if (!spine?.schema_version) {
+      lines.push(
+        `The implementation spine has not been compiled. Before downstream product work, run \`node _brainwave/_engine/brainwave_runner.js implementation-compile\` (add \`--existing-build\` when adopting into an existing product), author the generated proposal from the North Star and project-specific outcome backbone, run \`implementation-synthesize <authored-by>\` and \`implementation-review\`, present the review, then obtain explicit user approval and run \`implementation-approve <approved-by>\`.`
+      );
+    } else if (spine.plan_status === "draft") {
+      const synthesisStatus = spine.planning?.synthesis_status || "unknown";
+      lines.push(`Implementation plan ${spine.plan_version || "unknown"} is still a draft at synthesis state ${synthesisStatus}. ${
+        synthesisStatus === "inventory_ready"
+          ? "Complete _implementation_proposal.yaml semantically; inspect current code and tests first when adoption mode is existing_build, then run implementation-synthesize <authored-by>."
+          : synthesisStatus === "proposal_ready"
+            ? "Run implementation-review and present _implementation_review.md to the user."
+            : "Present the current human-readable review and obtain explicit approval before running implementation-approve <approved-by>."
+      } Do not begin product implementation yet.`);
+    } else {
+      const payload = implementationContextPayload(spine, {
+        source: spine.source,
+        applicableBlockIds: Object.keys(spine.work_items || {})
+      });
+      if (runtime.manifest?.implementation?.source_stale) {
+        payload.source_stale = true;
+        payload.exact_next_command =
+          "Run implementation-compile, repeat synthesis and human review, and obtain approval before continuing.";
+      }
+      lines.push(formatGuardedImplementationContext(payload));
+      lines.push(
+        payload.source_stale || payload.validation_errors?.length
+          ? "Do not change product code until the implementation plan is current and structurally valid."
+          : "Work only on the active or recommended slice. Record implementation and verification evidence through the implementation commands, run the slice check, close it at a clean Git checkpoint, then request the next compact packet."
+      );
+    }
+    lines.push(
+      "Treat semantic alignment as an evidence-backed assessment, not mathematical proof. Keep technical health, product coverage, external gates, and release readiness separate."
+    );
+    lines.push(formatImplementationProgressPolicy(implementationProgressPolicy(runtime.settings)));
+    lines.push(
+      `Never silently rewrite accepted direction to match implementation. Editorial clarifications may update a block only when no reasonable downstream behaviour changes. For a user-approved local behavioural change, create a superseding block and recompile the spine. Reopen the appropriate lifecycle stage when the North Star, relevant domains, or DNA document scope changes.`
+    );
+    lines.push(
       `When the user asks about a release, pilot, major handoff, broad readiness, or overall alignment, recommend opening a fresh chat and give them this exact copyable prompt: ${FRESH_ALIGNMENT_REVIEW_PROMPT}`
-    ].join(" ");
+    );
+    return lines.join(" ");
   }
 
   const at = (artifact) => `\`${artifactPath(runtime.root, runtime.cwd, artifact)}\``;
@@ -193,16 +244,20 @@ function buildSessionContext(runtime) {
 
   if (!settingsConfigured) {
     lines.push(
-      `The profile is incomplete. Ask whether this is the user's first time with _brainwave before the other three concise profile questions. Map "Yes — guide me" to \`guided\` and "No — keep it concise" to \`concise\`, prefer the host's native structured-choice UI when available, and update ${at("_settings.yaml")} after the user answers. Immediately after that first answer, give the friendly dashboard introduction below before asking the other profile questions. Apply the selected working mode immediately. Do not infer profile values from keywords.`
+      `The profile is incomplete. Ask whether this is the user's first time with _brainwave before the other three concise profile questions. Map "Yes — guide me" to \`guided\` and "No — keep it concise" to \`concise\`, prefer the host's native structured-choice UI when available, and update ${at("_settings.yaml")} after the user answers. When asking documentation detail, describe \`lean\` as minimum sufficient, \`standard\` as concise and complete rather than near-exhaustive, and \`exhaustive\` as deep treatment within agreed scope. Immediately after that first answer, give the friendly dashboard introduction below before asking the other profile questions. Apply the selected working mode immediately and apply the selected documentation detail immediately. Do not infer profile values from keywords or model capability.`
     );
   } else if (guidanceMode === "guided") {
     lines.push(
-      `Guidance mode is \`guided\`. At the first orientation, status requests, and lifecycle approval points, show the compact seven-step journey defined in ${at("AGENTS.md")}; state the exact next action and explain the next unfamiliar term in one concise sentence. Mention ${at("_brainwave_handbook.md")} once near the start. Do not repeat the journey during routine shaping questions.`
+      `Guidance mode is \`guided\`. At the first orientation, status requests, and lifecycle approval points, show the compact eight-step journey defined in ${at("AGENTS.md")}; state the exact next action and explain the next unfamiliar term in one concise sentence. Mention ${at("_brainwave_handbook.md")} once near the start. Do not repeat the journey during routine shaping questions.`
     );
   } else {
     lines.push(
       "Guidance mode is `concise`. State the current step and immediate next action without the full journey block; explain a term only when needed for the decision."
     );
+  }
+
+  if (settingsConfigured) {
+    lines.push(documentationDetailInstruction(runtime.settings));
   }
 
   if (experienceRequired && !dashboardIntroduced) {

@@ -1,0 +1,180 @@
+    /* Step 8 deliberately reuses the DNA document-and-block visual grammar. */
+    .implementation-plan-note,
+    .implementation-action {
+      border: 1px solid var(--line-soft);
+      border-radius: 1.25rem;
+      background: rgba(255, 255, 255, 0.84);
+    }
+
+    .implementation-plan-note {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      padding: 14px 16px;
+    }
+    .implementation-plan-note > div { display: grid; gap: 4px; }
+    .implementation-plan-note strong { color: var(--ink-soft); font-size: 13px; }
+    .implementation-plan-note span,
+    .implementation-plan-note em { color: var(--muted); font-size: 12px; font-style: normal; }
+    .implementation-plan-note em { white-space: nowrap; }
+    .implementation-plan-note.attention { border-color: rgba(251, 113, 133, 0.45); }
+    .roadmap-review-link { color: #0e7490; font-size: 12px; font-weight: 750; text-decoration: none; }
+    .roadmap-review-link:hover { text-decoration: underline; }
+
+    .implementation-roadmap,
+    .roadmap-tracks { display: grid; gap: 22px; }
+
+    .implementation-roadmap .block-map-tools { margin: 0; }
+
+    .roadmap-track {
+      overflow: hidden;
+      border: 1px solid var(--line-soft);
+      border-radius: 1.15rem;
+      background: rgba(248, 250, 252, 0.6);
+    }
+    .roadmap-track-head {
+      margin: 0;
+      padding: 12px;
+      cursor: pointer;
+      list-style: none;
+    }
+    .roadmap-track-head::-webkit-details-marker { display: none; }
+    .roadmap-track-head:hover { background: rgba(255, 255, 255, 0.72); }
+    .roadmap-track[open] > .roadmap-track-head .chevron { transform: rotate(225deg) translate(-2px, -1px); }
+    .roadmap-track-head .roadmap-track-mark {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      font-size: 12px;
+    }
+    .roadmap-track.active .roadmap-track-mark {
+      border-color: rgba(34, 211, 238, 0.65);
+      background: rgba(236, 254, 255, 0.96);
+    }
+    .roadmap-track-head .module-section-title { font-size: 13px; }
+    .roadmap-track-head .module-section-count { font-size: 12px; }
+    .roadmap-track-reference { display: flex; gap: 12px; align-items: center; }
+    .roadmap-track-body {
+      position: relative;
+      padding: 0 12px 12px;
+    }
+    .roadmap-track-body::before {
+      position: absolute;
+      z-index: 0;
+      top: -18px;
+      left: 31px;
+      width: 2px;
+      height: 47px;
+      background: rgba(34, 211, 238, 0.52);
+      content: "";
+    }
+    .roadmap-slices {
+      position: relative;
+      display: grid;
+      gap: 0;
+    }
+    .roadmap-slice {
+      position: relative;
+      overflow: visible;
+      padding-top: 0;
+      border-top: 0;
+    }
+    .roadmap-slice:not(:last-child)::after {
+      position: absolute;
+      z-index: 0;
+      top: 29px;
+      bottom: -29px;
+      left: 19px;
+      width: 2px;
+      background: linear-gradient(rgba(34, 211, 238, 0.52), rgba(203, 213, 225, 0.88));
+      content: "";
+    }
+    .roadmap-slice-heading {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      min-height: 58px;
+      padding: 9px 0;
+      border-radius: 12px;
+      cursor: pointer;
+      list-style: none;
+      transition: background 150ms ease;
+    }
+    .roadmap-slice-heading:hover { background: rgba(248, 250, 252, 0.82); }
+    .roadmap-slice.active > .roadmap-slice-heading {
+      background: rgba(236, 254, 255, 0.76);
+    }
+    .roadmap-slice-heading::-webkit-details-marker { display: none; }
+    .roadmap-slice[open] > .roadmap-slice-heading .chevron { transform: rotate(225deg) translate(-2px, -1px); }
+    .roadmap-slice-heading .document-title { flex-wrap: wrap; font-size: 13px; }
+    .roadmap-slice-reference { display: flex; gap: 12px; align-items: center; }
+    .roadmap-slice-reference .document-id { font-size: 11px; }
+    .roadmap-slice-ring.block-progress-ring {
+      z-index: 1;
+      width: 40px;
+      height: 40px;
+      font-size: 10px;
+    }
+    .roadmap-slice-ring.block-progress-ring.complete { font-size: 13px; }
+    .roadmap-slice-ring.block-progress-ring::before { inset: 6px; }
+
+    .roadmap-state {
+      color: var(--muted);
+      font-size: 12px;
+      font-style: normal;
+      font-weight: 650;
+    }
+    .roadmap-state.active,
+    .roadmap-state.ready { color: #0e7490; }
+    .roadmap-state.complete { color: #047857; }
+    .roadmap-state.waiting,
+    .roadmap-state.muted { color: var(--muted); }
+
+    .roadmap-slice-body {
+      display: grid;
+      gap: 16px;
+      padding: 5px 0 16px 52px;
+    }
+    .roadmap-dna-map { display: grid; gap: 14px; }
+    .roadmap-dna-document {
+      padding-top: 0;
+      border-top: 0;
+    }
+    .roadmap-document-heading {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 16px;
+      align-items: center;
+      width: 100%;
+      min-height: 44px;
+      padding: 4px 2px;
+      border: 0;
+      border-radius: 10px;
+      background: transparent;
+      cursor: pointer;
+      text-align: left;
+    }
+    .roadmap-document-heading:hover { background: rgba(248, 250, 252, 0.82); }
+    .roadmap-document-heading:hover .document-title { color: #0e7490; }
+    .roadmap-document-heading .document-title { font-size: 13px; }
+    .roadmap-document-heading .document-id { font-size: 11px; }
+
+    .roadmap-dna-block { min-height: 78px; }
+    .roadmap-dna-block .block-slice { font-size: 11px; }
+    .roadmap-dna-block .block-title { font-size: 13px; }
+    .implementation-action {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px 18px;
+      align-items: center;
+      padding: 15px 16px;
+    }
+    .implementation-action h3 { margin: 0; color: var(--ink-soft); font-size: 13px; }
+    .implementation-action small { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; }
+    .implementation-action .alignment-prompt { grid-column: 1 / -1; }
+    .implementation-action .alignment-prompt summary,
+    .implementation-action .alignment-prompt > div { font-size: 12px; }
+    .implementation-action .copy-review-prompt { min-height: 44px; font-size: 12px; }
+    .implementation-action .copy-review-status { font-size: 12px; }

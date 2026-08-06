@@ -1,0 +1,95 @@
+
+    /* Foundation */
+    :root {
+      color-scheme: light;
+      --ink: #0f172a;
+      --ink-soft: #334155;
+      --muted: #64748b;
+      --faint: #94a3b8;
+      --line: rgba(203, 213, 225, 0.72);
+      --line-soft: rgba(226, 232, 240, 0.78);
+      --surface: rgba(255, 255, 255, 0.88);
+      --surface-solid: #ffffff;
+      --surface-muted: rgba(248, 250, 252, 0.82);
+      --cyan: #06b6d4;
+      --cyan-soft: rgba(207, 250, 254, 0.78);
+      --emerald: #059669;
+      --emerald-soft: rgba(209, 250, 229, 0.74);
+      --amber: #d97706;
+      --amber-soft: rgba(254, 243, 199, 0.76);
+      --sky: #0284c7;
+      --sky-soft: rgba(224, 242, 254, 0.8);
+      --rose: #e11d48;
+      --rose-soft: rgba(255, 228, 230, 0.76);
+      --slate-soft: rgba(241, 245, 249, 0.82);
+      --shadow-hub: 0 24px 60px rgba(15, 23, 42, 0.14);
+      --shadow-active: 0 18px 44px rgba(15, 23, 42, 0.09);
+      --shadow-float: 0 24px 80px rgba(15, 23, 42, 0.18);
+      --radius-hub: 2rem;
+      --radius-card: 1.65rem;
+      --journey-rail-x: 1.48rem;
+      --journey-node-center: 39px;
+      --journey-connector-end: -52px;
+      --sidecar-title: 24px;
+      --sidecar-section: 14px;
+      --sidecar-body: 12px;
+      --sidecar-meta: 10px;
+      --sidecar-id: 11px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      min-height: 100%;
+      background: #e2e8f0;
+      overflow-y: scroll;
+      scrollbar-gutter: stable;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 50% 0%, rgba(224, 242, 254, 0.92), rgba(248, 250, 252, 0.96) 38rem, rgba(226, 232, 240, 0.86) 100%),
+        linear-gradient(180deg, #f8fafc 0%, #fff 100%);
+      font: 15px/1.55 "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body::before,
+    body::after {
+      position: fixed;
+      z-index: -1;
+      width: 28rem;
+      height: 28rem;
+      border-radius: 50%;
+      content: "";
+      filter: blur(1px);
+      pointer-events: none;
+    }
+
+    body::before {
+      top: -15rem;
+      left: -11rem;
+      background: radial-gradient(circle, rgba(165, 243, 252, 0.26), transparent 68%);
+    }
+
+    body::after {
+      right: -12rem;
+      bottom: -17rem;
+      background: radial-gradient(circle, rgba(186, 230, 253, 0.24), transparent 70%);
+    }
+
+    button,
+    a { font: inherit; }
+
+    button { color: inherit; }
+
+    button:focus-visible,
+    a:focus-visible {
+      outline: 3px solid rgba(34, 211, 238, 0.3);
+      outline-offset: 3px;
+    }
+
+    [hidden] { display: none !important; }

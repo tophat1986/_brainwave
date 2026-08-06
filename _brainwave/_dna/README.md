@@ -52,15 +52,15 @@ Cross-cutting concerns such as accessibility, internationalisation, privacy, mob
 
 A DNA block is one coherent direction, obligation, or verifiable rule inside a document. Blocks are the smallest traceable units; there is no separate implementation-ID system or implementation log.
 
+Document maturity is recorded once in the document header as `Documentation status: not_started`, `in_progress`, or `complete`. That field describes whether the specification is unwritten, being written, or authoring-complete and ready for foundation review; it never describes downstream implementation. Only the lifecycle state `brainwave_documentation_complete` means the reviewed foundation has been explicitly accepted.
+
 An active block uses:
 
 ```markdown
 ### _DNA-CODE-00302.01 - Clear block title
 
-Status: not_started
+Direction status: active
 Supersedes: none
-Last checked: not yet
-Checked revision: none
 
 #### Context
 #### Direction
@@ -69,41 +69,35 @@ Checked revision: none
 #### Consequences
 #### Future Fit
 #### Verification
-#### Implementation Evidence
-#### Verification Evidence
 ```
 
 The headings prompt deliberate thinking without prescribing domain-specific answers. Write `Not applicable — <reason>` where a consideration genuinely does not apply; do not add filler.
 
-Implementation status is one of:
+Direction status is one of:
 
-- `not_started`
-- `in_progress`
-- `implemented`
-- `verified`
-- `blocked`
+- `active`
 - `not_applicable`
 - `superseded`
 
-`verified` means the direction has been implemented and checked. `implemented` means the change exists but its verification is not complete.
+DNA documents own accepted direction, not delivery progress. After the foundation is accepted, `_implementation.yaml` owns the implementation sequence, the states `not_started`, `in_progress`, `implemented`, `verified`, `blocked`, and `deferred`, concise evidence, checked time, and checked Git revision. These identically named early states are scoped to work items in the sidecar and cannot change document maturity. The manifest and dashboard derive visibility from that sidecar.
 
-`implemented` requires concise, inspectable Implementation Evidence. `verified` additionally requires Verification Evidence, `Last checked`, and `Checked revision`. These fields contain only useful current evidence, not a chronological activity log. Use `Not yet recorded.` while evidence is pending. Semantic alignment remains an agent assessment supported by evidence; the engine validates the contract and recorded proof but cannot mechanically prove that the implementation satisfies the direction.
+Counts derived from applicable blocks express **DNA direction coverage**, not effort remaining, time-to-finish, overall product completion, or release readiness. `superseded` and explicitly justified `not_applicable` direction are excluded from applicable coverage; implementation blockers and external gates remain visible regardless of the coverage percentage.
 
-During ordinary downstream work, identify and update only the blocks directly affected by the task. Counts derived from applicable blocks express **DNA direction coverage**, not effort remaining, time-to-finish, overall product completion, or release readiness. `superseded` and explicitly justified `not_applicable` blocks are excluded from applicable coverage; open blockers remain visible regardless of the coverage percentage.
+`_settings.yaml` `implementation_progress_updates` is communication policy, not another status system. Its `silent`, `track`, and `slice` values decide when informational implementation updates are given; they never change document maturity, direction validity, work-item state, or automatic continuation through eligible work.
 
 When direction materially changes, add the next block, set its `Supersedes` field to the previous block, and turn the old block into a compact tombstone:
 
 ```markdown
 ### _DNA-CODE-00302.01 - Former direction
 
-Status: superseded
+Direction status: superseded
 Superseded by: _DNA-CODE-00302.02
 Former direction: One concise sentence preserving what changed.
 ```
 
 Git preserves the full history; the current document preserves only enough lineage for an agent to understand why the inactive block remains.
 
-After documentation completion, an editorial clarification may update an active block only when no reasonable implementation behaviour could change. A local behavioural change requires an explanation, explicit user approval, and a superseding block. Reopen the appropriate _brainwave lifecycle stage when the North Star, relevant domains, or DNA document scope changes. Never silently rewrite accepted direction to make divergent implementation appear aligned, and do not add per-block changelog sections beside the supersession lineage.
+After documentation completion, an editorial clarification may update an active block only when no reasonable implementation behaviour could change. A local behavioural change requires an explanation, explicit user approval, and a superseding block followed by implementation-spine recompilation. Reopen the appropriate _brainwave lifecycle stage when the North Star, relevant domains, or DNA document scope changes. Never silently rewrite accepted direction to make divergent implementation appear aligned, and do not add per-block changelog sections beside the supersession lineage.
 
 ## Boundary
 

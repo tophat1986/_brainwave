@@ -16,11 +16,13 @@ _brainwave turns an original idea into an agreed North Star and a proportionate 
 
 A completed _brainwave returns to `shaping_north_star` when direction changes, `selecting_dna` when the relevant domains change, or `scoping_brainwave_documentation` when only DNA document scope changes.
 
+The dashboard extends these seven foundation stages with an eighth user-facing step, **Deliver the implementation**. It is derived from `_implementation.yaml`, not stored as another lifecycle state.
+
 ## Guidance Modes
 
 During onboarding, _brainwave asks whether to use:
 
-- `guided` — concise stage signposting, a seven-step journey at orientation and approval points, plain-language explanations of unfamiliar terms, and early links to this handbook and `_dashboard.html`
+- `guided` — concise stage signposting, an eight-step journey at orientation and approval points, plain-language explanations of unfamiliar terms, and early links to this handbook and `_dashboard.html`
 - `concise` — the current step and immediate next action, with more explanation only when needed or requested
 
 Everyone receives one short, friendly dashboard introduction near the start. Guided mode adds the fuller journey; concise mode keeps the introduction to a sentence.
@@ -36,6 +38,7 @@ The user-facing journey is:
 5. Build DNA documentation.
 6. Review the foundation.
 7. Ready for implementation.
+8. Deliver the implementation.
 
 ## Working Modes
 
@@ -45,6 +48,26 @@ Working mode changes how _brainwave shapes direction, not its quality or approva
 - `fast_execution` — proposes the strongest supported direction directly, uses reversible working assumptions, and limits questions or alternatives to material decisions.
 
 Guidance mode controls process explanation. Working mode controls decision collaboration. Detail level controls depth.
+
+## Documentation Detail
+
+The selected documentation detail lives in `_settings.yaml` as `verbosity_budget` and remains in force until the user changes it. It controls depth inside working outputs and the DNA documents already agreed during scoping:
+
+- `lean` — minimum sufficient: compact decisions, essential boundaries, material unknowns, and the smallest useful verification criteria; no generic background, tutorials, decorative examples, or speculative branches
+- `standard` — concise and complete: each material decision once, with brief rationale, the main boundary or exception, and verification implications where useful; no long option catalogues or comprehensive edge-case inventories unless they change the decision
+- `exhaustive` — deep treatment within the agreed scope: material trade-offs, assumptions, dependencies, scenarios, exceptions, failure and recovery behaviour, consequences, and verification, without padding or duplication
+
+Detail is separate from scope and quality. It does not add DNA documents, widen product direction, reduce material-risk coverage, or change what “complete” and verifiable mean. A more capable model or larger context window must still honour the selected depth. During review, _brainwave removes avoidable excess as well as identifying gaps; `standard` is not a softened version of `exhaustive`.
+
+## Implementation Progress Updates
+
+Implementation progress updates begin only after the foundation is accepted and the eighth step, **Deliver the implementation**, is active. They do not control how often _brainwave discusses or drafts DNA documentation.
+
+- `silent` — no routine implementation updates; report stale or invalid authority, required safety authorization, when required input, approval, access, an unresolved blocker, or an external gate leaves no other safe eligible work, and when the approved plan is complete.
+- `track` — the default goal-level cadence; report when every slice in an approved implementation track is `verified`, plus the required updates above.
+- `slice` — report whenever an implementation slice closes, plus the required updates above.
+
+The preference lives in `_settings.yaml` as `implementation_progress_updates` and may be changed at any time. Every mode continues automatically across eligible work. A progress update is never a request for permission to start the next slice or track, and a held slice does not stop unrelated eligible work.
 
 ## Providing the Seed
 
@@ -114,7 +137,19 @@ _DNA-SAPP-00302           document
 _DNA-SAPP-00302.01        block
 ```
 
-The minimum DNA block contract, implementation statuses, and supersession rules live in `_dna/README.md`.
+The DNA document-maturity contract, block direction statuses, implementation-spine states, and supersession rules live in `_dna/README.md`.
+
+The status boundaries are deliberately separate:
+
+| Concern | Authority | States or values | Meaning |
+|---|---|---|---|
+| Foundation lifecycle | `_brainwave_state.yaml` | seven lifecycle stages | Where the idea-to-documentation foundation currently is |
+| Document maturity | DNA document header | `not_started`, `in_progress`, `complete` | Whether the specification is unwritten, being written, or ready for foundation review |
+| Direction validity | DNA block | `active`, `not_applicable`, `superseded` | Whether an accepted direction currently governs the project |
+| Implementation plan | `_implementation.yaml` | `draft`, `approved`, `active`, `complete` | Whether the delivery plan is being prepared, approved, underway, or finished |
+| Implementation slice | `_implementation.yaml` | `queued`, `ready`, `active`, `implemented`, `verified`, `blocked`, `deferred` | The state of one coherent implementation outcome |
+| Implementation work item | `_implementation.yaml` | `not_started`, `in_progress`, `implemented`, `verified`, `blocked`, `deferred` | Delivery state and evidence for one applicable DNA block |
+| Implementation communication | `_settings.yaml` | `silent`, `track`, `slice` | When informational progress updates are given; never delivery state |
 
 ## Project Placement
 
@@ -131,7 +166,7 @@ project-root/
 `-- app/
 ```
 
-The implementation may use another folder name. Keep it in the same repository as `_brainwave` so direction, documentation, implementation, and Git history travel together.
+The implementation may use another folder name. Keep it in the same repository as `_brainwave` so direction, documentation, implementation, and Git history travel together. When the product takes ownership of root package metadata, update the package identity explicitly while preserving required `_brainwave` commands and bridges; do not treat that as permission to rename the repository folder or Git remote.
 
 For a new project, use GitHub's **Use this template** action on the complete release repository. A normal clone retains the upstream _brainwave remote and must be repointed before product work. The root README and package metadata begin as framework onboarding and tooling; the project may replace them while retaining a signpost to this handbook.
 
@@ -173,17 +208,18 @@ It shows:
 
 - a focused project overview with the current name, short description or tagline, logo, and colour direction when available
 - a complete, friendly view of the user's setup choices, project basics, and getting-started checkpoints
-- a seven-stage vertical journey, with completed stages collapsed and the current stage in focus
+- an eight-step vertical journey: seven foundation stages followed by active implementation delivery
 - in-dashboard previews of the seed, North Star, decisions, handbook, and expressed documents
 - the installed DNA Library, including each module's full DNA document catalogue before a concept is selected
 - document and DNA-block progress using canonical IDs and expandable block-level detail
-- after foundation acceptance, a **Staying aligned** view showing built, checked, underway, and blocked DNA direction coverage together with the latest fresh-context review
+- after foundation acceptance, an active **Implementation** step showing the proposed or approved tracks and slices, their outcomes, sequence, dependencies, gates, acceptance checks, context size, and progressively disclosed DNA mappings
+- built, checked, underway, and blocked DNA direction coverage together with the latest fresh-context review
 - a copyable fresh-context review prompt at the point where a release, pilot, major handoff, or broad readiness review becomes useful
 - a quiet project-state view for technical provenance without placing it in the main journey
 
 The interface is intentionally presentation-led: icons, state, sequence, and visual placeholders do most of the explanatory work. Source links remain available inside previews for users who want to work directly with the files.
 
-The dashboard is derived, not authoritative. `_dna/` owns module definitions, `_brainwave_state.yaml` owns selection, the decisions log owns material rationale, and DNA documents own block status. `_manifest.yaml` supplies the embedded dashboard snapshot.
+The dashboard is derived, not authoritative. `_dna/` owns module definitions, `_brainwave_state.yaml` owns selection, the decisions log owns material rationale, DNA documents own accepted direction, and `_implementation.yaml` owns delivery state and evidence. `_manifest.yaml` supplies the embedded dashboard snapshot.
 
 Refresh it from the project root:
 
@@ -197,13 +233,33 @@ After completing a fresh-context review, record its result and reviewed Git revi
 node _brainwave/_engine/brainwave_runner.js alignment-review <aligned|needs_attention|blocked> <revision>
 ```
 
-An `aligned` result is accepted only when every applicable DNA block is verified and no block is blocked or invalid.
+An `aligned` result is accepted only when the implementation spine is current and complete, every applicable DNA block is verified, and no block is blocked or invalid.
 
 ## Ambient Delivery Alignment
 
 `brainwave_documentation_complete` automatically enters ambient delivery alignment. This is not an eighth lifecycle stage and is not a user setting. Passive means _brainwave stops initiating foundation ceremony; it does not mean the accepted direction becomes invisible or optional.
 
-For ordinary implementation, the agent reads the North Star, uses `_manifest.yaml` as a compact block index, identifies only the DNA blocks directly affected by the task, reads their owning documents, and reconciles their status and evidence before claiming completion. `implemented` requires current Implementation Evidence. `verified` additionally requires Verification Evidence, `Last checked`, and `Checked revision`.
+At foundation acceptance, run `implementation-compile`. Add `--existing-build` when adopting the spine into a repository where product work is already underway. Compilation inventories every applicable current DNA block into draft `_implementation.yaml` and writes `_implementation_proposal.yaml`; it deliberately creates no slices because the deterministic engine cannot interpret product meaning.
+
+Slice synthesis is a first-class planning step. An agent reads the North Star and discovers the project-specific documents that provide an outcome backbone—such as critical journeys, capability or outcome priorities, delivery phases, acceptance criteria, architecture boundaries, and risk or external-gate direction. These roles are semantic and data-driven; no DNA IDs are hardcoded. DNA documents remain direction authority and DNA blocks remain the atomic traceability items, but document boundaries do not automatically become slice boundaries.
+
+The agent completes only `_implementation_proposal.yaml`. A normal slice must express one coherent observable outcome. A dedicated `foundation` or `external_gate` slice is allowed only with a recorded justification. The proposal gives every slice an explicit working order, dependencies, blocking gates, and acceptance checks; maps every applicable block to exactly one `primary_slice`; and uses `applies_to` for cross-cutting direction that governs additional slices without duplicating ownership.
+
+Every slice must fit a bounded execution context. `_brainwave` measures primary and cross-cutting blocks, unique documents, and the formatted context packet during synthesis and review. Each `applies_to` link must be semantically necessary. Early thresholds prompt refinement; hard limits prevent approval and have no ordinary override, so an oversized slice must be split or narrowed.
+
+For existing-build adoption, the synthesis pass also inspects the current code, tests, and representative rendered journeys. Each block receives a planning assessment of absent, partial, apparently implemented, or apparently verified with inspectable references where applicable. These assessments inform grouping and order but do not count as delivery evidence; guarded evidence commands still establish implementation coverage.
+
+Run `implementation-synthesize <authored-by>` to import and validate the proposal into the command-owned spine. Run `implementation-review` to create `_implementation_review.md`, then present that review to the user. It explains the outcome grouping, ownership, cross-cutting links, order, dependencies, gates, checks, and existing-build snapshot, plus exactly what approval means. `implementation-approve` rejects a plan until that exact proposal fingerprint has been reviewed. Status counters alone are never a sufficient approval request.
+
+`_implementation_proposal.yaml` is the agent-authored draft input. `_implementation.yaml` remains the sole authority and is command-owned: agents do not directly edit delivery states, evidence, holds, approval, revisions, audit fields, or a sealed proposal.
+
+For ordinary implementation, `implementation-context` returns a bounded packet containing the previous result, active or next slice, relevant DNA IDs and owning paths, dependencies, gates, acceptance checks, coverage, and exact next command. The agent reads only those DNA passages, works on one slice, records concise evidence through guarded commands, closes a clean Git checkpoint, then asks for the next packet. `implemented` requires current implementation evidence. `verified` additionally requires verification evidence, check time, and checked revision.
+
+The same packet carries the current `implementation_progress_updates` policy. `silent`, `track`, and `slice` change only when the user receives an informational update. They never change plan approval, evidence requirements, state transitions, or automatic continuation through eligible work.
+
+The checked behaviour must already exist at the current Git revision before the agent records `verified`; this prevents the evidence from pointing to an earlier build. The resulting spine and derived-state mutation is then committed before another slice begins.
+
+A blocked or deferred slice stays out of automatic next-slice selection. Once its recorded `reopen_when` condition is observably met, the agent may explicitly start that slice again; its hold remains visible until new evidence advances the affected work item.
 
 Alignment is an evidence-backed semantic assessment rather than mathematical proof. The engine can validate identities, states, evidence fields, and review metadata; the agent still judges which blocks are relevant and whether the inspected behaviour appears to satisfy them. A material-divergence scan focuses on consequential user behaviour, product promises, data use, permissions, risk, launch dependencies, and system boundaries rather than attempting to map every implementation detail to DNA. Human or qualified specialist judgement remains necessary where the decision requires it.
 
@@ -217,7 +273,7 @@ Counts are primary and percentages secondary. They describe coverage of document
 
 Before a release, pilot, major handoff, broad readiness claim, or overall alignment assessment, open a new chat and use the exact fresh-context review prompt provided in the dashboard. A separate chat reduces anchoring and creates an inspectable review transcript, but it is still a fresh-context model review rather than an independent professional audit.
 
-DNA documents remain controlled living specifications. An editorial clarification may update a block only when no reasonable downstream behaviour could change. When implementation learning produces a local behavioural change without changing the North Star, relevant domains, or document scope, the agent explains the conflict, proposes the new direction, obtains explicit user approval, creates a superseding block, and retains the former block as a compact tombstone. Reopen the existing lifecycle at the appropriate stage when the North Star, module selection, or document scope changes. Git and supersession preserve lineage; do not add chronological changelog sections to each block.
+DNA documents remain controlled living specifications. An editorial clarification may update a block only when no reasonable downstream behaviour could change. When implementation learning produces a local behavioural change without changing the North Star, relevant domains, or document scope, the agent explains the conflict, proposes the new direction, obtains explicit user approval, creates a superseding block, retains the former block as a compact tombstone, then recompiles and reviews the spine. Reopen the existing lifecycle at the appropriate stage when the North Star, module selection, or document scope changes. Git and supersession preserve lineage; do not add chronological changelog sections to each block.
 
 ## Bundled DNA
 
@@ -252,7 +308,7 @@ The library direction is concentric rather than monolithic. A venture-building e
 - Obtain explicit user agreement before recording DNA module selection or DNA document scope.
 - Keep DNA definitions unchanged during a project. Project selection belongs in `_brainwave_state.yaml`.
 - Record a decision in its owning DNA block or ADR, not in the seed or a duplicate ledger.
-- After DNA documentation is complete, use ambient delivery alignment and update only the status and concise current evidence of blocks affected by downstream work.
+- After DNA documentation is complete, use the implementation spine for sequence, delivery status, evidence, and compact cross-context handoff. Do not put delivery state back into DNA documents.
 - Never silently rewrite accepted DNA direction to match implementation. Use user-approved supersession for a local behavioural change, and reopen the appropriate lifecycle stage when the North Star, relevant domains, or DNA document scope changes.
 - Describe built and checked block counts as DNA direction coverage, never as overall product completion or release readiness.
 - Recommend the dashboard's copyable fresh-context review prompt before releases, pilots, major handoffs, broad readiness claims, and overall alignment assessments.
@@ -277,6 +333,10 @@ Project-owned files must never be overwritten by an update:
 - `_assets/`
 - `_decisions_log.md`
 - `_documentation/`
+- `_implementation_proposal.yaml`
+- `_implementation.yaml`
+- `_implementation_review.md`
+- `_implementation_audit.md`
 
 `_manifest.yaml` and the state embedded in `_dashboard.html` are derived and may be regenerated. Root bridges and hook configurations are merged rather than replaced.
 
@@ -286,4 +346,4 @@ Until an automated updater exists, update framework-owned files only and run `in
 
 `brainwave_documentation_complete` means the initial DNA documentation foundation has been accepted. It does not mean the resulting product or brand has been implemented.
 
-At this stage, _brainwave stops announcing or initiating its foundation workflow during ordinary development and enters ambient delivery alignment. The relevant DNA blocks remain lightweight traceability anchors: downstream agents update a block from `not_started` through `implemented` and `verified`, record concise current evidence, or mark it `blocked`, `not_applicable`, or `superseded` when appropriate. The dashboard turns these exact block states into honest DNA direction coverage and provides the fresh-context review journey when broader assurance is needed.
+At this stage, _brainwave stops announcing or initiating its foundation workflow during ordinary development and enters ambient delivery alignment. DNA blocks remain lightweight direction and traceability anchors. `_implementation.yaml` maps every applicable block to a coherent slice and owns the states `not_started`, `in_progress`, `implemented`, `verified`, `blocked`, and `deferred`. The dashboard derives honest direction coverage and provides the fresh-context review journey when broader assurance is needed.

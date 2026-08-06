@@ -1,0 +1,93 @@
+<!doctype html>
+<!-- Generated from the ordered sources in _engine/dashboard/. Do not edit _dashboard.html directly. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>_brainwave</title>
+  <style>{{BRAINWAVE_STYLES}}</style>
+</head>
+<body>
+  <div class="shell">
+    <header class="hub">
+      <div class="brand">
+        <div class="brand-mark" aria-label="_brainwave"><span class="brand-underscore">_</span><span class="brand-word">brainwave</span></div>
+      </div>
+
+      <div class="view-switch" role="tablist" aria-label="Dashboard view">
+        <button class="view-tab" type="button" role="tab" aria-selected="true" aria-controls="journey-view" data-view="journey">Your brainwave</button>
+        <button class="view-tab" type="button" role="tab" aria-selected="false" aria-controls="library-view" data-view="library" tabindex="-1">DNA Library</button>
+      </div>
+
+      <nav class="utilities" aria-label="Dashboard tools">
+        <button class="icon-button" type="button" data-action="search" aria-label="Search dashboard">
+          <span class="ui-icon search" aria-hidden="true"></span><span class="tip">Search</span>
+        </button>
+        <button class="icon-button" type="button" data-action="decisions" aria-label="Decision history">
+          <span class="ui-icon history" aria-hidden="true"></span><span class="tip">Decisions</span>
+        </button>
+        <button class="icon-button" type="button" data-action="handbook" aria-label="Open handbook">
+          <span class="ui-icon book" aria-hidden="true"></span><span class="tip">Handbook</span>
+        </button>
+        <button class="icon-button" type="button" data-action="state" aria-label="Project state">
+          <span class="ui-icon state" aria-hidden="true"></span><span class="tip">State</span>
+        </button>
+        <button class="icon-button" type="button" data-action="refresh" aria-label="Reload dashboard snapshot">
+          <svg class="ui-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.34 5.66" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M20 4v7h-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="tip">Reload</span>
+        </button>
+      </nav>
+    </header>
+
+    <main>
+      <section id="journey-view" aria-labelledby="journey-title">
+        <div class="view-heading">
+          <div>
+            <h1 id="journey-title">Your brainwave</h1>
+            <p id="journey-summary">One clear path from an idea to a build-ready foundation.</p>
+          </div>
+          <div class="snapshot" id="snapshot"></div>
+        </div>
+        <section class="project-overview" id="project-overview" aria-label="Project overview"></section>
+        <div class="journey" id="journey"></div>
+      </section>
+
+      <section id="library-view" aria-labelledby="library-title" hidden>
+        <div class="view-heading">
+          <div>
+            <h1 id="library-title">DNA Library</h1>
+            <p>Explore installed DNA modules and the DNA documents available to your project.</p>
+          </div>
+        </div>
+        <div class="library-grid" id="library"></div>
+      </section>
+    </main>
+
+    <footer class="page-footer">
+      <span class="footer-version">_brainwave <span id="framework-version">v0.1.0</span></span>
+      <nav class="footer-links" aria-label="_brainwave links">
+        <a href="https://github.com/tophat1986/_brainwave" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://github.com/tophat1986/_brainwave/issues" target="_blank" rel="noopener">Feedback</a>
+      </nav>
+    </footer>
+  </div>
+
+  <div class="scrim" id="scrim" data-action="close-inspector" aria-hidden="true"></div>
+  <aside class="inspector" id="inspector" role="dialog" aria-modal="true" aria-labelledby="inspector-title" aria-hidden="true">
+    <header class="inspector-head">
+      <button class="back-button" type="button" data-action="inspector-back" aria-label="Back" hidden>←</button>
+      <div class="inspector-heading">
+        <div class="inspector-eyebrow" id="inspector-eyebrow"></div>
+        <h2 class="inspector-title" id="inspector-title"></h2>
+        <div class="inspector-meta" id="inspector-meta"></div>
+      </div>
+      <button class="close-button" type="button" data-action="close-inspector" aria-label="Close preview">×</button>
+    </header>
+    <div class="inspector-body" id="inspector-body"></div>
+    <footer class="inspector-foot" id="inspector-foot"></footer>
+  </aside>
+
+  <script id="brainwave-state" type="application/json">{{BRAINWAVE_STATE}}</script>
+  <script>{{BRAINWAVE_APP}}</script>
+</body>
+</html>

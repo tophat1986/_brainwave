@@ -10,7 +10,7 @@ AI agents can turn a prompt into a working application remarkably quickly, but t
 
 _brainwave calls its documentation system **DNA**. A **DNA module** is a versioned catalogue for one domain, containing possible **DNA documents**. Each document records its directions as traceable **DNA blocks**. A project uses only the modules and documents it genuinely needs.
 
-The idea moves through seven stages:
+The user journey has eight steps. The first seven establish the accepted foundation; the eighth keeps implementation actively sequenced and checked against it:
 
 1. **Capture the idea** — preserve the original concept as the immutable _brainwave Seed.
 2. **Agree the direction** — shape and approve the living North Star.
@@ -19,8 +19,9 @@ The idea moves through seven stages:
 5. **Build DNA documentation** — write the selected documents and their traceable DNA blocks.
 6. **Review the foundation** — resolve gaps, conflicts, and readiness concerns.
 7. **Ready for implementation** — give the agreed foundation to the agents that will build the project.
+8. **Deliver the implementation** — work through approved outcome slices, evidence, checks, dependencies, and external gates.
 
-The AI agent provides the judgment: it interprets the concept, asks material questions, and develops the foundation with the user. The local engine preserves the process, identities, versions, and agreed scope. Once the foundation is accepted, _brainwave becomes passive while the North Star and DNA documentation continue guiding implementation.
+The AI agent provides the judgment: it interprets the concept, asks material questions, and develops the foundation with the user. The local engine preserves the process, identities, versions, and agreed scope. Once the foundation is accepted, the seven-stage foundation lifecycle becomes passive while the eighth dashboard step presents the implementation spine that keeps delivery aligned.
 
 Discovery is progressive rather than a long setup form. The agent interprets what is already known, asks one to three high-leverage questions at a time, and uses early answers about intended outcome, users, reach, platforms, languages, risk, operations, and business intent to route only the follow-ups that matter. A smaller build has a narrower boundary, not a lower quality floor.
 
@@ -63,6 +64,8 @@ When an idea materially needs one of those uninstalled specialist owners, _brain
 ## Which model should I use?
 
 Use the smartest, most capable model available while shaping the North Star and developing the DNA documentation. This stage carries the most ambiguity and requires the strongest reasoning, so it is the wrong place to optimise for cost.
+
+Model capability does not set documentation length. The persistent `_settings.yaml` `verbosity_budget` does: `lean` means minimum sufficient, `standard` means concise and complete rather than near-exhaustive, and `exhaustive` means deep treatment only within the agreed scope. Every level keeps the same material-risk, accuracy, verification, and completion standards.
 
 Once the foundation is agreed, implementation can often move to a more cost-effective capable model because the agent is following documented decisions rather than repeatedly guessing at intent.
 
@@ -216,11 +219,13 @@ _DNA-SAPP-00302
 _DNA-SAPP-00302.01
 ```
 
-The final decimal position identifies a DNA block inside a document. That same block carries its downstream implementation status and concise current evidence, so there is no parallel task-ID system or duplicate implementation log.
+The final decimal position identifies a DNA block inside a document. The block remains the stable traceability identity and source of accepted direction. `_implementation.yaml` references those same IDs and is the separate single source of implementation sequence, status, and concise current evidence; no second task-ID system is introduced.
 
-After the foundation is accepted, _brainwave enters ambient delivery alignment. It remains passive as a lifecycle while downstream agents quietly identify the blocks affected by their work, reconcile them before claiming completion, and keep the dashboard's built and checked DNA direction coverage current. Before a release, pilot, major handoff, broad readiness claim, or overall alignment review, the dashboard provides the exact prompt for opening a separate fresh-context review chat.
+After the foundation is accepted, _brainwave compiles an unmapped DNA-block inventory rather than pretending document boundaries are implementation slices. An AI planning pass uses the North Star and project-specific journey, priority, delivery, acceptance, architecture, and gate direction to author a hybrid outcome-led proposal; existing products also receive a code-and-test reconciliation pass. The engine imports and validates that proposal, generates a human-readable review, and permits approval only after that exact review. Agents then work through one coherent slice at a time, retrieve only its referenced DNA passages, persist evidence outside their context window, and reconstruct previous, current, and next work with one command.
 
 DNA direction coverage is deliberately narrower than a project-completion estimate: it counts applicable documented directions that are built or checked, while blockers remain visible separately. It does not claim to measure effort remaining, time-to-finish, or release readiness.
+
+Implementation communication is a separate preference in `_settings.yaml`: `implementation_progress_updates` may be `silent`, `track` (the default goal-level cadence), or `slice`. It applies only during **Deliver the implementation**. Every mode continues automatically across eligible work; progress updates never become permission checkpoints.
 
 ## Commands
 
@@ -232,6 +237,18 @@ node _brainwave/_engine/brainwave_runner.js unintegrate
 node _brainwave/_engine/brainwave_runner.js dna
 node _brainwave/_engine/brainwave_runner.js status
 node _brainwave/_engine/brainwave_runner.js refresh
+node _brainwave/_engine/brainwave_runner.js implementation-compile [--existing-build]
+node _brainwave/_engine/brainwave_runner.js implementation-synthesize <authored-by> [proposal-path]
+node _brainwave/_engine/brainwave_runner.js implementation-review
+node _brainwave/_engine/brainwave_runner.js implementation-approve <approved-by>
+node _brainwave/_engine/brainwave_runner.js implementation-context [--json]
+node _brainwave/_engine/brainwave_runner.js implementation-start <slice-id>
+node _brainwave/_engine/brainwave_runner.js implementation-record <block-id> <implemented|verified> <kind> <ref> <note>
+node _brainwave/_engine/brainwave_runner.js implementation-hold <block-id> <blocked|deferred> <owner> <reopen-when> <reason>
+node _brainwave/_engine/brainwave_runner.js implementation-acceptance <slice-id> <check-id> <passed|failed|blocked> <kind> <ref> <note>
+node _brainwave/_engine/brainwave_runner.js implementation-check [slice-id]
+node _brainwave/_engine/brainwave_runner.js implementation-close <slice-id>
+node _brainwave/_engine/brainwave_runner.js implementation-audit
 node _brainwave/_engine/brainwave_runner.js alignment-review <aligned|needs_attention|blocked> <revision>
 node _brainwave/_engine/brainwave_runner.js transition <stage>
 node _brainwave/_engine/brainwave_runner.js select-dna <_DNA-CODE...>
@@ -249,7 +266,13 @@ The engine never interprets the concept or chooses documentation. Those decision
 npm test
 ```
 
-The test suite includes lifecycle, seed-integrity, DNA-contract, multi-agent adapter, project-integration, implementation-map, and clean-install checks.
+The default suite is safe to run after a project has begun. It includes lifecycle, seed-integrity, DNA-contract, multi-agent adapter, project-integration, implementation-map, and clean-install checks.
+
+Framework maintainers run clean release-template assertions separately:
+
+```text
+npm run test:release
+```
 
 ## Built from Direct Experience
 

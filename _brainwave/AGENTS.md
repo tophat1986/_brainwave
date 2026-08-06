@@ -30,7 +30,7 @@ When the user explicitly asks to maintain, review, test, package, or release the
 
 - `_my_brainwave_seed.md` preserves the user's approved concept in its supplied wording and natural shape, then becomes immutable. Do not expand it for completeness, fit it to template headings, append working notes, or place decisions in it.
 - `_my_brainwave_north_star.md` is the living current direction. Read it before the seed in routine work.
-- `_settings.yaml` owns the user profile, the lightweight project profile, and the explicitly confirmed build outcome. Treat the build outcome as a project decision, independently of profile onboarding.
+- `_settings.yaml` owns the user profile, the lightweight project profile, the explicitly confirmed build outcome, and the implementation-only progress-update preference. Treat the build outcome as a project decision, independently of profile onboarding.
 - `_assets/project_profile/`, when created, contains project-owned logos or other supplied project-profile assets. Keep file references in `_settings.yaml`; never embed binary assets in YAML.
 - `_dna/` contains versioned, immutable DNA-module definitions. It does not contain project selection state.
 - `_brainwave_state.yaml` owns lifecycle, selected DNA-module versions, and expressed entries.
@@ -46,10 +46,22 @@ Use `_settings.yaml` `guidance_mode` to control process guidance, independently 
 Use `technical_proficiency` to calibrate language and technical detail throughout all user interaction. Explain decisions through their practical consequences, using specialist terminology only when it helps the user.
 
 - For settings schema `1.1` or newer, if `guidance_mode` is unset, ask first: **Is this your first time using _brainwave?** Offer `Yes — guide me` (`guided`) and `No — keep it concise` (`concise`). Prefer the host's native structured-choice UI when available; otherwise ask plainly. Do not infer the answer.
-- In `guided` mode, at the first orientation, a status request, and lifecycle approval points, show a compact seven-step journey. Mark completed steps with `✓`, the current step with `→`, and future steps with `○`. Use the user-facing labels exactly: Capture the idea; Agree the direction; Choose DNA modules; Scope DNA documents; Build DNA documentation; Review the foundation; Ready for implementation.
+- In `guided` mode, at the first orientation, a status request, and lifecycle approval points, show a compact eight-step journey. Mark completed steps with `✓`, the current step with `→`, and future steps with `○`. Use the user-facing labels exactly: Capture the idea; Agree the direction; Choose DNA modules; Scope DNA documents; Build DNA documentation; Review the foundation; Ready for implementation; Deliver the implementation. The first seven map to the foundation lifecycle; the eighth is derived from `_implementation.yaml` after foundation acceptance.
 - In `guided` mode, state the exact next action, explain the next unfamiliar _brainwave term in one concise sentence, and mention `_brainwave_handbook.md` once near the start.
 - In `concise` mode, state the current step and immediate next action without the full journey block. Explain a term only when needed for the decision.
 - Do not repeat the journey block during routine shaping questions. Guided mode means clearer signposting, not longer general answers.
+
+## Documentation Detail Budget
+
+Use `_settings.yaml` `verbosity_budget` as the persistent depth contract for working outputs and for content inside the explicitly scoped DNA documents. Read the current value at session start, resume, and before scoping, authoring, or reviewing documentation. Apply a changed value immediately after writing it to `_settings.yaml`; do not infer a different preference from the model selected, its reasoning effort, the size of its context window, or the amount of source material available.
+
+The setting controls depth inside the agreed output. It never changes the approved DNA document scope, the minimum DNA-block contract, material-risk coverage, factual confidence, verification quality, or completion standard. A higher detail level is not permission to add documents, broaden the product direction, repeat content owned elsewhere, invent decisions, or turn non-blocking unknowns into research projects.
+
+- `lean` — minimum sufficient. Prefer compact bullets, tables, and short DNA blocks. Keep only the accepted decision or rule, an essential boundary, a material unresolved question, and the smallest useful verification criterion. Omit narrative setup, generic best practice, tutorials, non-essential rationale, illustrative examples, rejected alternatives, and speculative future possibilities. If removing a passage would not change downstream behaviour, a decision, or the ability to verify it, remove it.
+- `standard` — concise and complete, not near-exhaustive. State each material decision once with brief rationale, its main boundary or exception, and the verification consequence where relevant. Stop when a downstream team can act without guessing. Do not add broad background, tutorial explanation, long option catalogues, extensive examples, speculative branches, or comprehensive edge-case inventories unless they materially change the decision.
+- `exhaustive` — deep treatment within the already agreed scope. Cover the material rationale, alternatives and trade-offs, assumptions, dependencies, scenarios, exceptions, failure and recovery behaviour, consequences, and verification. Remain purposeful: do not pad, duplicate, speculate, or expand scope merely to create a longer artifact.
+
+In every mode, write information once in its owning artifact and cross-reference it elsewhere. Do not fill a heading merely because it exists. During review, compress content that exceeds the selected budget as well as filling material gaps. `Documentation status: complete` means decision-ready and verifiable at the selected depth; it does not mean long.
 
 ## Experience Protocol
 
@@ -70,6 +82,16 @@ Use `_settings.yaml` `ideation_mode` while shaping the North Star. Both modes pr
 
 - `thought_partner` — interpret, challenge, and recommend rather than only reflect. Once the core value, interaction, and naturally created assets are clear, run one silent opportunity scan before North Star agreement. Test whether the product's data, content, entities, transactions, signals, workflows, or relationships could create disproportionate user, discovery, retention, commercial, partner, or learning value, including a useful public or partner-facing surface. Surface at most two model-generated hypotheses only when they reuse core assets, have a clear causal loop, could change direction, and have a small reversible test. State the upside, assumptions, risks, and test, then ask the user to adopt, defer, or reject each one. Do not manufacture novelty or expand direction or scope without approval.
 - `fast_execution` — propose the strongest supported direction directly. Use labelled working assumptions for reversible gaps and ask only when a decision is consequential, difficult to reverse, preference-dependent, or requires approval. Present alternatives only when their trade-off is material or the user asks.
+
+## Implementation Progress Updates
+
+`_settings.yaml` `implementation_progress_updates` applies only to the eighth user-facing step, **Deliver the implementation**. It never describes documentation authoring, DNA direction, or implementation state:
+
+- `silent` — no routine implementation progress updates; report stale or invalid authority, required safety authorization, when required input, approval, access, an unresolved blocker, or an external gate leaves no other safe eligible work, and when the approved plan is complete.
+- `track` — the default; give one concise goal-level update when every slice in an approved implementation track is `verified`, as well as the required updates above.
+- `slice` — give one concise update whenever an implementation slice closes, as well as the required updates above.
+
+In every mode, updates are informational. Continue automatically across eligible slices and tracks without asking for permission. A held slice does not stop unrelated eligible work. Pause when implementation authority is stale or invalid, for required safety authorization, or when no other safe eligible work remains. When the user changes the preference, write the exact value to `_settings.yaml`.
 
 ## Progressive Discovery and Coverage
 
@@ -111,7 +133,7 @@ When the user says `build concept`:
 2. If profile settings are incomplete, ask the guidance question first. After the user answers it, introduce the dashboard as required by the Experience Protocol, record `dashboard_introduced_at`, then ask:
    - Technical proficiency: `beginner`, `intermediate`, or `architect`
    - Working mode: `thought_partner` or `fast_execution`
-   - Detail level: `lean`, `standard`, or `exhaustive`
+   - Documentation detail: `lean` (minimum sufficient), `standard` (concise and complete), or `exhaustive` (deep treatment within agreed scope)
    If the profile is already complete but the dashboard checkpoint is missing, deliver and record the dashboard introduction before continuing.
 3. Write profile answers to `_settings.yaml` automatically and set:
    - `guidance_mode: guided` or `guidance_mode: concise`
@@ -164,14 +186,14 @@ During `building_brainwave_documentation`:
 - Work in coherent, dependency-aware slices, including dependencies between modules.
 - Use the North Star as current direction.
 - Reconcile each newly agreed decision against the North Star before completing affected documentation. If the North Star remains accurate, keep the decision in its owning document. If the decision exposes ambiguity without changing direction, clarify the living North Star minimally. If it changes direction materially, log the rationale and return to `shaping_north_star`.
-- Mark completion explicitly with `Status: complete`; word count never determines completion.
+- Mark document completion explicitly with `Documentation status: complete`; legacy `Status: complete` remains readable during migration. Word count never determines completion.
 - Record decisions in their owning document or ADR, not in the immutable seed.
 - Avoid duplicating North Star direction or decisions owned by another module.
 - Treat a change as editorial only when no reasonable downstream behaviour could differ. Otherwise present it for explicit user agreement.
 - Express each coherent direction, obligation, or verifiable rule as one DNA block using `_DNA-CODE-00000.01`. Follow the minimum block contract in `_dna/README.md`; subsection headings do not receive separate IDs.
 - When direction materially changes, create the next block, link it with `Supersedes`, and retain the old block only as a compact `superseded` tombstone. Do not silently rewrite agreed history.
-- Keep implementation and verification evidence concise and current. Evidence is operational proof, not a chronological work log; Git preserves history.
-- In Legal, Policy and Market Access documentation, `Status: complete` means the detection, evidence, questions, and review route are documented; it never means legal approval or compliance. For each material issue, state the jurisdiction and applicability uncertainty, cite current authoritative sources with dates, distinguish inference from confirmed review, name the accountable owner or qualified-review gate, and keep unresolved high-consequence conclusions explicit.
+- Keep each block focused on accepted direction and its verification criteria. Delivery state and evidence belong only in `_implementation.yaml` after compilation.
+- In Legal, Policy and Market Access documentation, `Documentation status: complete` means the detection, evidence, questions, and review route are documented; it never means legal approval or compliance. For each material issue, state the jurisdiction and applicability uncertainty, cite current authoritative sources with dates, distinguish inference from confirmed review, name the accountable owner or qualified-review gate, and keep unresolved high-consequence conclusions explicit.
 
 For anything users will see or experience:
 
@@ -213,17 +235,30 @@ If direction changes after completion:
 - Return to `selecting_dna` when the relevant domains change.
 - Return to `scoping_brainwave_documentation` when the North Star and DNA module selection remain valid but DNA document scope changes.
 
-When implementation learning changes a direction without changing the North Star, relevant domains, or DNA document scope, do not replay the full lifecycle. Explain the conflict and proposed direction, obtain explicit user approval, create a superseding block in the owning document, and retain the former block as the compact tombstone defined in `_dna/README.md`. An editorial clarification may update the current block only when no reasonable downstream behaviour could differ. Never change accepted DNA direction silently to make existing implementation appear aligned.
+When implementation learning changes a direction without changing the North Star, relevant domains, or DNA document scope, do not replay the full lifecycle. Explain the conflict and proposed direction, obtain explicit user approval, create a superseding block in the owning document, retain the former block as the compact tombstone defined in `_dna/README.md`, then recompile and review the implementation spine. An editorial clarification may update the current block only when no reasonable downstream behaviour could differ. Never change accepted DNA direction silently to make existing implementation appear aligned.
 
 After completion, _brainwave enters **ambient delivery alignment**. Remain passive as a lifecycle—do not announce or restart the seven-stage workflow during ordinary development—while quietly protecting the accepted foundation:
 
-- Read the North Star before project work and use `_manifest.yaml` as the compact index for identifying the DNA blocks directly affected by the task.
-- Read only those blocks' owning documents before editing. Move affected blocks to `in_progress` where appropriate.
-- Before claiming work is complete, reconcile the affected blocks and record concise current Implementation Evidence. Use `implemented` only when the direction exists with evidence. Use `verified` only when Verification Evidence, `Last checked`, and `Checked revision` are recorded.
+- Present this delivery period as the eighth user-facing journey step, **Deliver the implementation**, while retaining `brainwave_documentation_complete` as the final foundation lifecycle state.
+
+- DNA documents remain the authority for accepted direction. `_implementation.yaml` is the sole authority for implementation sequence, state, evidence, checked time, and checked Git revision.
+- If no spine exists, run `implementation-compile`; add `--existing-build` when the repository already contains product work. Compilation creates an unmapped DNA-block inventory and `_implementation_proposal.yaml`, never document-derived slices.
+- Before synthesis, inspect the North Star and the project-specific documents that actually provide the delivery backbone: journeys, outcome or capability priorities, delivery phases, acceptance criteria, architecture boundaries, and risk or external-gate direction where present. DNA documents remain direction authority and their file boundaries are not slice boundaries.
+- Author only the draft proposal artifact. Prefer coherent observable outcome slices; use dedicated `foundation` or `external_gate` slices only with explicit justification. Give every slice an order, dependencies, gates, and acceptance checks; map every applicable DNA block to exactly one primary slice and add `applies_to` links where cross-cutting direction governs other slices.
+- In `--existing-build` mode, inspect current code, tests, and rendered journeys and complete every block's planning assessment. These observations guide sequencing but do not count as delivery evidence.
+- Run `implementation-synthesize <authored-by>`, then `implementation-review`. Present `_implementation_review.md` to the user and explain what approval accepts. Only after explicit approval run `implementation-approve <approved-by>`.
+- `_implementation_proposal.yaml` is an agent-authored draft input. `_implementation.yaml` is command-owned: never directly edit delivery states, evidence, holds, approval, revisions, audit fields, or its sealed proposal.
+- At session start, resume, and after compaction, run `implementation-context`. Work only on the active or recommended slice and read only its referenced DNA passages and direct dependencies.
+- Follow `_settings.yaml` `implementation_progress_updates` for implementation communication only. Closing a slice or completing a track never becomes a permission checkpoint; continue into other eligible work automatically.
+- Use `implementation-start`, `implementation-record`, `implementation-hold`, `implementation-acceptance`, `implementation-check`, and `implementation-close` for delivery-state changes. Do not directly edit delivery states in the sidecar.
+- A blocked or deferred slice is not automatically recommended. Start it explicitly only after its recorded `reopen_when` condition has been met.
+- Use `implemented` only with concise inspectable implementation evidence. Use `verified` only with verification evidence, check time, and checked Git revision.
+- Before recording `verified`, ensure the checked behaviour exists at the current Git revision; then commit the resulting spine and derived-state update before selecting another slice.
 - Treat alignment as an evidence-backed semantic assessment, not mathematical proof. Look for material divergence in user behaviour, product promises, data use, permissions, risk, launch dependencies, and system boundaries; do not map every implementation detail to DNA.
 - Reuse confirmed project-profile materials and referenced `_assets/`; accepted Brand documentation governs their application.
-- Do not create a second implementation ID or duplicate implementation log. DNA documents own block status and evidence; `_manifest.yaml` and `_dashboard.html` are derived views.
-- Run `refresh` after block updates.
+- Do not create another implementation ID or duplicate implementation log. DNA block IDs remain the traceability identity; `_manifest.yaml` and `_dashboard.html` are derived views.
+- Keep technical health, DNA direction coverage, external gates, and release readiness as separate states. A runnable application is not evidence that the accepted product is complete.
+- Commit a clean checkpoint before selecting another slice. Run `implementation-audit` for the experiment record.
 - For a release, pilot, major handoff, broad readiness claim, or overall alignment request, recommend a fresh-context review in a new chat. Provide the exact copyable prompt shown in the dashboard so the user does not need to invent review instructions. Describe this honestly as a fresh-context review, not an independent professional audit.
 
 ## Local README Rule

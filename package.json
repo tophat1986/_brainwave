@@ -24,7 +24,13 @@
     "brainwave:watch": "node _brainwave/_engine/brainwave_runner.js watch",
     "brainwave:status": "node _brainwave/_engine/brainwave_runner.js status",
     "brainwave:refresh": "node _brainwave/_engine/brainwave_runner.js refresh",
-    "test": "node --test _brainwave/_engine/*.test.js"
+    "brainwave:implementation:compile": "node _brainwave/_engine/brainwave_runner.js implementation-compile",
+    "brainwave:implementation:synthesize": "node _brainwave/_engine/brainwave_runner.js implementation-synthesize",
+    "brainwave:implementation:review": "node _brainwave/_engine/brainwave_runner.js implementation-review",
+    "brainwave:implementation:context": "node _brainwave/_engine/brainwave_runner.js implementation-context",
+    "brainwave:implementation:audit": "node _brainwave/_engine/brainwave_runner.js implementation-audit",
+    "test": "node --test _brainwave/_engine/brainwave_runner.test.js _brainwave/_engine/dashboard_renderer.test.js _brainwave/_engine/implementation_spine.test.js",
+    "test:release": "node --test _brainwave/_engine/brainwave_release.test.js"
   },
   "keywords": [
     "ai-agents",
