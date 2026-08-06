@@ -31,6 +31,10 @@ const {
   buildImplementationAudit,
   recordRejectedTransition
 } = require("./implementation_spine");
+const {
+  IMPLEMENTATION_PROGRESS_UPDATE_MODES,
+  implementationProgressPolicy
+} = require("./implementation_progress");
 const { writeDashboard } = require("./dashboard_renderer");
 
 const ROOT = path.resolve(__dirname, "..");
@@ -342,7 +346,7 @@ function evidenceIsRecorded(value) {
 
 function defaultSettings() {
   return {
-    schema_version: "1.3.0",
+    schema_version: "1.4.0",
     configured: false,
     onboarding_status: "pending",
     guidance_mode: null,
@@ -351,6 +355,7 @@ function defaultSettings() {
     verbosity_budget: "standard",
     build_outcome: null,
     build_outcome_confirmed_at: null,
+    implementation_progress_updates: "track",
     project_profile: {
       status: "not_asked",
       name: null,
@@ -378,6 +383,7 @@ function defaultSettings() {
       ideation_mode: ["thought_partner", "fast_execution"],
       verbosity_budget: ["lean", "standard", "exhaustive"],
       build_outcome: ["demonstration", "usable_first_version", "complete_product", "custom"],
+      implementation_progress_updates: [...IMPLEMENTATION_PROGRESS_UPDATE_MODES],
       project_profile_status: ["not_asked", "not_yet", "working", "confirmed", "deferred"],
       project_profile_item_status: ["not_provided", "working", "confirmed"]
     },
@@ -474,6 +480,7 @@ function defaultManifestSkeleton() {
       verbosity_budget: null,
       build_outcome: null,
       build_outcome_confirmed_at: null,
+      implementation_progress_updates: "track",
       profile_last_updated: null,
       project_profile: defaultSettings().project_profile
     },
@@ -1360,6 +1367,8 @@ function buildManifest(workspace, command, taskPlan = [], prior = null) {
   manifest.settings.build_outcome = workspace.settings.build_outcome ?? null;
   manifest.settings.build_outcome_confirmed_at =
     workspace.settings.build_outcome_confirmed_at ?? null;
+  manifest.settings.implementation_progress_updates =
+    implementationProgressPolicy(workspace.settings).mode;
   manifest.settings.profile_last_updated = workspace.settings.profile_last_updated ?? null;
   manifest.settings.project_profile = projectProfile;
 
@@ -2148,6 +2157,15 @@ function runImplementationMutation(command, mutator) {
       throw new Error(`Implementation spine is invalid: ${validation.errors.join(" ")}`);
     }
     const updated = mutator(context);
+    const updatedValidation = validateImplementationSpine(updated, {
+      source: context.source,
+      applicableBlockIds: context.applicableBlockIds
+    });
+    if (updatedValidation.errors.length) {
+      throw new Error(
+        `Implementation transition would create an invalid spine: ${updatedValidation.errors.join(" ")}`
+      );
+    }
     persistImplementationSpine(updated, command);
     return updated;
   } catch (error) {
@@ -2270,6 +2288,7 @@ function printImplementationContext(args) {
     source: context.source,
     applicableBlockIds: context.applicableBlockIds
   });
+  payload.progress_updates = implementationProgressPolicy(context.workspace.settings);
   if (args.includes("--json")) {
     const output = JSON.stringify(payload, null, 2);
     if (
@@ -2429,6 +2448,9 @@ function printStatus() {
     `${CONSOLE_PREFIX} documentation_detail: ${manifest.settings.verbosity_budget || "not_configured"}`
   );
   console.log(`${CONSOLE_PREFIX} implementation_spine: ${manifest.implementation.mode}`);
+  console.log(
+    `${CONSOLE_PREFIX} implementation_progress_updates: ${manifest.settings.implementation_progress_updates}`
+  );
   console.log(`${CONSOLE_PREFIX} implementation_blocks: ${manifest.implementation.totals.blocks}`);
   if (manifest.delivery_alignment.mode === "ambient") {
     const coverage = manifest.delivery_alignment.coverage;

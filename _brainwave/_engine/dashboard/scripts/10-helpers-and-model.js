@@ -15,7 +15,8 @@
         { key: "technical_proficiency", label: "Technical comfort", values: { beginner: "Beginner-friendly", intermediate: "Comfortable", architect: "Architect-level" } },
         { key: "ideation_mode", label: "Working together", values: { thought_partner: "Thought partner", fast_execution: "Fast execution" } },
         { key: "verbosity_budget", label: "Documentation detail", values: { lean: "Lean — minimum sufficient", standard: "Standard — concise and complete", exhaustive: "Exhaustive — deep within scope" } },
-        { key: "build_outcome", label: "Build goal", values: { demonstration: "Show me the idea", usable_first_version: "Build a usable first version", complete_product: "Build the complete product", custom: "Custom outcome" } }
+        { key: "build_outcome", label: "Build goal", values: { demonstration: "Show me the idea", usable_first_version: "Build a usable first version", complete_product: "Build the complete product", custom: "Custom outcome" } },
+        { key: "implementation_progress_updates", label: "Implementation updates", values: { silent: "Silent", track: "By goal (track)", slice: "After each slice" } }
       ]);
 
       const projectStatusLabels = Object.freeze({
@@ -28,7 +29,7 @@
 
       function friendlySetting(definition) {
         const value = settings[definition.key];
-        if (definition.key !== "onboarding_status" && settings.configured !== true) {
+        if (!["onboarding_status", "implementation_progress_updates"].includes(definition.key) && settings.configured !== true) {
           return "Not chosen yet";
         }
         return definition.values?.[value] || (value ? titleCase(value) : "Not chosen yet");

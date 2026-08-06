@@ -74,9 +74,9 @@
 
       function documentationStatusKey() {
         const rows = [
-          ["not_started", "Not started", "No substantive documentation"],
-          ["in_progress", "In progress", "Documentation has been drafted"],
-          ["complete", "Complete", "The DNA document is complete"],
+          ["not_started", "Not written", "No substantive documentation"],
+          ["in_progress", "Being written", "Documentation authoring is underway"],
+          ["complete", "Ready for review", "Document authoring is complete"],
           ["issue", "Needs attention", "Documentation requires correction"]
         ];
         return statusKeyControl(rows.map(([status, label, detail]) => ({

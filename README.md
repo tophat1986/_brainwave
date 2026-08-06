@@ -225,6 +225,8 @@ After the foundation is accepted, _brainwave compiles an unmapped DNA-block inve
 
 DNA direction coverage is deliberately narrower than a project-completion estimate: it counts applicable documented directions that are built or checked, while blockers remain visible separately. It does not claim to measure effort remaining, time-to-finish, or release readiness.
 
+Implementation communication is a separate preference in `_settings.yaml`: `implementation_progress_updates` may be `silent`, `track` (the default goal-level cadence), or `slice`. It applies only during **Deliver the implementation**. Every mode continues automatically across eligible work; progress updates never become permission checkpoints.
+
 ## Commands
 
 Run commands from the project root:
@@ -264,7 +266,13 @@ The engine never interprets the concept or chooses documentation. Those decision
 npm test
 ```
 
-The test suite includes lifecycle, seed-integrity, DNA-contract, multi-agent adapter, project-integration, implementation-map, and clean-install checks.
+The default suite is safe to run after a project has begun. It includes lifecycle, seed-integrity, DNA-contract, multi-agent adapter, project-integration, implementation-map, and clean-install checks.
+
+Framework maintainers run clean release-template assertions separately:
+
+```text
+npm run test:release
+```
 
 ## Built from Direct Experience
 

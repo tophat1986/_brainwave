@@ -17,7 +17,10 @@ Notable changes will be recorded here.
 - Added an explicitly confirmed build-outcome gate, a concise North Star statement of what is being built, and baseline Software Application DNA coverage for product scope and completion.
 - Added explicit module ownership contracts, progressive high-leverage discovery, cross-domain coverage guidance, real-user interface quality rules, and dashboard-visible domain boundaries.
 - Added consequence-based module timing, explicit specialist-coverage gap handling, and guarded legal review gates.
-- Defined and enforced persistent documentation-detail contracts for `lean`, `standard`, and `exhaustive`, including session-context reminders that model capability must not inflate the selected depth.
 - Added experience checkpoints for the dashboard introduction and project-basics check, a reusable project profile for early identity inputs, flexible repeatable colour roles and usage, and a dashboard overview that presents project names, descriptions, logos, colours, setup choices, and onboarding progress.
 - Added the experimental implementation spine: a separate delivery-state authority, legacy DNA-status import, user-approved journey-sized planning, bounded context packets, guarded evidence transitions, stale-source detection, dashboard visibility, and portable audit reports.
 - Replaced document-derived provisional slices with an inventory → agent-authored hybrid slice synthesis → human-readable review flow, including existing-build reconciliation and approval bound to the reviewed proposal fingerprint.
+- Added implementation-only `silent`, `track`, and `slice` progress-update modes that never pause eligible delivery work, with goal-level `track` updates as the default.
+- Clarified lifecycle, document-maturity, direction-validity, plan, slice, work-item, and communication boundaries; guarded every implementation mutation against persisting an invalid spine.
+- Separated active-project-safe tests from clean release-template assertions and clarified package identity versus repository or remote renaming.
+- Defined and enforced persistent documentation-detail contracts for `lean`, `standard`, and `exhaustive`, including session-context reminders that model capability must not inflate the selected depth.

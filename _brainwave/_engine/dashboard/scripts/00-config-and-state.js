@@ -13,9 +13,9 @@
       ];
 
       const documentationStates = Object.freeze({
-        not_started: { progress: 0, ringTone: "empty", ringGlyph: "", ringLabel: "Documentation not started" },
-        in_progress: { progress: 55, ringTone: "working", ringGlyph: "", ringLabel: "Documentation in progress" },
-        complete: { progress: 100, ringTone: "complete", ringGlyph: "✓", ringLabel: "DNA documentation complete" },
+        not_started: { progress: 0, ringTone: "empty", ringGlyph: "", ringLabel: "Documentation not written" },
+        in_progress: { progress: 55, ringTone: "working", ringGlyph: "", ringLabel: "Documentation being written" },
+        complete: { progress: 100, ringTone: "complete", ringGlyph: "✓", ringLabel: "Document ready for foundation review" },
         issue: { progress: 100, ringTone: "issue", ringGlyph: "!", ringLabel: "Documentation needs attention" }
       });
       const defaultDocumentationState = documentationStates.not_started;
@@ -24,7 +24,7 @@
         in_progress: { label: "Underway", detail: "This direction is currently being implemented", tone: "working" },
         implemented: { label: "Ready to check", detail: "Implementation evidence exists; verification is pending", tone: "working" },
         verified: { label: "Complete", detail: "Implementation and verification evidence are recorded", tone: "complete" },
-        blocked: { label: "Waiting", detail: "This item is waiting for its recorded dependency or gate", tone: "muted" },
+        blocked: { label: "Blocked", detail: "This item has a recorded blocker or gate", tone: "muted" },
         deferred: { label: "Deferred", detail: "Work is intentionally held until its recorded reopening condition", tone: "muted" },
         invalid: { label: "State needs correction", detail: "The direction or implementation-spine contract is invalid", tone: "issue" }
       });

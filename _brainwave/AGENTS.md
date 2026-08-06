@@ -30,7 +30,7 @@ When the user explicitly asks to maintain, review, test, package, or release the
 
 - `_my_brainwave_seed.md` preserves the user's approved concept in its supplied wording and natural shape, then becomes immutable. Do not expand it for completeness, fit it to template headings, append working notes, or place decisions in it.
 - `_my_brainwave_north_star.md` is the living current direction. Read it before the seed in routine work.
-- `_settings.yaml` owns the user profile, the lightweight project profile, and the explicitly confirmed build outcome. Treat the build outcome as a project decision, independently of profile onboarding.
+- `_settings.yaml` owns the user profile, the lightweight project profile, the explicitly confirmed build outcome, and the implementation-only progress-update preference. Treat the build outcome as a project decision, independently of profile onboarding.
 - `_assets/project_profile/`, when created, contains project-owned logos or other supplied project-profile assets. Keep file references in `_settings.yaml`; never embed binary assets in YAML.
 - `_dna/` contains versioned, immutable DNA-module definitions. It does not contain project selection state.
 - `_brainwave_state.yaml` owns lifecycle, selected DNA-module versions, and expressed entries.
@@ -82,6 +82,16 @@ Use `_settings.yaml` `ideation_mode` while shaping the North Star. Both modes pr
 
 - `thought_partner` — interpret, challenge, and recommend rather than only reflect. Once the core value, interaction, and naturally created assets are clear, run one silent opportunity scan before North Star agreement. Test whether the product's data, content, entities, transactions, signals, workflows, or relationships could create disproportionate user, discovery, retention, commercial, partner, or learning value, including a useful public or partner-facing surface. Surface at most two model-generated hypotheses only when they reuse core assets, have a clear causal loop, could change direction, and have a small reversible test. State the upside, assumptions, risks, and test, then ask the user to adopt, defer, or reject each one. Do not manufacture novelty or expand direction or scope without approval.
 - `fast_execution` — propose the strongest supported direction directly. Use labelled working assumptions for reversible gaps and ask only when a decision is consequential, difficult to reverse, preference-dependent, or requires approval. Present alternatives only when their trade-off is material or the user asks.
+
+## Implementation Progress Updates
+
+`_settings.yaml` `implementation_progress_updates` applies only to the eighth user-facing step, **Deliver the implementation**. It never describes documentation authoring, DNA direction, or implementation state:
+
+- `silent` — no routine implementation progress updates; report stale or invalid authority, required safety authorization, when required input, approval, access, an unresolved blocker, or an external gate leaves no other safe eligible work, and when the approved plan is complete.
+- `track` — the default; give one concise goal-level update when every slice in an approved implementation track is `verified`, as well as the required updates above.
+- `slice` — give one concise update whenever an implementation slice closes, as well as the required updates above.
+
+In every mode, updates are informational. Continue automatically across eligible slices and tracks without asking for permission. A held slice does not stop unrelated eligible work. Pause when implementation authority is stale or invalid, for required safety authorization, or when no other safe eligible work remains. When the user changes the preference, write the exact value to `_settings.yaml`.
 
 ## Progressive Discovery and Coverage
 
@@ -239,6 +249,7 @@ After completion, _brainwave enters **ambient delivery alignment**. Remain passi
 - Run `implementation-synthesize <authored-by>`, then `implementation-review`. Present `_implementation_review.md` to the user and explain what approval accepts. Only after explicit approval run `implementation-approve <approved-by>`.
 - `_implementation_proposal.yaml` is an agent-authored draft input. `_implementation.yaml` is command-owned: never directly edit delivery states, evidence, holds, approval, revisions, audit fields, or its sealed proposal.
 - At session start, resume, and after compaction, run `implementation-context`. Work only on the active or recommended slice and read only its referenced DNA passages and direct dependencies.
+- Follow `_settings.yaml` `implementation_progress_updates` for implementation communication only. Closing a slice or completing a track never becomes a permission checkpoint; continue into other eligible work automatically.
 - Use `implementation-start`, `implementation-record`, `implementation-hold`, `implementation-acceptance`, `implementation-check`, and `implementation-close` for delivery-state changes. Do not directly edit delivery states in the sidecar.
 - A blocked or deferred slice is not automatically recommended. Start it explicitly only after its recorded `reopen_when` condition has been met.
 - Use `implemented` only with concise inspectable implementation evidence. Use `verified` only with verification evidence, check time, and checked Git revision.

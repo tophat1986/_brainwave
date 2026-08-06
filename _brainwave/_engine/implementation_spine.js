@@ -1177,6 +1177,12 @@ function closeImplementationSlice(spine, { sliceId, revision, now, source }) {
   const check = checkImplementationSlice(spine, sliceId);
   if (check.errors.length) throw new Error(`Slice ${sliceId} evidence is invalid: ${check.errors.join(" ")}`);
   const states = check.work_items.map((item) => item.state);
+  const openStates = states.filter((state) => ["not_started", "in_progress"].includes(state));
+  if (openStates.length) {
+    throw new Error(
+      `Slice ${sliceId} still has open work items; record evidence or place every remaining primary item on an explicit hold before closing it.`
+    );
+  }
   let targetState;
   if (states.some((state) => state === "blocked")) targetState = "blocked";
   else if (states.some((state) => state === "deferred")) targetState = "deferred";
@@ -1295,6 +1301,11 @@ function formatImplementationContext(payload) {
   if (payload.readiness) {
     lines.push(
       `Separate gates: technical health ${payload.readiness.technical_health}; product coverage ${payload.readiness.product_coverage}; external gates ${payload.readiness.external_gates}; release readiness ${payload.readiness.release_readiness}.`
+    );
+  }
+  if (payload.progress_updates) {
+    lines.push(
+      `Implementation progress updates: ${payload.progress_updates.mode}; ${payload.progress_updates.update_boundary} Continue automatically: ${payload.progress_updates.continue_automatically ? "yes" : "no"}.`
     );
   }
   if (payload.source_stale) lines.push("STOP: the spine is stale against the accepted North Star or DNA scope.");

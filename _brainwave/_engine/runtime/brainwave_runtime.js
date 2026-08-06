@@ -6,6 +6,10 @@ const {
   implementationContextPayload,
   formatGuardedImplementationContext
 } = require("../implementation_spine");
+const {
+  implementationProgressPolicy,
+  formatImplementationProgressPolicy
+} = require("../implementation_progress");
 
 const COMPLETE_STAGE = "brainwave_documentation_complete";
 const FRESH_ALIGNMENT_REVIEW_PROMPT = [
@@ -205,6 +209,7 @@ function buildSessionContext(runtime) {
     lines.push(
       "Treat semantic alignment as an evidence-backed assessment, not mathematical proof. Keep technical health, product coverage, external gates, and release readiness separate."
     );
+    lines.push(formatImplementationProgressPolicy(implementationProgressPolicy(runtime.settings)));
     lines.push(
       `Never silently rewrite accepted direction to match implementation. Editorial clarifications may update a block only when no reasonable downstream behaviour changes. For a user-approved local behavioural change, create a superseding block and recompile the spine. Reopen the appropriate lifecycle stage when the North Star, relevant domains, or DNA document scope changes.`
     );

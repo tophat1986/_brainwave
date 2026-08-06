@@ -52,7 +52,7 @@ Cross-cutting concerns such as accessibility, internationalisation, privacy, mob
 
 A DNA block is one coherent direction, obligation, or verifiable rule inside a document. Blocks are the smallest traceable units; there is no separate implementation-ID system or implementation log.
 
-Document maturity is recorded once in the document header as `Documentation status: not_started`, `in_progress`, or `complete`. That field describes whether the specification itself has been written and accepted; it never describes downstream implementation.
+Document maturity is recorded once in the document header as `Documentation status: not_started`, `in_progress`, or `complete`. That field describes whether the specification is unwritten, being written, or authoring-complete and ready for foundation review; it never describes downstream implementation. Only the lifecycle state `brainwave_documentation_complete` means the reviewed foundation has been explicitly accepted.
 
 An active block uses:
 
@@ -82,6 +82,8 @@ Direction status is one of:
 DNA documents own accepted direction, not delivery progress. After the foundation is accepted, `_implementation.yaml` owns the implementation sequence, the states `not_started`, `in_progress`, `implemented`, `verified`, `blocked`, and `deferred`, concise evidence, checked time, and checked Git revision. These identically named early states are scoped to work items in the sidecar and cannot change document maturity. The manifest and dashboard derive visibility from that sidecar.
 
 Counts derived from applicable blocks express **DNA direction coverage**, not effort remaining, time-to-finish, overall product completion, or release readiness. `superseded` and explicitly justified `not_applicable` direction are excluded from applicable coverage; implementation blockers and external gates remain visible regardless of the coverage percentage.
+
+`_settings.yaml` `implementation_progress_updates` is communication policy, not another status system. Its `silent`, `track`, and `slice` values decide when informational implementation updates are given; they never change document maturity, direction validity, work-item state, or automatic continuation through eligible work.
 
 When direction materially changes, add the next block, set its `Supersedes` field to the previous block, and turn the old block into a compact tombstone:
 

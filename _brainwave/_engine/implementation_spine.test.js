@@ -13,10 +13,16 @@ const {
   validateImplementationSpine,
   summarizeImplementationSpine,
   startImplementationSlice,
+  holdWorkItem,
+  closeImplementationSlice,
   implementationContextPayload,
   formatImplementationContext,
   formatGuardedImplementationContext
 } = require("./implementation_spine");
+const {
+  implementationProgressPolicy,
+  formatImplementationProgressPolicy
+} = require("./implementation_progress");
 
 function authoredProposal(spine, blocks, sliceCount = 1) {
   const proposal = buildImplementationProposalTemplate(spine);
@@ -76,6 +82,67 @@ function directionBlock(index, { document = 1, module = "SAPP" } = {}) {
     details: { direction: `Accepted direction ${id}.` }
   };
 }
+
+test("keeps implementation progress cadence separate from delivery state", () => {
+  assert.deepEqual(
+    ["silent", "track", "slice"].map((mode) => implementationProgressPolicy({
+      implementation_progress_updates: mode
+    }).mode),
+    ["silent", "track", "slice"]
+  );
+  assert.equal(implementationProgressPolicy({}).mode, "track");
+  assert.match(
+    implementationProgressPolicy({ implementation_progress_updates: "track" }).update_boundary,
+    /every slice.*verified/
+  );
+  assert.match(
+    formatImplementationProgressPolicy(implementationProgressPolicy({})),
+    /continue automatically across eligible slices and tracks/
+  );
+});
+
+test("refuses to close a held slice while another primary item remains open", () => {
+  const blocks = [directionBlock(1), directionBlock(2)];
+  const inputSource = source({ applicable_block_count: blocks.length });
+  const spine = buildImplementationSpine({
+    source: inputSource,
+    blocks,
+    now: "2026-08-05T12:00:00.000Z"
+  });
+  Object.assign(spine, authoredProposal(spine, blocks));
+  spine.slices[0].requires_refinement = false;
+  spine.plan_status = "approved";
+  spine.approval = {
+    approved_at: "2026-08-05T12:01:00.000Z",
+    approved_by: "reviewer",
+    git_revision: "abc1234"
+  };
+  const sliceId = spine.slices[0].id;
+  const active = startImplementationSlice(spine, {
+    sliceId,
+    now: "2026-08-05T12:02:00.000Z",
+    source: inputSource
+  });
+  const held = holdWorkItem(active, {
+    blockId: blocks[0].id,
+    state: "blocked",
+    reason: "External decision required.",
+    reopenWhen: "The decision is recorded.",
+    owner: "user",
+    now: "2026-08-05T12:03:00.000Z",
+    source: inputSource
+  });
+
+  assert.throws(
+    () => closeImplementationSlice(held, {
+      sliceId,
+      revision: "abc1234",
+      now: "2026-08-05T12:04:00.000Z",
+      source: inputSource
+    }),
+    /still has open work items/
+  );
+});
 
 test("keeps a 720-block implementation inventory out of the active context packet", () => {
   const blocks = [];

@@ -3,11 +3,11 @@
         return {
           queued: { label: "", tone: "empty" },
           ready: { label: "", tone: "empty" },
-          active: { label: "In progress", tone: "active" },
-          implemented: { label: "", tone: "empty" },
-          verified: { label: "", tone: "complete" },
-          blocked: { label: "", tone: "empty" },
-          deferred: { label: "", tone: "empty" }
+          active: { label: "Slice active", tone: "active" },
+          implemented: { label: "Ready to verify", tone: "working" },
+          verified: { label: "Slice verified", tone: "complete" },
+          blocked: { label: "Slice blocked", tone: "muted" },
+          deferred: { label: "Slice deferred", tone: "muted" }
         }[state] || { label: "", tone: "empty" };
       }
 
@@ -15,13 +15,13 @@
         return {
           queued: { label: "", tone: "empty", progress: 0, glyph: "" },
           ready: { label: "", tone: "empty", progress: 0, glyph: "" },
-          active: { label: "In progress", tone: "working", progress: 45, glyph: "" },
+          active: { label: "In active slice", tone: "working", progress: 45, glyph: "" },
           not_started: { label: "", tone: "empty", progress: 0, glyph: "" },
-          in_progress: { label: "In progress", tone: "working", progress: 45, glyph: "" },
-          implemented: { label: "", tone: "empty", progress: 0, glyph: "" },
-          verified: { label: "", tone: "complete", progress: 100, glyph: "✓" },
-          blocked: { label: "", tone: "empty", progress: 0, glyph: "" },
-          deferred: { label: "", tone: "empty", progress: 0, glyph: "" },
+          in_progress: { label: "In active slice", tone: "working", progress: 45, glyph: "" },
+          implemented: { label: "Ready to verify", tone: "working", progress: 75, glyph: "" },
+          verified: { label: "Verified", tone: "complete", progress: 100, glyph: "✓" },
+          blocked: { label: "Blocked", tone: "muted", progress: 0, glyph: "" },
+          deferred: { label: "Deferred", tone: "muted", progress: 0, glyph: "" },
           invalid: { label: "Needs correction", tone: "issue", progress: 0, glyph: "!" }
         }[state] || { label: "Not recorded", tone: "empty", progress: 0, glyph: "" };
       }
@@ -34,9 +34,10 @@
 
       function implementationStatusKey() {
         const rows = [
-          ["verified", "Complete"],
-          ["in_progress", "In progress"],
-          ["not_started", "Incomplete"]
+          ["verified", "Verified"],
+          ["implemented", "Ready to verify"],
+          ["in_progress", "In active slice"],
+          ["not_started", "Not started"]
         ];
         return statusKeyControl(rows.map(([state, label]) => ({
           visual: roadmapImplementationRing(state, "status-key-ring"),

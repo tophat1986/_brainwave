@@ -12,6 +12,7 @@ const SOURCE_ROOT = path.resolve(__dirname, "..");
 const SOURCE_PROJECT_ROOT = path.resolve(SOURCE_ROOT, "..");
 const SOURCE_RUNNER = path.join(__dirname, "brainwave_runner.js");
 const SOURCE_IMPLEMENTATION_SPINE = path.join(__dirname, "implementation_spine.js");
+const SOURCE_IMPLEMENTATION_PROGRESS = path.join(__dirname, "implementation_progress.js");
 const SOURCE_PROJECT_INTEGRATION = path.join(__dirname, "project_integration.js");
 const SOURCE_DASHBOARD_RENDERER = path.join(__dirname, "dashboard_renderer.js");
 const SOURCE_DASHBOARD = path.join(__dirname, "dashboard");
@@ -136,6 +137,10 @@ function createWorkspace(t, options = {}) {
   fs.copyFileSync(
     SOURCE_IMPLEMENTATION_SPINE,
     path.join(root, "_engine", "implementation_spine.js")
+  );
+  fs.copyFileSync(
+    SOURCE_IMPLEMENTATION_PROGRESS,
+    path.join(root, "_engine", "implementation_progress.js")
   );
   fs.copyFileSync(
     SOURCE_PROJECT_INTEGRATION,
@@ -378,7 +383,8 @@ test("dashboard JavaScript parses and presents the expanded DNA boundaries", () 
     "technical_proficiency",
     "ideation_mode",
     "verbosity_budget",
-    "build_outcome"
+    "build_outcome",
+    "implementation_progress_updates"
   ]) {
     assert.match(html, new RegExp(`key: "${key}"`));
   }
@@ -1117,6 +1123,7 @@ test("manifest carries the complete setup and project profile into the dashboard
   assert.equal(manifest.settings.technical_proficiency, "intermediate");
   assert.equal(manifest.settings.ideation_mode, "thought_partner");
   assert.equal(manifest.settings.verbosity_budget, "standard");
+  assert.equal(manifest.settings.implementation_progress_updates, "track");
   assert.equal(manifest.presentation.project_title, "Signal Garden");
   assert.equal(manifest.presentation.project_profile.logo.exists, true);
   assert.equal(manifest.presentation.project_profile.colors[0].value, "#247A5A");
@@ -1327,6 +1334,8 @@ test("requires semantic synthesis and a human-readable review before approval", 
   assert.equal(context.status, 0, context.stderr);
   assert.match(context.stdout, /Current\/next:/);
   assert.match(context.stdout, /DNA blocks: _DNA-SAPP-00201\.01/);
+  assert.match(context.stdout, /Implementation progress updates: track/);
+  assert.match(context.stdout, /Continue automatically: yes/);
   assert.ok(context.stdout.length < 10000);
 });
 
@@ -1525,6 +1534,8 @@ test("session hook restores ambient delivery alignment when DNA documentation is
   assert.match(response.additional_context, /ambient delivery alignment (?:is|are) active/);
   assert.match(response.additional_context, /implementation spine has not been compiled/i);
   assert.match(response.additional_context, /implementation-compile/);
+  assert.match(response.additional_context, /Implementation progress updates: track/);
+  assert.match(response.additional_context, /continue automatically across eligible slices and tracks/i);
   assert.match(response.additional_context, /Run a fresh-context `_brainwave` implementation alignment review/);
   assert.doesNotMatch(response.additional_context, /_brainwave is active at stage/);
 });
@@ -2057,6 +2068,8 @@ test("integrates a nested _brainwave without replacing existing project guidance
   assert.match(claudeGuide, /`project_profile` and its referenced `_brainwave\/_assets\/` files/);
   assert.match(agents, /implementation-context/);
   assert.match(claudeGuide, /implementation-context/);
+  assert.match(agents, /`implementation_progress_updates`/);
+  assert.match(claudeGuide, /`implementation_progress_updates`/);
   assert.match(agents, /sole authority for implementation sequence, state, and evidence/);
   assert.match(claudeGuide, /sole authority for implementation sequence, state, and evidence/);
   assert.match(agents, /recommend a fresh-context review in a new chat/);
@@ -2216,104 +2229,47 @@ test("aborts nested integration before writing when host Cursor configuration is
   assert.equal(fs.existsSync(path.join(projectRoot, "CLAUDE.md")), false);
 });
 
-test("ships a clean template and installs into an empty repository", (t) => {
-  const governingDirective = fs.readFileSync(path.join(SOURCE_ROOT, "AGENTS.md"), "utf8");
-  assert.match(governingDirective, /^## Canonical Name$/m);
-  assert.match(governingDirective, /Always write it exactly as `_brainwave`/);
-  const sourceState = JSON.parse(
-    fs.readFileSync(path.join(SOURCE_ROOT, "_brainwave_state.yaml"), "utf8")
-  );
-  assert.equal(sourceState.stage, "awaiting_seed");
-  assert.equal(sourceState.seed.locked_sha256, null);
-  assert.deepEqual(sourceState.experience_checkpoints, {
-    dashboard_introduced_at: null,
-    project_basics_checked_at: null
-  });
-  assert.deepEqual(sourceState.delivery_alignment, { last_review: null });
-  assert.equal(fs.readFileSync(path.join(SOURCE_ROOT, "_my_brainwave_seed.md"), "utf8"), "");
-  assert.equal(
-    fs.readFileSync(path.join(SOURCE_ROOT, "_my_brainwave_north_star.md"), "utf8"),
-    ""
-  );
-  assert.equal(fs.existsSync(path.join(SOURCE_ROOT, "_examples")), false);
-  assert.equal(fs.existsSync(path.join(SOURCE_ROOT, "_context")), false);
-  assert.equal(
-    fs.existsSync(path.join(SOURCE_ROOT, "_templates", "my_brainwave_seed_template.md")),
-    true
-  );
-  const sourceSettings = JSON.parse(
-    fs.readFileSync(path.join(SOURCE_ROOT, "_settings.yaml"), "utf8")
-  );
-  assert.equal(sourceSettings.schema_version, "1.3.0");
-  assert.equal(sourceSettings.guidance_mode, null);
-  assert.equal(sourceSettings.build_outcome, null);
-  assert.equal(sourceSettings.build_outcome_confirmed_at, null);
-  assert.deepEqual(sourceSettings.allowed_values.guidance_mode, ["guided", "concise"]);
-  assert.deepEqual(sourceSettings.allowed_values.build_outcome, [
-    "demonstration",
-    "usable_first_version",
-    "complete_product",
-    "custom"
-  ]);
-  assert.equal(sourceSettings.project_profile.status, "not_asked");
-  assert.equal(sourceSettings.project_profile.logo.path, null);
-  assert.deepEqual(sourceSettings.project_profile.colors, []);
-  assert.match(sourceSettings.onboarding_questions[0], /first time using _brainwave/);
-  assert.equal(sourceSettings.onboarding_questions.some((question) => /build outcome/i.test(question)), false);
-  const seedTemplate = fs.readFileSync(
-    path.join(SOURCE_ROOT, "_templates", "my_brainwave_seed_template.md"),
-    "utf8"
-  );
-  assert.doesNotMatch(seedTemplate, /^## /m);
-  assert.match(seedTemplate, /Preserve the user's supplied wording and meaning/);
-  const northStarTemplate = fs.readFileSync(
-    path.join(SOURCE_ROOT, "_templates", "my_brainwave_north_star_template.md"),
-    "utf8"
-  );
-  assert.match(northStarTemplate, /^## What We Are Building$/m);
-  const sourcePackage = JSON.parse(
-    fs.readFileSync(path.join(SOURCE_PROJECT_ROOT, "package.json"), "utf8")
-  );
-  assert.equal(sourcePackage.license, "MIT");
-  const sourceReadme = fs.readFileSync(
-    path.join(SOURCE_PROJECT_ROOT, "README.md"),
-    "utf8"
-  );
-  assert.match(sourceReadme, /Use a prepared file/);
-  assert.match(sourceReadme, /seed file exactly as written/);
-  assert.match(
-    fs.readFileSync(path.join(SOURCE_PROJECT_ROOT, "LICENSE"), "utf8"),
-    /^MIT License/
-  );
-
-  const textFiles = [];
-  const collect = (directory) => {
-    for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
-      const fullPath = path.join(directory, entry.name);
-      if (entry.isDirectory()) collect(fullPath);
-      else if (/\.(?:md|json|ya?ml|js|html)$/i.test(entry.name)) textFiles.push(fullPath);
-    }
-  };
-  collect(SOURCE_ROOT);
-  const releaseText = textFiles.map((filePath) => fs.readFileSync(filePath, "utf8")).join("\n");
-  const retiredExamplePattern = new RegExp(["wish", "list"].join("\\s*"), "i");
-  assert.doesNotMatch(releaseText, retiredExamplePattern);
-
+test("installs a canonical clean fixture into an empty repository", (t) => {
   const tempBase = fs.realpathSync(os.tmpdir());
   const container = fs.mkdtempSync(path.join(tempBase, "brainwave-install-"));
   const projectRoot = path.join(container, "project");
   const frameworkRoot = path.join(projectRoot, "_brainwave");
   fs.mkdirSync(projectRoot, { recursive: true });
   fs.cpSync(SOURCE_ROOT, frameworkRoot, { recursive: true });
+  for (const directory of ["_documentation", "_assets"]) {
+    fs.rmSync(path.join(frameworkRoot, directory), { recursive: true, force: true });
+  }
+  for (const fileName of [
+    "_brainwave_state.yaml",
+    "_settings.yaml",
+    "_manifest.yaml",
+    "_implementation.yaml",
+    "_implementation_proposal.yaml",
+    "_implementation_review.md",
+    "_implementation_audit.md",
+    "_my_brainwave_seed.md",
+    "_my_brainwave_north_star.md"
+  ]) {
+    fs.rmSync(path.join(frameworkRoot, fileName), { force: true });
+  }
+  fs.writeFileSync(path.join(frameworkRoot, "_my_brainwave_seed.md"), "", "utf8");
+  fs.writeFileSync(path.join(frameworkRoot, "_my_brainwave_north_star.md"), "", "utf8");
+  fs.writeFileSync(
+    path.join(frameworkRoot, "_decisions_log.md"),
+    "# _brainwave Decisions Log\n",
+    "utf8"
+  );
   t.after(() => {
     const resolved = fs.realpathSync(container);
     assert.ok(resolved.startsWith(`${tempBase}${path.sep}`));
     fs.rmSync(resolved, { recursive: true, force: true });
   });
 
+  const refresh = runEngineFrom(frameworkRoot, projectRoot, "refresh");
   const integration = runEngineFrom(frameworkRoot, projectRoot, "integrate");
   const status = runEngineFrom(frameworkRoot, projectRoot, "status");
 
+  assert.equal(refresh.status, 0, refresh.stderr);
   assert.equal(integration.status, 0);
   assert.equal(status.status, 0);
   assert.match(status.stdout, /stage: awaiting_seed/);

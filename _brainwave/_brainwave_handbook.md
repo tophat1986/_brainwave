@@ -59,6 +59,16 @@ The selected documentation detail lives in `_settings.yaml` as `verbosity_budget
 
 Detail is separate from scope and quality. It does not add DNA documents, widen product direction, reduce material-risk coverage, or change what “complete” and verifiable mean. A more capable model or larger context window must still honour the selected depth. During review, _brainwave removes avoidable excess as well as identifying gaps; `standard` is not a softened version of `exhaustive`.
 
+## Implementation Progress Updates
+
+Implementation progress updates begin only after the foundation is accepted and the eighth step, **Deliver the implementation**, is active. They do not control how often _brainwave discusses or drafts DNA documentation.
+
+- `silent` — no routine implementation updates; report stale or invalid authority, required safety authorization, when required input, approval, access, an unresolved blocker, or an external gate leaves no other safe eligible work, and when the approved plan is complete.
+- `track` — the default goal-level cadence; report when every slice in an approved implementation track is `verified`, plus the required updates above.
+- `slice` — report whenever an implementation slice closes, plus the required updates above.
+
+The preference lives in `_settings.yaml` as `implementation_progress_updates` and may be changed at any time. Every mode continues automatically across eligible work. A progress update is never a request for permission to start the next slice or track, and a held slice does not stop unrelated eligible work.
+
 ## Providing the Seed
 
 The user can choose either route:
@@ -129,6 +139,18 @@ _DNA-SAPP-00302.01        block
 
 The DNA document-maturity contract, block direction statuses, implementation-spine states, and supersession rules live in `_dna/README.md`.
 
+The status boundaries are deliberately separate:
+
+| Concern | Authority | States or values | Meaning |
+|---|---|---|---|
+| Foundation lifecycle | `_brainwave_state.yaml` | seven lifecycle stages | Where the idea-to-documentation foundation currently is |
+| Document maturity | DNA document header | `not_started`, `in_progress`, `complete` | Whether the specification is unwritten, being written, or ready for foundation review |
+| Direction validity | DNA block | `active`, `not_applicable`, `superseded` | Whether an accepted direction currently governs the project |
+| Implementation plan | `_implementation.yaml` | `draft`, `approved`, `active`, `complete` | Whether the delivery plan is being prepared, approved, underway, or finished |
+| Implementation slice | `_implementation.yaml` | `queued`, `ready`, `active`, `implemented`, `verified`, `blocked`, `deferred` | The state of one coherent implementation outcome |
+| Implementation work item | `_implementation.yaml` | `not_started`, `in_progress`, `implemented`, `verified`, `blocked`, `deferred` | Delivery state and evidence for one applicable DNA block |
+| Implementation communication | `_settings.yaml` | `silent`, `track`, `slice` | When informational progress updates are given; never delivery state |
+
 ## Project Placement
 
 The supported layout is one repository and AI workspace:
@@ -144,7 +166,7 @@ project-root/
 `-- app/
 ```
 
-The implementation may use another folder name. Keep it in the same repository as `_brainwave` so direction, documentation, implementation, and Git history travel together.
+The implementation may use another folder name. Keep it in the same repository as `_brainwave` so direction, documentation, implementation, and Git history travel together. When the product takes ownership of root package metadata, update the package identity explicitly while preserving required `_brainwave` commands and bridges; do not treat that as permission to rename the repository folder or Git remote.
 
 For a new project, use GitHub's **Use this template** action on the complete release repository. A normal clone retains the upstream _brainwave remote and must be repointed before product work. The root README and package metadata begin as framework onboarding and tooling; the project may replace them while retaining a signpost to this handbook.
 
@@ -232,6 +254,8 @@ Run `implementation-synthesize <authored-by>` to import and validate the proposa
 `_implementation_proposal.yaml` is the agent-authored draft input. `_implementation.yaml` remains the sole authority and is command-owned: agents do not directly edit delivery states, evidence, holds, approval, revisions, audit fields, or a sealed proposal.
 
 For ordinary implementation, `implementation-context` returns a bounded packet containing the previous result, active or next slice, relevant DNA IDs and owning paths, dependencies, gates, acceptance checks, coverage, and exact next command. The agent reads only those DNA passages, works on one slice, records concise evidence through guarded commands, closes a clean Git checkpoint, then asks for the next packet. `implemented` requires current implementation evidence. `verified` additionally requires verification evidence, check time, and checked revision.
+
+The same packet carries the current `implementation_progress_updates` policy. `silent`, `track`, and `slice` change only when the user receives an informational update. They never change plan approval, evidence requirements, state transitions, or automatic continuation through eligible work.
 
 The checked behaviour must already exist at the current Git revision before the agent records `verified`; this prevents the evidence from pointing to an earlier build. The resulting spine and derived-state mutation is then committed before another slice begins.
 
