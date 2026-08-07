@@ -1,11 +1,12 @@
 {
-  "schema_version": "3.0.0",
+  "schema_version": "4.0.0",
   "dna_code": "LEGL",
-  "dna_version": "0.1.0",
+  "dna_version": "0.2.0",
   "name": "Legal, Policy and Market Access DNA",
   "description": "A guarded, consequence-activated catalogue for detecting legal, regulatory, privacy, platform-policy, and market-access constraints early; maintaining source-linked obligations and review gates; and preparing focused questions and evidence for qualified review. It does not provide legal advice, decide that a product is compliant, or replace a suitably qualified professional.",
   "documentation_label": "legal, policy and market access documentation",
   "module_contract": {
+    "assurance_profiles": ["legal_review"],
     "when_relevant": "Use when intended users, data, claims, content, money movement, distribution, geography, sector, or service model may create legal, regulatory, privacy, consumer, intellectual-property, accessibility, or platform-policy consequences. Initial detection is deliberately lightweight; depth follows risk and consequence rather than project size or maturity.",
     "selection_signals": [
       "The product will launch publicly, enter an app store or marketplace, operate across countries, or make eligibility, safety, performance, financial, health, professional, environmental, or comparative claims.",

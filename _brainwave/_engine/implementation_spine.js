@@ -1,8 +1,40 @@
 "use strict";
 
 const crypto = require("node:crypto");
+const {
+  ASSURANCE_PROFILE_CATALOG,
+  ASSURANCE_PROFILE_LEVEL_CONTRACTS,
+  ASSURANCE_METHOD_EVIDENCE_CONTRACTS,
+  ASSURANCE_PROFILE_IDS,
+  ASSURANCE_METHOD_IDS,
+  ASSURANCE_EVIDENCE_KIND_IDS,
+  ASSURANCE_REVIEW_REQUIREMENTS,
+  ASSURANCE_APPROVAL_REQUIREMENTS,
+  ASSURANCE_FINDING_STATUSES,
+  isRegisteredAssuranceProfile,
+  isRegisteredAssuranceLevel,
+  assuranceLevelSatisfies,
+  assuranceProfileTitle,
+  isRegisteredAssuranceMethod,
+  isRegisteredAssuranceEvidenceKind,
+  validateAssuranceGate,
+  validateAssuranceCheck,
+  validateAssuranceSliceState,
+  validateAssuranceRoot,
+  createAssuranceRoot,
+  gateProfileIds,
+  deriveSliceAssuranceSummary,
+  assurancePacketHash,
+  prepareAssuranceReview,
+  submitAssuranceReview,
+  remediateAssuranceFinding,
+  reconcileAssuranceFinding,
+  approveSliceAssurance,
+  assuranceClosureErrors
+} = require("./assurance");
 
-const SPINE_SCHEMA_VERSION = "0.2.0";
+const SPINE_SCHEMA_VERSION = "0.3.0";
+const PROPOSAL_SCHEMA_VERSION = "0.2.0";
 const PLAN_STATUSES = new Set(["draft", "approved", "active", "complete"]);
 const SLICE_STATES = new Set([
   "queued",
@@ -21,7 +53,6 @@ const WORK_ITEM_STATES = new Set([
   "blocked",
   "deferred"
 ]);
-const ACCEPTANCE_STATES = new Set(["pending", "passed", "failed", "blocked"]);
 const TECHNICAL_HEALTH_STATES = new Set(["unknown", "passing", "failing"]);
 const PRODUCT_COVERAGE_STATES = new Set(["not_assessed", "incomplete", "partial", "checked"]);
 const EXTERNAL_GATE_STATES = new Set(["unknown", "open", "clear", "blocked"]);
@@ -172,6 +203,8 @@ function defaultWorkItem(block, adoptionMode) {
     document_id: block.document_id || null,
     document_title: block.document_title || null,
     owning_document: owningDocument,
+    assurance_profiles: unique(Array.isArray(block.assurance_profiles) ? block.assurance_profiles : []),
+    assurance_levels_min: clone(isObject(block.assurance_levels_min) ? block.assurance_levels_min : {}),
     primary_slice: null,
     applies_to: [],
     state,
@@ -223,6 +256,8 @@ function buildImplementationSpine({ source, blocks, existing = null, now, adopti
         document_id: item.document_id,
         document_title: item.document_title,
         owning_document: item.owning_document,
+        assurance_profiles: clone(item.assurance_profiles),
+        assurance_levels_min: clone(item.assurance_levels_min),
         primary_slice: null,
         applies_to: []
       };
@@ -262,6 +297,7 @@ function buildImplementationSpine({ source, blocks, existing = null, now, adopti
     tracks: [],
     slices: [],
     work_items: workItems,
+    assurance: createAssuranceRoot(existing?.assurance || null, { recompile: Boolean(existing) }),
     audit: {
       experiment_started_at: existing?.audit?.experiment_started_at || now,
       last_mutation_at: now,
@@ -335,10 +371,11 @@ function proposalFingerprint(spine) {
       priority: slice.priority,
       depends_on: slice.depends_on || [],
       blocking_gates: slice.blocking_gates || [],
-      acceptance_checks: (slice.acceptance_checks || []).map(({ id, type, description }) => ({
+      assurance_gate: clone(slice.assurance_gate || null),
+      acceptance_checks: (slice.acceptance_checks || []).map(({ id, description, assurance }) => ({
         id,
-        type,
-        description
+        description,
+        assurance: clone(assurance || null)
       }))
     })),
     mappings: Object.fromEntries(
@@ -354,7 +391,7 @@ function proposalFingerprint(spine) {
 
 function buildImplementationProposalTemplate(spine) {
   return {
-    proposal_version: "0.1.0",
+    proposal_version: PROPOSAL_SCHEMA_VERSION,
     adoption_mode: spine?.planning?.adoption_mode || "greenfield",
     synthesis_basis: [
       {
@@ -380,8 +417,8 @@ function buildImplementationProposalTemplate(spine) {
 
 function applyImplementationProposal(spine, proposal) {
   if (!isObject(proposal)) throw new Error("The implementation proposal must be an object.");
-  if (proposal.proposal_version !== "0.1.0") {
-    throw new Error(`implementation proposal_version must be 0.1.0; found ${proposal.proposal_version || "missing"}.`);
+  if (proposal.proposal_version !== PROPOSAL_SCHEMA_VERSION) {
+    throw new Error(`implementation proposal_version must be ${PROPOSAL_SCHEMA_VERSION}; found ${proposal.proposal_version || "missing"}.`);
   }
   if (proposal.adoption_mode !== spine.planning?.adoption_mode) {
     throw new Error("The proposal adoption_mode must match the compiled inventory.");
@@ -408,15 +445,23 @@ function applyImplementationProposal(spine, proposal) {
     priority: slice.priority,
     depends_on: clone(slice.depends_on || []),
     blocking_gates: clone(slice.blocking_gates || []),
+    assurance_gate: clone(slice.assurance_gate || null),
     requires_refinement: false,
     refinement_note: null,
-    acceptance_checks: (slice.acceptance_checks || []).map(({ id, type, description }) => ({
+    acceptance_checks: (slice.acceptance_checks || []).map(({ id, description, assurance }) => ({
       id,
-      type,
       description,
+      assurance: clone(assurance || null),
       status: "pending",
-      evidence: []
+      checked_at: null,
+      checked_revision: null,
+      reviewer: null,
+      evidence: [],
+      packet_sha256: null,
+      blocked_reason: null
     })),
+    assurance_scope_review: null,
+    assurance_approval: null,
     started_at: null,
     closed_at: null,
     checked_revision: null
@@ -557,6 +602,8 @@ function validateImplementationSpine(
     if (mappingRequired && slice.requires_refinement) {
       errors.push(`Slice ${slice.id} still requires semantic refinement.`);
     }
+    errors.push(...validateAssuranceGate(slice.assurance_gate).map((entry) => `Slice ${slice.id}: ${entry}`));
+    errors.push(...validateAssuranceSliceState(slice));
     if (!Array.isArray(slice.acceptance_checks) || slice.acceptance_checks.length === 0) {
       errors.push(`Slice ${slice.id} must define at least one acceptance check.`);
     } else {
@@ -568,17 +615,7 @@ function validateImplementationSpine(
         }
         if (checkIds.has(check.id)) errors.push(`Slice ${slice.id} repeats check ${check.id}.`);
         checkIds.add(check.id);
-        if (!EVIDENCE_KINDS.has(check.type)) {
-          errors.push(`Acceptance check ${check.id} has invalid type ${check.type || "missing"}.`);
-        }
-        if (!text(check.description)) errors.push(`Acceptance check ${check.id} needs a description.`);
-        if (!ACCEPTANCE_STATES.has(check.status)) {
-          errors.push(`Acceptance check ${check.id} has invalid status ${check.status || "missing"}.`);
-        }
-        validateEvidence(check.evidence || [], `Acceptance check ${check.id} evidence`, errors);
-        if (check.status === "passed" && !(check.evidence || []).length) {
-          errors.push(`Acceptance check ${check.id} is passed without evidence.`);
-        }
+        errors.push(...validateAssuranceCheck(check, slice.assurance_gate, { runtime: true }));
       }
     }
   }
@@ -620,6 +657,29 @@ function validateImplementationSpine(
     if (expectedIds.size && !expectedIds.has(id)) warnings.push(`Work item ${id} is no longer applicable.`);
     if (mappingRequired && !slicesById.has(item.primary_slice)) {
       errors.push(`Work item ${id} references unknown primary slice ${item.primary_slice || "none"}.`);
+    }
+    if (!Array.isArray(item.assurance_profiles) || item.assurance_profiles.length === 0) {
+      errors.push(`Work item ${id} must inherit at least one assurance profile.`);
+    } else {
+      if (unique(item.assurance_profiles).length !== item.assurance_profiles.length) {
+        errors.push(`Work item ${id} repeats an assurance profile.`);
+      }
+      for (const profile of item.assurance_profiles) {
+        if (!isRegisteredAssuranceProfile(profile)) {
+          errors.push(`Work item ${id} has unregistered assurance profile ${profile}.`);
+        }
+      }
+    }
+    if (!isObject(item.assurance_levels_min)) {
+      errors.push(`Work item ${id} assurance_levels_min must be an object.`);
+    } else {
+      for (const [profile, level] of Object.entries(item.assurance_levels_min)) {
+        if (!item.assurance_profiles?.includes(profile)) {
+          errors.push(`Work item ${id} sets a minimum level for non-inherited profile ${profile}.`);
+        } else if (!isRegisteredAssuranceLevel(profile, level)) {
+          errors.push(`Work item ${id} has invalid minimum assurance level ${profile}:${level}.`);
+        }
+      }
     }
     if (!Array.isArray(item.applies_to)) {
       errors.push(`Work item ${id} applies_to must be an array.`);
@@ -702,6 +762,34 @@ function validateImplementationSpine(
       warnings.push(...budget.warnings);
       approvalBlockers.push(...budget.blockers);
     }
+    const inheritedProfiles = unique(
+      effectiveSliceItems(spine, slice.id).flatMap(([, item]) => item.assurance_profiles || [])
+    );
+    const gateProfiles = new Set(gateProfileIds(slice.assurance_gate));
+    for (const profile of inheritedProfiles) {
+      if (!gateProfiles.has(profile)) errors.push(`Slice ${slice.id}: assurance_gate omits inherited profile ${profile}.`);
+    }
+    const inheritedMinimumLevels = {};
+    for (const [, item] of effectiveSliceItems(spine, slice.id)) {
+      for (const [profile, level] of Object.entries(item.assurance_levels_min || {})) {
+        const current = inheritedMinimumLevels[profile];
+        if (!current || assuranceLevelSatisfies(profile, level, current)) {
+          inheritedMinimumLevels[profile] = level;
+        } else if (!assuranceLevelSatisfies(profile, current, level)) {
+          errors.push(`Slice ${slice.id} inherits incompatible minimum levels for profile ${profile}.`);
+        }
+      }
+    }
+    for (const [profile, minimumLevel] of Object.entries(inheritedMinimumLevels)) {
+      const actualLevel = slice.assurance_gate?.profiles?.[profile]?.level;
+      if (!assuranceLevelSatisfies(profile, actualLevel, minimumLevel)) {
+        errors.push(`Slice ${slice.id}: assurance profile ${profile} must be at least ${minimumLevel}; found ${actualLevel || "missing"}.`);
+      }
+    }
+    const coveredProfiles = new Set((slice.acceptance_checks || []).map((check) => check.assurance?.profile));
+    for (const profile of gateProfileIds(slice.assurance_gate)) {
+      if (!coveredProfiles.has(profile)) errors.push(`Slice ${slice.id} has no acceptance check for profile ${profile}.`);
+    }
     if (slice.state === "implemented") {
       const open = primaryItems.filter(([, item]) => !["implemented", "verified"].includes(item.state));
       if (open.length) errors.push(`Slice ${slice.id} is implemented while ${open.length} primary work items remain open.`);
@@ -711,6 +799,18 @@ function validateImplementationSpine(
       if (unchecked.length) errors.push(`Slice ${slice.id} is verified while ${unchecked.length} primary work items remain unchecked.`);
       const unpassed = (slice.acceptance_checks || []).filter((check) => check.status !== "passed");
       if (unpassed.length) errors.push(`Slice ${slice.id} is verified with ${unpassed.length} acceptance checks not passed.`);
+      errors.push(...assuranceClosureErrors(spine, slice.id, slice.checked_revision));
+    }
+  }
+
+  errors.push(...validateAssuranceRoot(spine.assurance, { slices, stateRevision: spine.state_revision }));
+  if (mappingRequired) {
+    for (const [findingId, finding] of Object.entries(spine.assurance?.findings || {})) {
+      if (finding.status === "needs_reconciliation") {
+        errors.push(`Assurance finding ${findingId} needs reconciliation before approval.`);
+      } else if (finding.status !== "resolved" && !slicesById.has(finding.slice_id)) {
+        errors.push(`Assurance finding ${findingId} references obsolete slice ${finding.slice_id}.`);
+      }
     }
   }
 
@@ -996,7 +1096,9 @@ function buildImplementationReview(spine, { source, applicableBlockIds, generate
         `- Effective context: ${context?.effective_blocks || 0} blocks across ${context?.documents || 0} documents; ${context?.packet_chars || 0} formatted packet characters`,
         `- Dependencies: ${(slice.depends_on || []).join(", ") || "none"}`,
         `- Blocking gates: ${(slice.blocking_gates || []).join(", ") || "none"}`,
-        `- Acceptance checks: ${(slice.acceptance_checks || []).map((check) => `${check.id} [${check.type}] ${check.description}`).join(" | ")}`
+        `- Assurance profiles: ${gateProfileIds(slice.assurance_gate).map((profile) => `${assuranceProfileTitle(profile)} (${slice.assurance_gate.profiles[profile].level}, ${slice.assurance_gate.profiles[profile].review})`).join(" | ")}`,
+        `- Assurance approval: ${slice.assurance_gate?.approval || "none"}`,
+        `- Acceptance checks: ${(slice.acceptance_checks || []).map((check) => `${check.id} [${check.assurance?.profile}/${check.assurance?.method}] ${check.description}`).join(" | ")}`
       );
       if (text(slice.justification)) lines.push(`- Non-outcome justification: ${slice.justification}`);
       lines.push("");
@@ -1129,23 +1231,10 @@ function holdWorkItem(spine, { blockId, state, reason, reopenWhen, owner, now, s
 
 function recordAcceptanceCheck(
   spine,
-  { sliceId, checkId, status, kind, ref, note, now, source }
+  { sliceId }
 ) {
-  assertMutablePlan(spine, source);
   if (sliceId !== spine.active_slice) throw new Error(`Slice ${sliceId} is not active.`);
-  if (!["passed", "failed", "blocked"].includes(status)) {
-    throw new Error("Acceptance status must be `passed`, `failed`, or `blocked`.");
-  }
-  const slice = (spine.slices || []).find((entry) => entry.id === sliceId);
-  const check = slice?.acceptance_checks?.find((entry) => entry.id === checkId);
-  if (!check) throw new Error(`Unknown acceptance check: ${checkId}.`);
-  const entry = evidenceEntry({ kind, ref, note });
-  return mutate(spine, now, (updated) => {
-    const targetSlice = updated.slices.find((entrySlice) => entrySlice.id === sliceId);
-    const targetCheck = targetSlice.acceptance_checks.find((entryCheck) => entryCheck.id === checkId);
-    targetCheck.status = status;
-    targetCheck.evidence.push(entry);
-  });
+  throw new Error("Direct acceptance recording cannot satisfy schema 0.3.0; prepare and submit a revision-bound assurance review.");
 }
 
 function checkImplementationSlice(spine, sliceId) {
@@ -1167,7 +1256,8 @@ function checkImplementationSlice(spine, sliceId) {
     slice,
     work_items: items.map(([id, item]) => ({ id, ...item })),
     errors,
-    pending_checks: pendingChecks
+    pending_checks: pendingChecks,
+    assurance: deriveSliceAssuranceSummary(spine, sliceId)
   };
 }
 
@@ -1186,12 +1276,14 @@ function closeImplementationSlice(spine, { sliceId, revision, now, source }) {
   let targetState;
   if (states.some((state) => state === "blocked")) targetState = "blocked";
   else if (states.some((state) => state === "deferred")) targetState = "deferred";
-  else if (states.every((state) => state === "verified") && check.pending_checks.length === 0) {
-    targetState = "verified";
-  } else if (states.every((state) => ["implemented", "verified"].includes(state))) {
-    targetState = "implemented";
+  else if (!states.every((state) => state === "verified")) {
+    throw new Error(`Slice ${sliceId} cannot close normally until every primary work item is verified.`);
   } else {
-    throw new Error(`Slice ${sliceId} still has open work items.`);
+    const assuranceErrors = assuranceClosureErrors(spine, sliceId, revision);
+    if (assuranceErrors.length) {
+      throw new Error(`Slice ${sliceId} assurance is incomplete: ${assuranceErrors.join(" ")}`);
+    }
+    targetState = "verified";
   }
   return mutate(spine, now, (updated) => {
     const target = updated.slices.find((entry) => entry.id === sliceId);
@@ -1240,6 +1332,11 @@ function implementationContextPayload(
     ? validation.slice_contexts?.find((entry) => entry.slice_id === selectedSlice.id) || null
     : null;
   const contextBudgetBlockers = contextBudget ? contextBudgetMessages(contextBudget).blockers : [];
+  const selectedAssurance = selectedSlice ? deriveSliceAssuranceSummary(spine, selectedSlice.id) : null;
+  const primaryReadyForAssurance = selectedSlice
+    ? Object.values(spine.work_items || {}).filter((item) => item.primary_slice === selectedSlice.id)
+        .every((item) => ["implemented", "verified"].includes(item.state))
+    : false;
   const exactNextCommand = validation.stale
     ? "Run implementation-compile, repeat slice synthesis and review, and obtain approval before continuing."
     : validation.errors.length
@@ -1253,7 +1350,13 @@ function implementationContextPayload(
         : !selectedSlice
           ? "No ready slice. Review blockers, dependencies, or plan completion."
           : spine.active_slice === selectedSlice.id
-            ? `Continue ${selectedSlice.id}; record evidence, run implementation-check ${selectedSlice.id}, then implementation-close ${selectedSlice.id}.`
+            ? !primaryReadyForAssurance
+              ? `Continue ${selectedSlice.id}; record implementation and verification evidence for its primary work items.`
+              : spine.assurance?.active_packet?.slice_id === selectedSlice.id
+                ? "Complete _working/assurance/result.json, then run node _brainwave/_engine/brainwave_runner.js implementation-assurance-submit <reviewer-mode> <reviewer-ref>."
+                : selectedAssurance?.status === "passed" && selectedAssurance?.blocking_finding_count === 0
+                  ? `Run node _brainwave/_engine/brainwave_runner.js implementation-check ${selectedSlice.id}, obtain any required assurance approval, then run node _brainwave/_engine/brainwave_runner.js implementation-close ${selectedSlice.id}.`
+                  : `node _brainwave/_engine/brainwave_runner.js implementation-assurance-prepare ${selectedSlice.id}`
             : `node _brainwave/_engine/brainwave_runner.js implementation-start ${selectedSlice.id}`;
   return {
     schema_version: spine.schema_version,
@@ -1282,6 +1385,8 @@ function implementationContextPayload(
           priority: selectedSlice.priority,
           depends_on: selectedSlice.depends_on || [],
           blocking_gates: selectedSlice.blocking_gates || [],
+          assurance_gate: selectedSlice.assurance_gate || null,
+          assurance: selectedAssurance,
           acceptance_checks: selectedSlice.acceptance_checks || []
         }
       : null,
@@ -1324,11 +1429,14 @@ function formatImplementationContext(payload) {
     if (slice.depends_on.length) lines.push(`Dependencies: ${slice.depends_on.join(", ")}.`);
     if (slice.blocking_gates.length) lines.push(`Gates: ${slice.blocking_gates.join(", ")}.`);
     lines.push(
+      `Assurance: ${slice.assurance?.status || "not_started"}; profiles ${gateProfileIds(slice.assurance_gate).join(", ") || "none"}; open findings ${slice.assurance?.open_finding_count || 0}.`
+    );
+    lines.push(
       `DNA blocks: ${payload.work_items.map((item) => `${item.id} (${item.state})`).join(", ") || "none"}.`
     );
     lines.push(`Read only: ${payload.owning_documents.join(", ") || "no owning documents"}.`);
     lines.push(
-      `Acceptance: ${slice.acceptance_checks.map((check) => `${check.id} ${check.status} - ${check.description}`).join(" | ") || "none"}.`
+      `Acceptance: ${slice.acceptance_checks.map((check) => `${check.id} ${check.assurance?.method || "method missing"} ${check.status}${check.checked_revision ? ` @ ${check.checked_revision}` : ""} - ${check.description}`).join(" | ") || "none"}.`
     );
   }
   lines.push(`Next command: ${payload.exact_next_command}`);
@@ -1428,6 +1536,34 @@ function recordRejectedTransition(spine, now) {
 
 module.exports = {
   SPINE_SCHEMA_VERSION,
+  PROPOSAL_SCHEMA_VERSION,
+  ASSURANCE_PROFILE_CATALOG,
+  ASSURANCE_PROFILE_LEVEL_CONTRACTS,
+  ASSURANCE_METHOD_EVIDENCE_CONTRACTS,
+  ASSURANCE_PROFILE_IDS,
+  ASSURANCE_METHOD_IDS,
+  ASSURANCE_EVIDENCE_KIND_IDS,
+  ASSURANCE_REVIEW_REQUIREMENTS,
+  ASSURANCE_APPROVAL_REQUIREMENTS,
+  ASSURANCE_FINDING_STATUSES,
+  isRegisteredAssuranceProfile,
+  isRegisteredAssuranceLevel,
+  assuranceLevelSatisfies,
+  assuranceProfileTitle,
+  isRegisteredAssuranceMethod,
+  isRegisteredAssuranceEvidenceKind,
+  validateAssuranceGate,
+  validateAssuranceCheck,
+  validateAssuranceSliceState,
+  validateAssuranceRoot,
+  deriveSliceAssuranceSummary,
+  assurancePacketHash,
+  prepareAssuranceReview,
+  submitAssuranceReview,
+  remediateAssuranceFinding,
+  reconcileAssuranceFinding,
+  approveSliceAssurance,
+  assuranceClosureErrors,
   buildImplementationSpine,
   buildImplementationProposalTemplate,
   applyImplementationProposal,

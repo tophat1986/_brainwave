@@ -1,11 +1,12 @@
 {
-  "schema_version": "3.0.0",
+  "schema_version": "4.0.0",
   "dna_code": "COMM",
-  "dna_version": "0.1.0",
+  "dna_version": "0.2.0",
   "name": "Commercial and Economics DNA",
   "description": "A proportionate catalogue for defining how a product is funded, earns or sustains value, packages access, handles commercial relationships, and remains economically viable. It connects product value to pricing, monetisation, payments, cost, and commercial measurement without owning product strategy, growth execution, legal interpretation, or technical implementation.",
   "documentation_label": "commercial and economics documentation",
   "module_contract": {
+    "assurance_profiles": ["commercial_validity"],
     "when_relevant": "Use when a concept needs revenue, funding, pricing, paid access, transactions, advertising, costly delivery, or an explicit sustainability model. Consider it for most public-launch and venture-intent products, including products funded indirectly rather than by their end users.",
     "selection_signals": [
       "The product may use subscriptions, purchases, commission, fees, advertising, sponsorship, licensing, donations, grants, or another funding mechanism.",

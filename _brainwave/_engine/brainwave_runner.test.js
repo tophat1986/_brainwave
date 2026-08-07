@@ -12,6 +12,7 @@ const SOURCE_ROOT = path.resolve(__dirname, "..");
 const SOURCE_PROJECT_ROOT = path.resolve(SOURCE_ROOT, "..");
 const SOURCE_RUNNER = path.join(__dirname, "brainwave_runner.js");
 const SOURCE_IMPLEMENTATION_SPINE = path.join(__dirname, "implementation_spine.js");
+const SOURCE_ASSURANCE = path.join(__dirname, "assurance.js");
 const SOURCE_IMPLEMENTATION_PROGRESS = path.join(__dirname, "implementation_progress.js");
 const SOURCE_PROJECT_INTEGRATION = path.join(__dirname, "project_integration.js");
 const SOURCE_DASHBOARD_RENDERER = path.join(__dirname, "dashboard_renderer.js");
@@ -35,7 +36,7 @@ function writeJson(filePath, value) {
   fs.writeFileSync(filePath, `${JSON.stringify(value, null, 2)}\n`, "utf8");
 }
 
-function moduleContract(domain) {
+function moduleContract(domain, assuranceProfile) {
   return {
     when_relevant: `Use when ${domain} is material.`,
     selection_signals: [`The concept requires ${domain}.`],
@@ -43,6 +44,7 @@ function moduleContract(domain) {
     does_not_own: ["Do not absorb adjacent domains."],
     coordinates_with: {},
     live_verification: [],
+    assurance_profiles: [assuranceProfile],
     timing: {
       consider_early: `Consider ${domain} while shaping direction.`,
       can_defer_when: `${domain} cannot affect the confirmed outcome or likely trajectory.`,
@@ -53,13 +55,13 @@ function moduleContract(domain) {
 
 function softwareModule() {
   return {
-    schema_version: "3.0.0",
+    schema_version: "4.0.0",
     dna_code: "SAPP",
-    dna_version: "1.3.0",
+    dna_version: "1.4.0",
     name: "Software Application DNA",
     description: "Software architecture documentation for an application.",
     documentation_label: "software architecture documentation",
-    module_contract: moduleContract("software architecture"),
+    module_contract: moduleContract("software architecture", "software_quality"),
     nodes: {
       "00200": {
         id: "00200",
@@ -85,13 +87,13 @@ function softwareModule() {
 
 function brandModule() {
   return {
-    schema_version: "3.0.0",
+    schema_version: "4.0.0",
     dna_code: "BRND",
-    dna_version: "1.3.0",
+    dna_version: "1.4.0",
     name: "Brand Identity DNA",
     description: "Enduring verbal and visual brand identity documentation.",
     documentation_label: "brand identity documentation",
-    module_contract: moduleContract("brand identity"),
+    module_contract: moduleContract("brand identity", "brand"),
     nodes: {
       "00200": {
         id: "00200",
@@ -138,6 +140,7 @@ function createWorkspace(t, options = {}) {
     SOURCE_IMPLEMENTATION_SPINE,
     path.join(root, "_engine", "implementation_spine.js")
   );
+  fs.copyFileSync(SOURCE_ASSURANCE, path.join(root, "_engine", "assurance.js"));
   fs.copyFileSync(
     SOURCE_IMPLEMENTATION_PROGRESS,
     path.join(root, "_engine", "implementation_progress.js")
@@ -194,13 +197,13 @@ function createWorkspace(t, options = {}) {
   const selectedDna = {};
   if (selected) {
     selectedDna["_DNA-SAPP"] = {
-      version: "1.3.0",
+      version: "1.4.0",
       expressed_entries: expressed ? ["00200", "00201"] : []
     };
   }
   if (includeBrand && selected) {
     selectedDna["_DNA-BRND"] = {
-      version: "1.3.0",
+      version: "1.4.0",
       expressed_entries: expressed ? ["00200", "00201"] : []
     };
   }
@@ -257,7 +260,7 @@ function acceptFoundation(root) {
   return documentPath;
 }
 
-function compileAndApproveSpine(root) {
+function compileAndApproveSpine(root, { references = [] } = {}) {
   assert.equal(runEngine(root, "implementation-compile").status, 0);
   const spinePath = path.join(root, "_implementation.yaml");
   const proposalPath = path.join(root, "_implementation_proposal.yaml");
@@ -277,10 +280,24 @@ function compileAndApproveSpine(root) {
     priority: "high",
     depends_on: [],
     blocking_gates: [],
+    assurance_gate: {
+      profiles: {
+        software_quality: {
+          level: "slice",
+          review: "self_allowed"
+        }
+      },
+      approval: "none",
+      references
+    },
     acceptance_checks: [{
       id: "SLICE-SYSTEM-BOUNDARY-AC01",
-      type: "inspection",
-      description: "Verify the delivered boundary against its accepted direction."
+      description: "Verify the delivered boundary against its accepted direction.",
+      assurance: {
+        profile: "software_quality",
+        method: "inspection",
+        required_evidence: ["inspection_record"]
+      }
     }]
   }];
   for (const item of Object.values(proposal.work_items)) {
@@ -325,19 +342,36 @@ function verifySingleSlice(root) {
     ).status,
     0
   );
-  assert.equal(
-    runEngine(
-      root,
-      "implementation-acceptance",
-      slice.id,
-      slice.acceptance_checks[0].id,
-      "passed",
-      "inspection",
-      "src/system.ts",
-      "Inspected against the accepted direction."
-    ).status,
-    0
+  const prepared = runEngine(root, "implementation-assurance-prepare", slice.id);
+  assert.equal(prepared.status, 0, prepared.stderr);
+  const packet = JSON.parse(
+    fs.readFileSync(path.join(root, "_working", "assurance", "packet.json"), "utf8")
   );
+  const resultPath = path.join(root, "_working", "assurance", "result.json");
+  const result = JSON.parse(fs.readFileSync(resultPath, "utf8"));
+  result.scope_preflight = {
+    status: "sufficient",
+    note: "The sealed check covers the implemented fixture outcome."
+  };
+  result.checks[0] = {
+    id: slice.acceptance_checks[0].id,
+    status: "passed",
+    blocked_reason: null,
+    evidence: [{
+      kind: "inspection_record",
+      ref: "src/system.ts",
+      note: "Inspected against the accepted direction.",
+      revision: packet.revision
+    }]
+  };
+  writeJson(resultPath, result);
+  const submitted = runEngine(
+    root,
+    "implementation-assurance-submit",
+    "self",
+    "runner-test"
+  );
+  assert.equal(submitted.status, 0, submitted.stderr);
   assert.equal(runEngine(root, "implementation-close", slice.id).status, 0);
   return { sliceId: slice.id, blockId };
 }
@@ -889,7 +923,7 @@ test("selecting DNA context explains modules in plain language", () => {
   });
 
   assert.match(context, /curated catalogues of possible documentation for relevant domains/);
-  assert.match(context, /timing and live-verification rules/);
+  assert.match(context, /assurance profiles, timing, and live-verification rules/);
   assert.match(context, /deferrals with re-entry triggers/);
   assert.match(context, /Legal, policy, and service consequences can require early attention/);
   assert.match(context, /state that coverage gap rather than distributing it across adjacent modules/);
@@ -1096,10 +1130,25 @@ test("manifest carries the complete setup and project profile into the dashboard
   const settingsPath = path.join(root, "_settings.yaml");
   const settings = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
   const logoPath = "_assets/project_profile/logo.svg";
+  const referencePath = "_assets/project_profile/references/home-concept.png";
   fs.mkdirSync(path.join(root, "_assets", "project_profile"), { recursive: true });
+  fs.mkdirSync(path.join(root, "_assets", "project_profile", "references"), { recursive: true });
   fs.writeFileSync(path.join(root, logoPath), "<svg xmlns=\"http://www.w3.org/2000/svg\"></svg>", "utf8");
+  fs.writeFileSync(path.join(root, referencePath), "reference-image-fixture", "utf8");
   settings.guidance_mode = "guided";
   settings.allowed_values.guidance_mode = ["guided", "concise"];
+  settings.assurance_tooling = {
+    component_ui: {
+      decision: "selected",
+      adapter: "storybook",
+      capabilities: ["isolated_states", "visual_diff", "local_interaction"]
+    },
+    browser_journey: {
+      decision: "selected",
+      adapter: "playwright",
+      capabilities: ["runtime_fixtures", "viewport_capture", "interaction_trace"]
+    }
+  };
   settings.project_profile = {
     status: "working",
     name: "Signal Garden",
@@ -1111,6 +1160,12 @@ test("manifest carries the complete setup and project profile into the dashboard
       { name: "Moss", value: "#173B35", role: "primary", usage: "Dark surfaces", featured: true, status: "working" },
       { name: "Sun", value: "#F5B942", role: "secondary", usage: "Warm highlights", featured: false, status: "working" }
     ],
+    references: [{
+      path: referencePath,
+      label: "Home concept",
+      notes: "Supplied visual input; PDEX owns interpretation.",
+      status: "working"
+    }],
     style_direction: "Calm, warm and quietly optimistic.",
     updated_at: "2026-08-04T12:00:00.000Z"
   };
@@ -1131,6 +1186,11 @@ test("manifest carries the complete setup and project profile into the dashboard
   assert.equal(manifest.presentation.project_profile.colors[0].featured, true);
   assert.equal(manifest.presentation.project_profile.colors[1].role, "primary");
   assert.equal(manifest.presentation.project_profile.colors[2].usage, "Warm highlights");
+  assert.equal(manifest.presentation.project_profile.references[0].id, referencePath);
+  assert.equal(manifest.presentation.project_profile.references[0].exists, true);
+  assert.match(manifest.presentation.project_profile.references[0].sha256, /^[a-f0-9]{64}$/);
+  assert.equal(manifest.assurance.tooling.component_ui.adapter, "storybook");
+  assert.equal(manifest.assurance.tooling.browser_journey.adapter, "playwright");
   assert.match(dashboard, /Signal Garden/);
   assert.match(dashboard, /#247A5A/);
   const status = runEngine(root, "status");
@@ -1190,7 +1250,7 @@ test("scaffolds only expressed documents under the DNA namespace without copying
   assert.equal(result.status, 0);
   assert.match(scaffold, /Documentation status: in_progress/);
   assert.match(scaffold, /_my_brainwave_north_star\.md/);
-  assert.match(scaffold, /_DNA-SAPP.*1\.3\.0/);
+  assert.match(scaffold, /_DNA-SAPP.*1\.4\.0/);
   assert.match(scaffold, /### _DNA-SAPP-00201\.01 - Initial Direction/);
   assert.match(scaffold, /#### Alternatives Considered/);
   assert.match(scaffold, /Direction status: active/);
@@ -1287,6 +1347,10 @@ test("keeps accepted DNA direction separate from implementation delivery state",
 
 test("compiles every applicable DNA block into a versioned draft spine", (t) => {
   const { root } = createWorkspace(t, { expressed: true });
+  const dnaPath = path.join(root, "_dna", "_DNA-SAPP.yaml");
+  const dna = JSON.parse(fs.readFileSync(dnaPath, "utf8"));
+  dna.nodes["00201"].assurance_levels_min = { software_quality: "slice" };
+  writeJson(dnaPath, dna);
   acceptFoundation(root);
 
   const result = runEngine(root, "implementation-compile");
@@ -1294,12 +1358,13 @@ test("compiles every applicable DNA block into a versioned draft spine", (t) => 
   const spine = JSON.parse(fs.readFileSync(path.join(root, "_implementation.yaml"), "utf8"));
   const manifest = JSON.parse(fs.readFileSync(path.join(root, "_manifest.yaml"), "utf8"));
 
-  assert.equal(spine.schema_version, "0.2.0");
+  assert.equal(spine.schema_version, "0.3.0");
   assert.equal(spine.plan_version, 1);
   assert.equal(spine.plan_status, "draft");
   assert.equal(spine.planning.synthesis_status, "inventory_ready");
   assert.equal(spine.slices.length, 0);
   assert.equal(spine.work_items["_DNA-SAPP-00201.01"].primary_slice, null);
+  assert.deepEqual(spine.work_items["_DNA-SAPP-00201.01"].assurance_levels_min, { software_quality: "slice" });
   assert.equal(fs.existsSync(path.join(root, "_implementation_proposal.yaml")), true);
   assert.equal(manifest.implementation.mode, "compiled");
   assert.equal(manifest.implementation.coverage.applicable, 1);
@@ -1354,6 +1419,316 @@ test("guards slice progress with implementation, verification, and acceptance ev
   assert.ok(spine.work_items[blockId].last_checked);
   assert.equal(manifest.delivery_alignment.coverage.checked, 1);
   assert.equal(manifest.delivery_alignment.coverage.checked_pct, 100);
+});
+
+test("keeps a closed slice passed after its evidence checkpoint advances HEAD", (t) => {
+  const { root } = createWorkspace(t, { expressed: true, nested: true });
+  acceptFoundation(root);
+  const repositoryRoot = path.dirname(root);
+  for (const args of [
+    ["init"],
+    ["config", "user.email", "brainwave-test@example.com"],
+    ["config", "user.name", "Brainwave Test"],
+    ["add", "."],
+    ["commit", "-m", "Accepted foundation"]
+  ]) {
+    const git = spawnSync("git", args, { cwd: repositoryRoot, encoding: "utf8", windowsHide: true });
+    assert.equal(git.status, 0, git.stderr);
+  }
+  compileAndApproveSpine(root);
+  verifySingleSlice(root);
+  let manifest = JSON.parse(fs.readFileSync(path.join(root, "_manifest.yaml"), "utf8"));
+  assert.equal(manifest.implementation.slices[0].assurance_summary.status, "passed");
+  const checkedRevision = manifest.implementation.slices[0].checked_revision;
+
+  for (const args of [
+    ["add", "."],
+    ["commit", "-m", "Record closed assurance checkpoint"]
+  ]) {
+    const git = spawnSync("git", args, { cwd: repositoryRoot, encoding: "utf8", windowsHide: true });
+    assert.equal(git.status, 0, git.stderr);
+  }
+  assert.equal(runEngine(root, "refresh").status, 0);
+  manifest = JSON.parse(fs.readFileSync(path.join(root, "_manifest.yaml"), "utf8"));
+  assert.equal(manifest.implementation.slices[0].checked_revision, checkedRevision);
+  assert.equal(manifest.implementation.slices[0].assurance_summary.status, "passed");
+});
+
+test("keeps failed assurance findings open until remediation and explicit recheck", (t) => {
+  const { root } = createWorkspace(t, { expressed: true });
+  acceptFoundation(root);
+  const approved = compileAndApproveSpine(root);
+  const slice = approved.slices[0];
+  const blockId = Object.keys(approved.work_items)[0];
+  assert.equal(runEngine(root, "implementation-start", slice.id).status, 0);
+  assert.equal(runEngine(
+    root,
+    "implementation-record",
+    blockId,
+    "implemented",
+    "code",
+    "src/system.ts",
+    "Implements the boundary."
+  ).status, 0);
+  assert.equal(runEngine(
+    root,
+    "implementation-record",
+    blockId,
+    "verified",
+    "automated_test",
+    "system.test.ts",
+    "Tests the boundary."
+  ).status, 0);
+
+  const legacy = runEngine(
+    root,
+    "implementation-acceptance",
+    slice.id,
+    slice.acceptance_checks[0].id,
+    "passed",
+    "inspection",
+    "src/system.ts",
+    "Would bypass assurance."
+  );
+  assert.equal(legacy.status, 1);
+  assert.match(legacy.stderr, /legacy-only/);
+
+  assert.equal(runEngine(root, "implementation-assurance-prepare", slice.id).status, 0);
+  const packetPath = path.join(root, "_working", "assurance", "packet.json");
+  const resultPath = path.join(root, "_working", "assurance", "result.json");
+  const packet = JSON.parse(fs.readFileSync(packetPath, "utf8"));
+  const failed = JSON.parse(fs.readFileSync(resultPath, "utf8"));
+  failed.scope_preflight = {
+    status: "sufficient",
+    note: "The sealed inspection is sufficient to assess this fixture."
+  };
+  failed.checks[0] = {
+    id: slice.acceptance_checks[0].id,
+    status: "failed",
+    blocked_reason: null,
+    evidence: [{
+      kind: "inspection_record",
+      ref: "reports/inspection.md",
+      note: "The assembled boundary contradicts the accepted direction.",
+      revision: packet.revision
+    }]
+  };
+  failed.findings = [{
+    check_id: slice.acceptance_checks[0].id,
+    kind: "defect",
+    severity: "high",
+    summary: "The supported entry reaches the wrong boundary.",
+    evidence_ref: "reports/inspection.md"
+  }];
+  writeJson(resultPath, failed);
+  const submittedFailure = runEngine(
+    root,
+    "implementation-assurance-submit",
+    "self",
+    "runner-test"
+  );
+  assert.equal(submittedFailure.status, 0, submittedFailure.stderr);
+
+  let spine = JSON.parse(fs.readFileSync(path.join(root, "_implementation.yaml"), "utf8"));
+  assert.equal(spine.assurance.findings["QF-0001"].status, "open");
+  let manifest = JSON.parse(fs.readFileSync(path.join(root, "_manifest.yaml"), "utf8"));
+  assert.equal(manifest.implementation.slices[0].assurance_summary.status, "needs_attention");
+  assert.equal(manifest.implementation.slices[0].assurance_summary.open_findings_count, 1);
+  assert.equal(runEngine(root, "implementation-close", slice.id).status, 1);
+
+  const remediated = runEngine(
+    root,
+    "implementation-assurance-remediate",
+    "QF-0001",
+    "src/system.ts",
+    "Corrected the supported entry boundary."
+  );
+  assert.equal(remediated.status, 0, remediated.stderr);
+  assert.equal(runEngine(root, "implementation-assurance-prepare", slice.id).status, 0);
+  const recheckPacket = JSON.parse(fs.readFileSync(packetPath, "utf8"));
+  const passed = JSON.parse(fs.readFileSync(resultPath, "utf8"));
+  passed.scope_preflight = {
+    status: "sufficient",
+    note: "The sealed inspection remains sufficient after remediation."
+  };
+  passed.checks[0] = {
+    id: slice.acceptance_checks[0].id,
+    status: "passed",
+    blocked_reason: null,
+    evidence: [{
+      kind: "inspection_record",
+      ref: "reports/inspection.md",
+      note: "The supported entry now reaches the accepted boundary.",
+      revision: recheckPacket.revision
+    }]
+  };
+  passed.finding_rechecks[0] = {
+    finding_id: "QF-0001",
+    status: "resolved",
+    note: "The incorrect boundary is no longer present.",
+    evidence_ref: "reports/inspection.md"
+  };
+  writeJson(resultPath, passed);
+  const submittedPass = runEngine(
+    root,
+    "implementation-assurance-submit",
+    "self",
+    "runner-test"
+  );
+  assert.equal(submittedPass.status, 0, submittedPass.stderr);
+  assert.equal(runEngine(root, "implementation-close", slice.id).status, 0);
+
+  spine = JSON.parse(fs.readFileSync(path.join(root, "_implementation.yaml"), "utf8"));
+  manifest = JSON.parse(fs.readFileSync(path.join(root, "_manifest.yaml"), "utf8"));
+  assert.equal(spine.assurance.findings["QF-0001"].status, "resolved");
+  assert.equal(manifest.implementation.slices[0].assurance_summary.status, "passed");
+});
+
+test("prepares only the project references sealed into the active slice", (t) => {
+  const { root } = createWorkspace(t, { expressed: true });
+  const settingsPath = path.join(root, "_settings.yaml");
+  const settings = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
+  const selectedRef = "_assets/project_profile/references/selected.png";
+  const unrelatedRef = "_assets/project_profile/references/unrelated.png";
+  fs.mkdirSync(path.join(root, "_assets", "project_profile", "references"), { recursive: true });
+  fs.writeFileSync(path.join(root, selectedRef), "selected-binary-fixture", "utf8");
+  fs.writeFileSync(path.join(root, unrelatedRef), "unrelated-binary-fixture", "utf8");
+  settings.project_profile = {
+    status: "working",
+    references: [
+      { path: selectedRef, label: "Selected concept", status: "working" },
+      { path: unrelatedRef, label: "Unrelated concept", status: "working" }
+    ]
+  };
+  writeJson(settingsPath, settings);
+
+  acceptFoundation(root);
+  const approved = compileAndApproveSpine(root, { references: [selectedRef] });
+  const slice = approved.slices[0];
+  const blockId = Object.keys(approved.work_items)[0];
+  assert.equal(runEngine(root, "implementation-start", slice.id).status, 0);
+  assert.equal(runEngine(
+    root,
+    "implementation-record",
+    blockId,
+    "implemented",
+    "code",
+    "src/system.ts",
+    "Implements the referenced outcome."
+  ).status, 0);
+  const prepared = runEngine(root, "implementation-assurance-prepare", slice.id);
+  assert.equal(prepared.status, 0, prepared.stderr);
+  const packet = JSON.parse(
+    fs.readFileSync(path.join(root, "_working", "assurance", "packet.json"), "utf8")
+  );
+  assert.equal(packet.references.length, 1);
+  assert.equal(packet.references[0].id, selectedRef);
+  assert.match(packet.references[0].sha256, /^[a-f0-9]{64}$/);
+  assert.match(packet.review_protocol.discovery, /credible defects or omissions/);
+  assert.doesNotMatch(JSON.stringify(packet), /unrelated-binary-fixture|selected-binary-fixture/);
+  assert.ok(JSON.stringify(packet).length <= 12000);
+});
+
+test("includes primary and applies-to DNA direction in the assurance packet", (t) => {
+  const { root } = createWorkspace(t, { expressed: true });
+  const documentPath = acceptFoundation(root);
+  fs.appendFileSync(documentPath, [
+    "",
+    "### _DNA-SAPP-00201.02 - Cross-cutting constraint",
+    "",
+    "Direction status: active",
+    "Supersedes: none",
+    "",
+    "#### Context",
+    "",
+    "The boundary also governs the primary outcome.",
+    "",
+    "#### Direction",
+    "",
+    "Preserve the accepted cross-cutting boundary in every supported entry.",
+    "",
+    "#### Rationale",
+    "",
+    "The constraint applies across slice ownership.",
+    "",
+    "#### Alternatives Considered",
+    "",
+    "Duplicating ownership was rejected.",
+    "",
+    "#### Consequences",
+    "",
+    "Affected slices must keep this direction in review context.",
+    "",
+    "#### Future Fit",
+    "",
+    "Revisit only through accepted direction change.",
+    "",
+    "#### Verification",
+    "",
+    "Inspect the supported entry against this boundary.",
+    ""
+  ].join("\n"), "utf8");
+
+  assert.equal(runEngine(root, "implementation-compile").status, 0);
+  const proposalPath = path.join(root, "_implementation_proposal.yaml");
+  const proposal = JSON.parse(fs.readFileSync(proposalPath, "utf8"));
+  const makeSlice = (id, order) => ({
+    id,
+    track: "TRACK-OUTCOME",
+    kind: "outcome",
+    title: `Outcome ${order}`,
+    outcome: `Observable outcome ${order} is delivered.`,
+    order,
+    priority: "high",
+    depends_on: [],
+    blocking_gates: [],
+    assurance_gate: {
+      profiles: { software_quality: { level: "slice", review: "self_allowed" } },
+      approval: "none",
+      references: []
+    },
+    acceptance_checks: [{
+      id: `${id}-AC01`,
+      description: `Inspect outcome ${order}.`,
+      assurance: {
+        profile: "software_quality",
+        method: "inspection",
+        required_evidence: ["inspection_record"]
+      }
+    }]
+  });
+  proposal.synthesis_basis.push({
+    ref: "_documentation/_DNA-SAPP/00200_architecture/_DNA-SAPP-00201_system_context.md",
+    role: "Defines primary and cross-cutting boundary direction."
+  });
+  proposal.tracks = [{ id: "TRACK-OUTCOME", title: "Outcomes", order: 1 }];
+  proposal.slices = [makeSlice("SLICE-PRIMARY", 1), makeSlice("SLICE-OWNER", 2)];
+  proposal.work_items["_DNA-SAPP-00201.01"].primary_slice = "SLICE-PRIMARY";
+  proposal.work_items["_DNA-SAPP-00201.02"].primary_slice = "SLICE-OWNER";
+  proposal.work_items["_DNA-SAPP-00201.02"].applies_to = ["SLICE-PRIMARY"];
+  writeJson(proposalPath, proposal);
+  assert.equal(runEngine(root, "implementation-synthesize", "Test-agent").status, 0);
+  assert.equal(runEngine(root, "implementation-review").status, 0);
+  assert.equal(runEngine(root, "implementation-approve", "Product", "owner").status, 0);
+  assert.equal(runEngine(root, "implementation-start", "SLICE-PRIMARY").status, 0);
+  assert.equal(runEngine(
+    root,
+    "implementation-record",
+    "_DNA-SAPP-00201.01",
+    "implemented",
+    "code",
+    "src/system.ts",
+    "Implements the primary boundary."
+  ).status, 0);
+  const prepared = runEngine(root, "implementation-assurance-prepare", "SLICE-PRIMARY");
+  assert.equal(prepared.status, 0, prepared.stderr);
+  const packet = JSON.parse(
+    fs.readFileSync(path.join(root, "_working", "assurance", "packet.json"), "utf8")
+  );
+  assert.deepEqual(
+    packet.direction_excerpts.map((entry) => entry.id).sort(),
+    ["_DNA-SAPP-00201.01", "_DNA-SAPP-00201.02"]
+  );
 });
 
 test("rejects unsupported verification and records the rejected transition", (t) => {
@@ -1795,7 +2170,7 @@ test("allows explicit reselection to accept a newly installed DNA version", (t) 
   const updated = JSON.parse(fs.readFileSync(statePath, "utf8"));
 
   assert.equal(result.status, 0);
-  assert.equal(updated.selected_dna["_DNA-SAPP"].version, "1.3.0");
+  assert.equal(updated.selected_dna["_DNA-SAPP"].version, "1.4.0");
   assert.deepEqual(updated.selected_dna["_DNA-SAPP"].expressed_entries, []);
 });
 
@@ -1809,7 +2184,7 @@ test("discovers a conforming custom data-only DNA module", (t) => {
   const result = runEngine(root, "dna");
 
   assert.equal(result.status, 0);
-  assert.match(result.stdout, /_DNA-CSTM 1\.3\.0/);
+  assert.match(result.stdout, /_DNA-CSTM 1\.4\.0/);
   assert.match(result.stdout, /Custom Domain DNA/);
 });
 
@@ -1858,21 +2233,22 @@ test("ships explicit module contracts, baseline semantics, and separated product
     SOPS: service
   } = shipped;
 
-  assert.equal(sapp.dna_version, "1.3.0");
-  assert.equal(brand.dna_version, "1.3.0");
-  assert.equal(experience.dna_version, "0.1.0");
-  assert.equal(strategy.dna_version, "0.1.0");
-  assert.equal(commercial.dna_version, "0.1.0");
-  assert.equal(growth.dna_version, "0.1.0");
-  assert.equal(legal.dna_version, "0.1.0");
-  assert.equal(service.dna_version, "0.1.0");
+  assert.equal(sapp.dna_version, "1.4.0");
+  assert.equal(brand.dna_version, "1.4.0");
+  assert.equal(experience.dna_version, "0.2.0");
+  assert.equal(strategy.dna_version, "0.2.0");
+  assert.equal(commercial.dna_version, "0.2.0");
+  assert.equal(growth.dna_version, "0.2.0");
+  assert.equal(legal.dna_version, "0.2.0");
+  assert.equal(service.dna_version, "0.2.0");
   for (const module of Object.values(shipped)) {
-    assert.equal(module.schema_version, "3.0.0");
+    assert.equal(module.schema_version, "4.0.0");
     assert.equal(typeof module.module_contract.when_relevant, "string");
     assert.ok(module.module_contract.selection_signals.length > 0);
     assert.ok(module.module_contract.owns.length > 0);
     assert.ok(module.module_contract.does_not_own.length > 0);
     assert.ok(Array.isArray(module.module_contract.live_verification));
+    assert.ok(module.module_contract.assurance_profiles.length > 0);
     assert.equal(typeof module.module_contract.timing.consider_early, "string");
     assert.equal(typeof module.module_contract.timing.can_defer_when, "string");
     assert.equal(typeof module.module_contract.timing.must_not_defer_when, "string");
@@ -1893,7 +2269,7 @@ test("ships explicit module contracts, baseline semantics, and separated product
   assert.equal(sapp.nodes["00100"].baseline, true);
   assert.equal(sapp.nodes["00101"].title, "Product Scope and Completion");
   assert.equal(sapp.nodes["00101"].baseline, true);
-  assert.match(sapp.nodes["00101"].intent, /included capabilities/);
+  assert.match(sapp.nodes["00101"].intent, /included, postponed, and excluded capabilities/);
   assert.equal("00204" in sapp.nodes, false);
   assert.equal(sapp.nodes["00203"].baseline, false);
   assert.equal(sapp.nodes["00405"].title, "Privacy Engineering");
@@ -1907,12 +2283,18 @@ test("ships explicit module contracts, baseline semantics, and separated product
   assert.equal(sapp.nodes["00704"].title, "Operational Readiness");
   assert.equal(sapp.nodes["01004"].title, "Product Analytics Instrumentation");
   assert.match(sapp.nodes["01004"].intent, /decision purpose/);
+  assert.deepEqual(experience.nodes["00201"].assurance_levels_min, { experience: "journey" });
+  assert.deepEqual(experience.nodes["00202"].assurance_levels_min, { experience: "journey" });
+  assert.deepEqual(experience.nodes["00301"].assurance_levels_min, { experience: "surface" });
+  assert.deepEqual(experience.nodes["00302"].assurance_levels_min, { experience: "surface" });
+  assert.deepEqual(experience.nodes["00501"].assurance_levels_min, { experience: "surface" });
+  assert.deepEqual(experience.nodes["00502"].assurance_levels_min, { experience: "component" });
   assert.equal(sapp.nodes["01101"].title, "Performance and Scalability Model");
   assert.equal(sapp.nodes["01102"].title, "Technical Cost Model and Controls");
   assert.equal(sapp.nodes["01102"].baseline, true);
   assert.equal(experience.name, "Product Design and Experience DNA");
   assert.equal(experience.nodes["00104"].title, "Design Exploration and References");
-  assert.match(experience.nodes["00104"].intent, /two materially different/);
+  assert.match(experience.nodes["00104"].intent, /classify their intended use/);
   assert.equal(experience.nodes["00402"].title, "Interface Copy");
   assert.match(experience.nodes["00402"].intent, /developer notes/);
   assert.equal(experience.nodes["00501"].title, "Visual Hierarchy and Composition");
@@ -1965,6 +2347,19 @@ test("rejects a DNA module without an explicit module contract", (t) => {
 
   assert.equal(result.status, 1);
   assert.match(result.stderr, /must define module_contract/);
+});
+
+test("rejects a node minimum assurance level for a profile it does not inherit", (t) => {
+  const { root } = createWorkspace(t, { selected: false });
+  const dnaPath = path.join(root, "_dna", "_DNA-SAPP.yaml");
+  const dna = JSON.parse(fs.readFileSync(dnaPath, "utf8"));
+  dna.nodes["00201"].assurance_levels_min = { experience: "journey" };
+  writeJson(dnaPath, dna);
+
+  const result = runEngine(root, "dna");
+
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /sets a minimum level for non-inherited profile experience/);
 });
 
 test("rejects the retired required flag even when baseline guidance exists", (t) => {

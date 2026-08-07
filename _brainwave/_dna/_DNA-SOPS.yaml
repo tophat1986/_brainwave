@@ -1,11 +1,12 @@
 {
-  "schema_version": "3.0.0",
+  "schema_version": "4.0.0",
   "dna_code": "SOPS",
-  "dna_version": "0.1.0",
+  "dna_version": "0.2.0",
   "name": "Service Operations and Support DNA",
   "description": "A proportionate catalogue for designing and operating the human and organisational work surrounding a product: service delivery, support, fulfilment, scheduling, capacity, quality, complaints, escalation, readiness, and improvement. It connects the customer experience to real operational ownership without absorbing technical operations, commercial policy, or legal interpretation.",
   "documentation_label": "service operations and support documentation",
   "module_contract": {
+    "assurance_profiles": ["service_operations"],
     "when_relevant": "Use when customer value or safety depends on people, support, human-led onboarding, customer success, adoption guidance, teaching, coaching, execution of an established moderation policy, review, fulfilment, bookings, appointments, partners, vendors, complaints, manual intervention, or a service promise. Use lightly for self-service products unless meaningful support or human escalation is required.",
     "selection_signals": [
       "People will onboard, implement, guide adoption, manage account success, teach, advise, coach, review, approve, moderate, match, fulfil, schedule, deliver, investigate, or intervene as part of the product outcome.",

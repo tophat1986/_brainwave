@@ -1,11 +1,12 @@
 {
-  "schema_version": "3.0.0",
+  "schema_version": "4.0.0",
   "dna_code": "PDEX",
-  "dna_version": "0.1.0",
+  "dna_version": "0.2.0",
   "name": "Product Design and Experience DNA",
   "description": "A proportionate catalogue for defining the complete human experience of a digital product: purposeful journeys, interaction, hierarchy, interface content, accessibility, adaptation, localisation, visual composition, distinctiveness, and experience verification. It converts the North Star, product evidence, and brand identity into build-ready experience direction without owning technical implementation.",
   "documentation_label": "product experience documentation",
   "module_contract": {
+    "assurance_profiles": ["experience"],
     "when_relevant": "Use when people will interact with a digital product, interface, workflow, or service touchpoint and the intended experience should be deliberate rather than inferred from generic agent defaults.",
     "selection_signals": [
       "The concept contains screens, journeys, onboarding, navigation, input, decisions, system feedback, or user-facing content.",
@@ -85,7 +86,7 @@
       "type": "file",
       "path": "00100_experience_direction/00104_design_exploration_and_references.md",
       "title": "Design Exploration and References",
-      "intent": "Gather relevant product, visual, interaction, cultural, and adjacent-category references; identify what should be learned rather than copied; develop at least two materially different experience directions when visual or interaction choices are consequential; compare them against the North Star, evidence, brand, accessibility, and technical constraints; and record the deliberate convergence before scaling one direction.",
+      "intent": "Consume supplied screenshots, sketches, mock-ups, and examples from the project profile; classify their intended use inside this document; identify what should be learned rather than copied; explore materially different directions when choices are consequential; and preserve the agreed convergence for later rendered comparison.",
       "parent_id": "00100",
       "baseline": true
     },
@@ -103,18 +104,20 @@
       "type": "file",
       "path": "00200_journeys_and_structure/00201_critical_user_journeys.md",
       "title": "Critical User Journeys",
-      "intent": "Map the smallest set of critical goals and end-to-end flows, including entry, progress, decisions, alternate paths, failure, recovery, completion, and return use without turning every screen into prose.",
+      "intent": "Map the smallest complete set of critical journeys and the setup, management, recovery, and exit behaviour implied by included capabilities, including alternate paths and return use; record deliberate omissions without turning every screen into prose.",
       "parent_id": "00200",
-      "baseline": true
+      "baseline": true,
+      "assurance_levels_min": {"experience": "journey"}
     },
     "00202": {
       "id": "00202",
       "type": "file",
       "path": "00200_journeys_and_structure/00202_information_architecture.md",
       "title": "Information Architecture",
-      "intent": "Define the hierarchy, grouping, navigation, labelling, findability, orientation, and progressive disclosure of content and capabilities across the experience.",
+      "intent": "Define the hierarchy, grouping, navigation, labelling, findability, orientation, and progressive disclosure of content and capabilities. Give every included capability, account action, and destructive action a coherent surface and navigation home.",
       "parent_id": "00200",
-      "baseline": true
+      "baseline": true,
+      "assurance_levels_min": {"experience": "journey"}
     },
     "00203": {
       "id": "00203",
@@ -141,7 +144,8 @@
       "title": "Interaction Patterns and States",
       "intent": "Define behaviour for inputs, actions, selection, feedback, loading, empty, success, error, interruption, undo, destructive actions, permissions, and recovery at a level ready for implementation.",
       "parent_id": "00300",
-      "baseline": true
+      "baseline": true,
+      "assurance_levels_min": {"experience": "surface"}
     },
     "00302": {
       "id": "00302",
@@ -150,7 +154,8 @@
       "title": "Responsive and Adaptive Experience",
       "intent": "Define how priority, layout, navigation, input, density, content, and capability adapt across relevant viewport sizes, devices, orientations, and contexts rather than merely specifying breakpoints.",
       "parent_id": "00300",
-      "baseline": true
+      "baseline": true,
+      "assurance_levels_min": {"experience": "surface"}
     },
     "00303": {
       "id": "00303",
@@ -159,7 +164,8 @@
       "title": "Accessible Interaction",
       "intent": "Define inclusive interaction requirements for semantics, keyboard and switch access, focus, reading order, touch targets, contrast use, motion, time limits, errors, alternatives, and assistive technologies using current applicable standards.",
       "parent_id": "00300",
-      "baseline": true
+      "baseline": true,
+      "assurance_profiles_add": ["accessibility"]
     },
     "00400": {
       "id": "00400",
@@ -213,7 +219,8 @@
       "title": "Visual Hierarchy and Composition",
       "intent": "Define focal points, grouping, whitespace, density, scale, rhythm, contrast, imagery, and compositional rules for representative surfaces. Require clear task priority and avoid generic dashboard, card-grid, gradient, or decoration defaults unless they serve the product direction.",
       "parent_id": "00500",
-      "baseline": true
+      "baseline": true,
+      "assurance_levels_min": {"experience": "surface"}
     },
     "00502": {
       "id": "00502",
@@ -222,7 +229,8 @@
       "title": "Product Design System",
       "intent": "Define interface components, variants, behaviour, composition rules, density modes, states, and product-level tokens that apply approved brand primitives without duplicating brand identity or prescribing implementation technology.",
       "parent_id": "00500",
-      "baseline": true
+      "baseline": true,
+      "assurance_levels_min": {"experience": "component"}
     },
     "00503": {
       "id": "00503",
@@ -283,7 +291,7 @@
       "type": "file",
       "path": "00700_experience_evaluation/00701_experience_acceptance_criteria.md",
       "title": "Experience Acceptance Criteria",
-      "intent": "Define observable criteria for critical journeys, hierarchy, copy, interaction states, responsiveness, accessibility, localisation, personality, and recovery. Include explicit anti-criteria for generic, verbose, misleading, or developer-facing output.",
+      "intent": "Define observable criteria for critical journeys, capability completeness, hierarchy, copy, interaction states, responsiveness, accessibility, localisation, personality, and recovery. Include anti-criteria for dead controls, placeholder-first experiences, generic or verbose output, and missing ordinary management or recovery behaviour.",
       "parent_id": "00700",
       "baseline": true
     },
@@ -292,7 +300,7 @@
       "type": "file",
       "path": "00700_experience_evaluation/00702_evaluation_plan.md",
       "title": "Evaluation Plan",
-      "intent": "Define proportionate review through representative rendered surfaces, critical-flow walkthroughs, content review, accessibility checks, device and locale coverage, user evaluation, and expert critique, with owners and decision thresholds.",
+      "intent": "Define proportionate component, surface, journey, and accepted-reference review through rendered evidence and working flows, with accessibility, device, locale, user, and expert coverage as relevant. Set owners, decision thresholds, and fresh-context critique for consequential experience work.",
       "parent_id": "00700",
       "baseline": true
     }

@@ -103,6 +103,31 @@ test("assembles parseable inline JavaScript with no external script or styleshee
   assert.doesNotMatch(html, /@import\s+(?:url\s*\()?/i);
 });
 
+test("includes compact assurance affordances in the existing dashboard surfaces", () => {
+  const html = renderDashboard({
+    assurance: { profiles: { experience: { id: "experience", title: "Experience", path: "_assurance/experience.yaml" } } },
+    implementation: {
+      slices: [{
+        id: "SLICE-EXPERIENCE",
+        assurance_summary: {
+          applicable: true,
+          status: "passed",
+          profile_ids: ["experience"],
+          open_findings_count: 0,
+          evidence_links: []
+        }
+      }]
+    }
+  });
+
+  assert.match(html, /const assuranceProfileById/);
+  assert.match(html, /function roadmapQaSummary/);
+  assert.match(html, /Assurance profiles/);
+  assert.match(html, /QA: /);
+  assert.match(html, /Fresh review/);
+  assert.doesNotMatch(html, /assurance-gallery/);
+});
+
 test("rejects missing and duplicate shell placeholders with clear errors", async (t) => {
   const root = temporaryDirectory(t);
 

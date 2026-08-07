@@ -168,8 +168,19 @@
         const boundary = contract.when_relevant
           ? `<details class="module-boundary"><summary>Domain boundary</summary><div class="module-boundary-body"><p><strong>Use when:</strong> ${esc(contract.when_relevant)}</p>${timingMarkup}${Array.isArray(contract.owns) && contract.owns.length ? `<div><strong>Owns</strong><ul>${contract.owns.map((item) => `<li>${esc(item)}</li>`).join("")}</ul></div>` : ""}${Array.isArray(contract.does_not_own) && contract.does_not_own.length ? `<div><strong>Does not own</strong><ul>${contract.does_not_own.map((item) => `<li>${esc(item)}</li>`).join("")}</ul></div>` : ""}</div></details>`
           : "";
+        const assuranceProfileIds = Array.isArray(contract.assurance_profiles)
+          ? contract.assurance_profiles
+          : [];
+        const assuranceLinks = assuranceProfileIds.length
+          ? `<details class="module-boundary"><summary>Assurance profiles</summary><div class="module-boundary-body"><ul>${assuranceProfileIds.map((profileId) => {
+              const profile = assuranceProfileById.get(profileId);
+              const label = profile?.title || profile?.name || titleCase(profileId);
+              const profilePath = profile?.path || profile?.ref || profile?.href;
+              return `<li>${profilePath ? `<a class="roadmap-review-link" href="${esc(safeHref(profilePath))}" target="_blank" rel="noopener">${esc(label)} ↗</a>` : esc(label)}</li>`;
+            }).join("")}</ul></div></details>`
+          : "";
         const html = `<div class="module-detail-head" data-tone="${moduleTone(moduleId)}"><span class="module-mark">${esc(moduleCode(moduleId))}</span><div><div class="module-detail-description">${esc(module.description)}</div></div></div>
-          ${boundary}<div class="module-detail-groups">${groups.map((group) => {
+          ${boundary}${assuranceLinks}<div class="module-detail-groups">${groups.map((group) => {
             const documents = nodes.filter((node) => node.type === "file" && node.parent_id === group.id).sort((a, b) => a.id.localeCompare(b.id));
             return `<section class="module-detail-group"><h3><span>${esc(group.title)}</span><small>${esc(group.qualified_id)}</small></h3>${group.when_relevant ? `<p>${esc(group.when_relevant)}</p>` : ""}<div class="module-doc-list">${documents.map((document) =>
               `<button class="module-doc" type="button" data-action="module-document" data-module="${esc(moduleId)}" data-document="${esc(document.id)}"><span><strong>${esc(document.title)}</strong><small>${esc(document.qualified_id)}</small></span><span class="module-doc-indicator">${document.baseline ? '<span class="ui-icon flag" aria-label="Baseline" title="Baseline"></span>' : ""}</span></button>`

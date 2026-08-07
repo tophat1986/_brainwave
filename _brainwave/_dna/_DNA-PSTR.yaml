@@ -1,11 +1,12 @@
 {
-  "schema_version": "3.0.0",
+  "schema_version": "4.0.0",
   "dna_code": "PSTR",
-  "dna_version": "0.1.0",
+  "dna_version": "0.2.0",
   "name": "Product Strategy and Evidence DNA",
   "description": "A proportionate catalogue for grounding product direction in user and market evidence, making assumptions and trade-offs explicit, and defining measurable outcomes without replacing the agreed North Star or expanding into implementation, experience design, brand identity, or go-to-market execution.",
   "documentation_label": "product strategy and evidence documentation",
   "module_contract": {
+    "assurance_profiles": ["product_direction"],
     "when_relevant": "Use when a concept needs evidence, product choices, validation, or measurable outcomes beyond the concise direction captured in the North Star. Apply it proportionately for real-user products, meaningful investment, uncertain demand, or venture-building intent.",
     "selection_signals": [
       "The user problem, audience need, value proposition, alternatives, or demand contain consequential assumptions.",

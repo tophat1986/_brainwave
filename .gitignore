@@ -1,4 +1,6 @@
 .agents/
+.firecrawl/
+_brainwave/_working/assurance/
 node_modules/
 npm-debug.log*
 .DS_Store

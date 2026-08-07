@@ -1,11 +1,12 @@
 {
-  "schema_version": "3.0.0",
+  "schema_version": "4.0.0",
   "dna_code": "SAPP",
-  "dna_version": "1.3.0",
+  "dna_version": "1.4.0",
   "name": "Software Application DNA",
   "description": "Implementation-scope and architecture documentation for AI-built software products and digital services, with an emphasis on web applications.",
   "documentation_label": "software product and architecture documentation",
   "module_contract": {
+    "assurance_profiles": ["software_quality"],
     "when_relevant": "Use when a concept will be implemented as a software application or digital service and needs an explicit completion boundary plus a production-capable technical foundation.",
     "selection_signals": [
       "The concept includes software behaviour, persistent data, integrations, user accounts, or deployable digital interfaces.",
@@ -57,7 +58,7 @@
       "type": "file",
       "path": "00100_product_definition/00101_product_scope_and_completion.md",
       "title": "Product Scope and Completion",
-      "intent": "Define the included capabilities, deliberately postponed or excluded capabilities, permitted simplifications, and verifiable completion conditions for the confirmed build outcome without duplicating detailed journeys, architecture, or test strategy.",
+      "intent": "Define included, postponed, and excluded capabilities, permitted simplifications, and verifiable completion conditions. For each activated capability, account for its normal setup, use, management, recovery, and exit or closure behaviour as included, deliberately excluded, or not applicable.",
       "parent_id": "00100",
       "baseline": true
     },
@@ -104,6 +105,7 @@
       "title": "Data Models",
       "parent_id": null,
       "baseline": false,
+      "assurance_profiles_add": ["data"],
       "when_relevant": "Use when the product stores persistent information or has meaningful entities, relationships, ownership, retention, or migration concerns."
     },
     "00301": {
@@ -140,6 +142,7 @@
       "title": "Security",
       "parent_id": null,
       "baseline": false,
+      "assurance_profiles_add": ["security"],
       "when_relevant": "Use when identity, permissions, sensitive information, threats, privacy, or compliance obligations affect the design."
     },
     "00401": {
@@ -156,7 +159,7 @@
       "type": "file",
       "path": "00400_security/00402_authn_authz.md",
       "title": "Authentication and Authorization",
-      "intent": "Define identity sources, authentication lifecycle, authorization model, and permission boundaries.",
+      "intent": "Define identity sources, authentication lifecycle, authorization model, and permission boundaries. Support the account continuity agreed in the experience, including account-detail changes, recovery, session exit, and closure where applicable, without inventing social-profile scope.",
       "parent_id": "00400",
       "baseline": false
     },
@@ -255,7 +258,7 @@
       "type": "file",
       "path": "00600_experience_implementation/00603_design_system_implementation.md",
       "title": "Design System Implementation",
-      "intent": "Translate approved brand and experience primitives into implementation-ready tokens, components, variants, documentation, ownership, and regression controls without choosing the visual or interaction direction.",
+      "intent": "Translate approved brand and experience primitives into implementation-ready tokens, components, variants, documentation, ownership, and regression controls. Define stack-appropriate isolated rendering and interaction coverage for reusable components; use Storybook or an equivalent only after inspecting existing tooling.",
       "parent_id": "00600",
       "baseline": false
     },
@@ -275,6 +278,7 @@
       "title": "Platform Ops",
       "parent_id": null,
       "baseline": false,
+      "assurance_profiles_add": ["reliability"],
       "when_relevant": "Use when environments, deployment, rollback, resilience, or operational ownership require deliberate design."
     },
     "00701": {
@@ -319,17 +323,17 @@
       "path": "00800_quality_testing",
       "title": "Quality and Testing",
       "parent_id": null,
-      "baseline": false,
-      "when_relevant": "Use when risk-based testing, acceptance criteria, regression protection, or incident learning need a defined strategy."
+      "baseline": true,
+      "when_relevant": "Use proportionately for every software build so risk-based assurance, acceptance, regression protection, and review ownership are explicit."
     },
     "00801": {
       "id": "00801",
       "type": "file",
       "path": "00800_quality_testing/00801_quality_strategy.md",
       "title": "Quality Strategy",
-      "intent": "Define material quality attributes, risk posture, test levels, ownership, acceptance criteria, and release gates.",
+      "intent": "Define quality attributes, risk-based assurance profiles, test levels, capability-based tooling, review-independence thresholds, acceptance conditions, and release gates. Recommend isolated-component and browser-journey capabilities before naming compatible tools such as Storybook or Playwright.",
       "parent_id": "00800",
-      "baseline": false
+      "baseline": true
     },
     "00802": {
       "id": "00802",
@@ -437,6 +441,7 @@
       "title": "Scalability and FinOps",
       "parent_id": null,
       "baseline": false,
+      "assurance_profiles_add": ["performance"],
       "when_relevant": "Review proportionately for every hosted or externally usable product, and use in depth when setup cost, recurring infrastructure, storage, egress, AI or third-party APIs, performance, capacity, or growth could materially shape technical or commercial viability."
     },
     "01101": {

@@ -129,6 +129,7 @@
     .roadmap-state.active,
     .roadmap-state.ready { color: #0e7490; }
     .roadmap-state.complete { color: #047857; }
+    .roadmap-state.issue { color: var(--rose); }
     .roadmap-state.waiting,
     .roadmap-state.muted { color: var(--muted); }
 
@@ -137,6 +138,9 @@
       gap: 16px;
       padding: 5px 0 16px 52px;
     }
+    .roadmap-qa { display: grid; gap: 6px; }
+    .roadmap-qa .block-check-meta { margin: 0; }
+    .roadmap-qa-links { display: flex; flex-wrap: wrap; gap: 12px; }
     .roadmap-dna-map { display: grid; gap: 14px; }
     .roadmap-dna-document {
       padding-top: 0;

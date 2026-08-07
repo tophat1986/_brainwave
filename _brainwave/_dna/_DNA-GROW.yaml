@@ -1,11 +1,12 @@
 {
-  "schema_version": "3.0.0",
+  "schema_version": "4.0.0",
   "dna_code": "GROW",
-  "dna_version": "0.1.0",
+  "dna_version": "0.2.0",
   "name": "Market Presence and Growth DNA",
   "description": "A proportionate catalogue for making a product discoverable, credible, adoptable, and capable of responsible growth. It translates product evidence, brand, commercial direction, and experience intent into positioning, launch, search, store, acquisition, conversion, lifecycle, referral, content, and growth measurement without owning the product itself.",
   "documentation_label": "market presence and growth documentation",
   "module_contract": {
+    "assurance_profiles": ["growth_integrity"],
     "when_relevant": "Use when a product must be found, understood, launched, adopted, retained, shared, or grown beyond a known private audience. Consider it for most public-launch and venture-intent products even when the first growth plan is deliberately small.",
     "selection_signals": [
       "The product will have a public website, app-store presence, search surface, launch, campaign, sales path, community, or acquisition channel.",

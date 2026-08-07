@@ -52,6 +52,59 @@
         return [...new Map(items.map((item) => [item.id, item])).values()];
       }
 
+      function roadmapQaState(status) {
+        return {
+          pending: { label: "Pending", tone: "muted" },
+          approval_pending: { label: "Pending", tone: "working" },
+          passed: { label: "Passed", tone: "complete" },
+          needs_attention: { label: "Needs attention", tone: "issue" },
+          stale: { label: "Needs attention", tone: "issue" }
+        }[status] || { label: "Pending", tone: "muted" };
+      }
+
+      function roadmapQaLink(link, fallbackLabel = "Evidence") {
+        const ref = typeof link === "string" ? link : link?.ref || link?.path || link?.href;
+        if (!ref) return "";
+        const label = typeof link === "string" ? fallbackLabel : link.label || fallbackLabel;
+        return `<a class="roadmap-review-link" href="${esc(safeHref(ref))}" target="_blank" rel="noopener">${esc(label)} ↗</a>`;
+      }
+
+      function roadmapQaSummary(slice) {
+        const summary = slice.assurance_summary;
+        if (!summary || summary.applicable === false) return "";
+
+        const profileIds = Array.isArray(summary.profile_ids) ? summary.profile_ids : [];
+        const profileNames = profileIds.map((profileId) => {
+          const profile = assuranceProfileById.get(profileId);
+          return profile?.title || profile?.name || titleCase(profileId);
+        });
+        const qa = roadmapQaState(summary.status);
+        const openFindingValue = Number.isFinite(Number(summary.open_findings_count))
+          ? Number(summary.open_findings_count)
+          : Number.isFinite(Number(summary.open_findings))
+            ? Number(summary.open_findings)
+            : null;
+        const review = summary.fresh_review || null;
+        const reviewedAt = review?.reviewed_at
+          ? new Date(review.reviewed_at).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })
+          : "";
+        const revision = String(review?.revision || "").trim();
+        const links = (Array.isArray(summary.evidence_links) ? summary.evidence_links : [])
+          .map((link) => roadmapQaLink(link))
+          .filter(Boolean);
+        if (review?.artifact_ref) links.push(roadmapQaLink({ ref: review.artifact_ref, label: "Review" }, "Review"));
+
+        return `<div class="roadmap-qa">
+          <div class="block-check-meta">
+            <span>QA: <strong class="roadmap-state ${esc(qa.tone)}">${esc(qa.label)}</strong></span>
+            ${profileNames.length ? `<span>${esc(profileNames.length === 1 ? "Profile" : "Profiles")}: ${esc(profileNames.join(" · "))}</span>` : ""}
+            ${openFindingValue === null ? "" : `<span>${esc(`${openFindingValue} open finding${openFindingValue === 1 ? "" : "s"}`)}</span>`}
+            ${reviewedAt || revision ? `<span>${esc(["Fresh review", reviewedAt, revision].filter(Boolean).join(" · "))}</span>` : ""}
+          </div>
+          ${links.length ? `<div class="roadmap-qa-links">${links.join("")}</div>` : ""}
+        </div>`;
+      }
+
       function roadmapDnaMap(slice) {
         const byDocument = new Map();
         for (const item of roadmapSliceItems(slice)) {
@@ -97,6 +150,7 @@
             <span class="roadmap-slice-reference"><span class="document-id">${esc(slice.id)}</span><span class="chevron" aria-hidden="true"></span></span>
           </summary>
           <div class="roadmap-slice-body">
+            ${roadmapQaSummary(slice)}
             ${roadmapDnaMap(slice)}
           </div>
         </details>`;

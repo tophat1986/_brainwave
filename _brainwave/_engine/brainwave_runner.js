@@ -29,7 +29,17 @@ const {
   formatGuardedImplementationContext,
   CONTEXT_BUDGETS,
   buildImplementationAudit,
-  recordRejectedTransition
+  recordRejectedTransition,
+  ASSURANCE_PROFILE_CATALOG,
+  isRegisteredAssuranceProfile,
+  isRegisteredAssuranceLevel,
+  assuranceLevelSatisfies,
+  deriveSliceAssuranceSummary,
+  prepareAssuranceReview,
+  submitAssuranceReview,
+  remediateAssuranceFinding,
+  reconcileAssuranceFinding,
+  approveSliceAssurance
 } = require("./implementation_spine");
 const {
   IMPLEMENTATION_PROGRESS_UPDATE_MODES,
@@ -51,11 +61,14 @@ const PATHS = Object.freeze({
   implementationProposal: path.join(ROOT, "_implementation_proposal.yaml"),
   implementationReview: path.join(ROOT, "_implementation_review.md"),
   implementationAudit: path.join(ROOT, "_implementation_audit.md"),
+  assuranceWorkingDir: path.join(ROOT, "_working", "assurance"),
+  assurancePacket: path.join(ROOT, "_working", "assurance", "packet.json"),
+  assuranceResult: path.join(ROOT, "_working", "assurance", "result.json"),
   manifest: path.join(ROOT, "_manifest.yaml"),
   dashboard: path.join(ROOT, "_dashboard.html")
 });
 
-const SUPPORTED_DNA_SCHEMA_VERSION = "3.0.0";
+const SUPPORTED_DNA_SCHEMA_VERSION = "4.0.0";
 const SUPPORTED_STATE_SCHEMA_VERSION = "3.0.0";
 const BRAINWAVE_VERSION = "0.1.0";
 const CONSOLE_PREFIX = "[_brainwave]";
@@ -254,6 +267,29 @@ function normalizedProjectProfile(settings) {
         })
         .filter(Boolean)
     : [];
+  const references = Array.isArray(source.references)
+    ? source.references
+        .map((reference) => {
+          if (!isPlainObject(reference)) return null;
+          const referencePath = isSafeModulePath(reference.path) &&
+            reference.path.startsWith("_assets/project_profile/references/")
+            ? reference.path
+            : null;
+          if (!referencePath) return null;
+          const absolutePath = path.join(ROOT, referencePath);
+          const fileExists = exists(absolutePath);
+          return {
+            id: referencePath,
+            path: referencePath,
+            label: optionalText(reference.label),
+            notes: optionalText(reference.notes),
+            status: allowedItemStatuses.has(reference.status) ? reference.status : "working",
+            exists: fileExists,
+            sha256: fileExists ? sha256(fs.readFileSync(absolutePath)) : null
+          };
+        })
+        .filter(Boolean)
+    : [];
 
   return {
     status: allowedStatuses.has(source.status) ? source.status : defaults.status,
@@ -269,9 +305,37 @@ function normalizedProjectProfile(settings) {
       exists: Boolean(logoPath && exists(path.join(ROOT, logoPath)))
     },
     colors,
+    references,
     style_direction: optionalText(source.style_direction),
     updated_at: optionalText(source.updated_at)
   };
+}
+
+function normalizedAssuranceTooling(settings) {
+  const source = isPlainObject(settings?.assurance_tooling) ? settings.assurance_tooling : {};
+  const allowedDecisions = new Set(["not_reviewed", "selected", "declined", "not_applicable"]);
+  const normalizeHarness = (value) => {
+    const harness = isPlainObject(value) ? value : {};
+    return {
+      decision: allowedDecisions.has(harness.decision) ? harness.decision : "not_reviewed",
+      adapter: optionalText(harness.adapter),
+      capabilities: Array.isArray(harness.capabilities)
+        ? [...new Set(harness.capabilities.filter((entry) => typeof entry === "string" && entry.trim()).map((entry) => entry.trim()))]
+        : [],
+      note: optionalText(harness.note)
+    };
+  };
+  return {
+    component_ui: normalizeHarness(source.component_ui),
+    browser_journey: normalizeHarness(source.browser_journey)
+  };
+}
+
+function assuranceToolingForSlice(settings, slice) {
+  const profiles = new Set(Object.keys(slice.assurance_gate?.profiles || {}));
+  const needsExperienceHarness = ["experience", "accessibility", "brand", "content_integrity"]
+    .some((profile) => profiles.has(profile));
+  return needsExperienceHarness ? normalizedAssuranceTooling(settings) : null;
 }
 
 function parseDecisionEntries(content) {
@@ -346,7 +410,7 @@ function evidenceIsRecorded(value) {
 
 function defaultSettings() {
   return {
-    schema_version: "1.4.0",
+    schema_version: "1.5.0",
     configured: false,
     onboarding_status: "pending",
     guidance_mode: null,
@@ -367,8 +431,23 @@ function defaultSettings() {
         status: "not_provided"
       },
       colors: [],
+      references: [],
       style_direction: null,
       updated_at: null
+    },
+    assurance_tooling: {
+      component_ui: {
+        decision: "not_reviewed",
+        adapter: null,
+        capabilities: [],
+        note: null
+      },
+      browser_journey: {
+        decision: "not_reviewed",
+        adapter: null,
+        capabilities: [],
+        note: null
+      }
     },
     profile_last_updated: null,
     onboarding_questions: [
@@ -385,7 +464,8 @@ function defaultSettings() {
       build_outcome: ["demonstration", "usable_first_version", "complete_product", "custom"],
       implementation_progress_updates: [...IMPLEMENTATION_PROGRESS_UPDATE_MODES],
       project_profile_status: ["not_asked", "not_yet", "working", "confirmed", "deferred"],
-      project_profile_item_status: ["not_provided", "working", "confirmed"]
+      project_profile_item_status: ["not_provided", "working", "confirmed"],
+      assurance_tooling_decision: ["not_reviewed", "selected", "declined", "not_applicable"]
     },
     engine: {
       max_files_per_cycle: 120
@@ -520,6 +600,14 @@ function defaultManifestSkeleton() {
         invalid: 0
       },
       blocks: []
+    },
+    assurance: {
+      profiles: Object.fromEntries(
+        Object.entries(ASSURANCE_PROFILE_CATALOG).map(([id, profile]) => [id, {
+          id,
+          title: profile.title
+        }])
+      )
     },
     implementation: {
       path: "_implementation.yaml",
@@ -687,6 +775,15 @@ function validateDnaModule(module, sourcePath) {
     `${source} module_contract live_verification`,
     { allowEmpty: true }
   );
+  validateStringArray(
+    module.module_contract.assurance_profiles,
+    `${source} module_contract assurance_profiles`
+  );
+  for (const profile of module.module_contract.assurance_profiles) {
+    if (!isRegisteredAssuranceProfile(profile)) {
+      throw new Error(`${source} module_contract assurance_profiles contains unregistered profile ${profile}.`);
+    }
+  }
   if (!isPlainObject(module.module_contract.timing)) {
     throw new Error(`${source} module_contract timing must be an object.`);
   }
@@ -745,6 +842,27 @@ function validateDnaModule(module, sourcePath) {
       throw new Error(
         `${source} node ${id} contains project state. DNA definitions must not contain expressed flags.`
       );
+    }
+    if ("assurance_profiles_add" in node) {
+      validateStringArray(
+        node.assurance_profiles_add,
+        `${source} node ${id} assurance_profiles_add`
+      );
+      for (const profile of node.assurance_profiles_add) {
+        if (!isRegisteredAssuranceProfile(profile)) {
+          throw new Error(`${source} node ${id} assurance_profiles_add contains unregistered profile ${profile}.`);
+        }
+      }
+    }
+    if ("assurance_levels_min" in node) {
+      if (!isPlainObject(node.assurance_levels_min) || Object.keys(node.assurance_levels_min).length === 0) {
+        throw new Error(`${source} node ${id} assurance_levels_min must be a non-empty object.`);
+      }
+      for (const [profile, level] of Object.entries(node.assurance_levels_min)) {
+        if (!isRegisteredAssuranceProfile(profile) || !isRegisteredAssuranceLevel(profile, level)) {
+          throw new Error(`${source} node ${id} assurance_levels_min contains invalid ${profile}:${level}.`);
+        }
+      }
     }
     if (!isSafeModulePath(node.path)) {
       throw new Error(`${source} node ${id} has an unsafe module-relative path.`);
@@ -809,6 +927,48 @@ function validateDnaModule(module, sourcePath) {
       cursor = cursor.parent_id ? module.nodes[cursor.parent_id] : null;
     }
   }
+  for (const [id, node] of Object.entries(module.nodes)) {
+    const effectiveProfiles = new Set(effectiveNodeAssuranceProfiles(module, node));
+    for (const profile of Object.keys(effectiveNodeAssuranceLevels(module, node))) {
+      if (!effectiveProfiles.has(profile)) {
+        throw new Error(`${source} node ${id} sets a minimum level for non-inherited profile ${profile}.`);
+      }
+    }
+  }
+}
+
+function effectiveNodeAssuranceProfiles(module, node) {
+  const profiles = new Set(module.module_contract.assurance_profiles || []);
+  const lineage = [];
+  let cursor = node;
+  while (cursor) {
+    lineage.unshift(cursor);
+    cursor = cursor.parent_id ? module.nodes[cursor.parent_id] : null;
+  }
+  for (const entry of lineage) {
+    for (const profile of entry.assurance_profiles_add || []) profiles.add(profile);
+  }
+  return [...profiles].sort();
+}
+
+function effectiveNodeAssuranceLevels(module, node) {
+  const levels = {};
+  const lineage = [];
+  let cursor = node;
+  while (cursor) {
+    lineage.unshift(cursor);
+    cursor = cursor.parent_id ? module.nodes[cursor.parent_id] : null;
+  }
+  for (const entry of lineage) {
+    for (const [profile, level] of Object.entries(entry.assurance_levels_min || {})) {
+      const current = levels[profile];
+      if (!current || assuranceLevelSatisfies(profile, level, current)) levels[profile] = level;
+      else if (!assuranceLevelSatisfies(profile, current, level)) {
+        throw new Error(`DNA node ${node.id} inherits incompatible minimum assurance levels for ${profile}.`);
+      }
+    }
+  }
+  return levels;
 }
 
 function loadDnaModules() {
@@ -979,6 +1139,8 @@ function implementationSource(workspace, directionBlocks) {
     supersedes: block.supersedes,
     superseded_by: block.superseded_by,
     path: block.path,
+    assurance_profiles: block.assurance_profiles || [],
+    assurance_levels_min: block.assurance_levels_min || {},
     details: block.details
   }));
   return {
@@ -1343,6 +1505,52 @@ function computeModuleProgress(module, state, trackedFiles) {
   };
 }
 
+function manifestAssuranceSummary(spine, slice, currentRevision) {
+  const assessedRevision = slice.state === "verified" && slice.checked_revision
+    ? slice.checked_revision
+    : currentRevision;
+  const derived = deriveSliceAssuranceSummary(spine, slice.id, { revision: assessedRevision });
+  const checks = slice.acceptance_checks || [];
+  const evidenceLinks = [];
+  for (const check of checks) {
+    for (const entry of check.evidence || []) {
+      if (["review_record", "external_review"].includes(entry?.kind)) continue;
+      if (!entry?.ref || evidenceLinks.some((link) => link.ref === entry.ref)) continue;
+      evidenceLinks.push({ ref: entry.ref, label: "Evidence" });
+      if (evidenceLinks.length === 3) break;
+    }
+    if (evidenceLinks.length === 3) break;
+  }
+  const reviewedChecks = checks
+    .filter((check) => check.reviewer?.mode === "fresh_context_ai" && check.checked_at)
+    .sort((left, right) => String(right.checked_at).localeCompare(String(left.checked_at)));
+  const freshCheck = reviewedChecks[0] || null;
+  const reviewArtifact = freshCheck?.evidence?.find((entry) =>
+    ["review_record", "external_review"].includes(entry.kind)
+  )?.ref || null;
+  const status = derived.status === "passed" && derived.approval?.status === "pending"
+    ? "approval_pending"
+    : ["changes_required", "blocked"].includes(derived.status)
+      ? "needs_attention"
+      : ["not_started", "in_review"].includes(derived.status)
+        ? "pending"
+        : derived.status;
+  return {
+    applicable: Object.keys(derived.profiles || {}).length > 0,
+    status,
+    profile_ids: Object.keys(derived.profiles || {}),
+    open_findings_count: derived.open_finding_count,
+    evidence_links: evidenceLinks,
+    fresh_review: freshCheck
+      ? {
+          reviewed_at: freshCheck.checked_at,
+          revision: freshCheck.checked_revision,
+          artifact_ref: reviewArtifact
+        }
+      : null
+  };
+}
+
 function buildManifest(workspace, command, taskPlan = [], prior = null) {
   const manifest = defaultManifestSkeleton();
   const projectProfile = normalizedProjectProfile(workspace.settings);
@@ -1371,6 +1579,7 @@ function buildManifest(workspace, command, taskPlan = [], prior = null) {
     implementationProgressPolicy(workspace.settings).mode;
   manifest.settings.profile_last_updated = workspace.settings.profile_last_updated ?? null;
   manifest.settings.project_profile = projectProfile;
+  manifest.assurance.tooling = normalizedAssuranceTooling(workspace.settings);
 
   manifest.experience.checkpoints.dashboard_introduced_at =
     workspace.state.experience_checkpoints?.dashboard_introduced_at || null;
@@ -1440,6 +1649,8 @@ function buildManifest(workspace, command, taskPlan = [], prior = null) {
 
     for (const node of nodes) {
       const isExpressed = expressed.has(node.id);
+      const assuranceProfiles = effectiveNodeAssuranceProfiles(module, node);
+      const assuranceLevelsMin = effectiveNodeAssuranceLevels(module, node);
       let processingStatus = "container";
       let outputPath = null;
       let blockCount = 0;
@@ -1462,6 +1673,8 @@ function buildManifest(workspace, command, taskPlan = [], prior = null) {
             module_name: module.name,
             document_id: qualifiedNodeId(module, node.id),
             document_title: node.title,
+            assurance_profiles: assuranceProfiles,
+            assurance_levels_min: assuranceLevelsMin,
             path: outputPath
           });
         }
@@ -1507,6 +1720,9 @@ function buildManifest(workspace, command, taskPlan = [], prior = null) {
         intent: node.intent || null,
         parent_id: node.parent_id || null,
         baseline: Boolean(node.baseline),
+        assurance_profiles_add: node.assurance_profiles_add || [],
+        assurance_profiles: assuranceProfiles,
+        assurance_levels_min: assuranceLevelsMin,
         expressed: isExpressed,
         processing_status: processingStatus,
         block_count: blockCount,
@@ -1595,6 +1811,7 @@ function buildManifest(workspace, command, taskPlan = [], prior = null) {
   alignmentCoverage.invalid = directionBlocks.filter((block) => block.contract_errors?.length).length;
 
   if (workspace.implementationSpine) {
+    const currentRevision = gitRevision();
     const validation = validateImplementationSpine(workspace.implementationSpine, {
       source,
       applicableBlockIds
@@ -1630,7 +1847,14 @@ function buildManifest(workspace, command, taskPlan = [], prior = null) {
           ? null
           : context.current_or_next_slice,
       tracks: workspace.implementationSpine.tracks || [],
-      slices: workspace.implementationSpine.slices || [],
+      slices: (workspace.implementationSpine.slices || []).map((slice) => ({
+        ...slice,
+        assurance_summary: manifestAssuranceSummary(
+          workspace.implementationSpine,
+          slice,
+          currentRevision
+        )
+      })),
       work_items: Object.entries(workspace.implementationSpine.work_items || {})
         .map(([id, item]) => ({ id, ...item, direction: directionById.get(id) || null }))
         .sort((a, b) => a.id.localeCompare(b.id)),
@@ -2143,6 +2367,10 @@ function persistImplementationSpine(spine, command) {
 function recordRejectedImplementationMutation(context) {
   if (!context.workspace.implementationSpine) return;
   const rejected = recordRejectedTransition(context.workspace.implementationSpine, nowIso());
+  if (rejected.assurance?.active_packet) {
+    rejected.assurance.active_packet = null;
+    clearAssuranceWorkingFiles();
+  }
   writeJsonYaml(PATHS.implementation, rejected);
 }
 
@@ -2153,7 +2381,15 @@ function runImplementationMutation(command, mutator) {
       source: context.source,
       applicableBlockIds: context.applicableBlockIds
     });
-    if (validation.errors.length && command !== "implementation-approve") {
+    const reconciliationOnly = (errors) =>
+      errors.length > 0 && errors.every((error) =>
+        /^Assurance finding QF-\d+ needs reconciliation before approval\.$/.test(error)
+      );
+    if (
+      validation.errors.length &&
+      command !== "implementation-approve" &&
+      !(command === "implementation-assurance-reconcile" && reconciliationOnly(validation.errors))
+    ) {
       throw new Error(`Implementation spine is invalid: ${validation.errors.join(" ")}`);
     }
     const updated = mutator(context);
@@ -2161,7 +2397,10 @@ function runImplementationMutation(command, mutator) {
       source: context.source,
       applicableBlockIds: context.applicableBlockIds
     });
-    if (updatedValidation.errors.length) {
+    if (
+      updatedValidation.errors.length &&
+      !(command === "implementation-assurance-reconcile" && reconciliationOnly(updatedValidation.errors))
+    ) {
       throw new Error(
         `Implementation transition would create an invalid spine: ${updatedValidation.errors.join(" ")}`
       );
@@ -2171,6 +2410,85 @@ function runImplementationMutation(command, mutator) {
   } catch (error) {
     recordRejectedImplementationMutation(context);
     throw error;
+  }
+}
+
+function assuranceDirectionExcerpts(context, sliceId) {
+  const relevantIds = new Set();
+  for (const [blockId, item] of Object.entries(context.workspace.implementationSpine.work_items || {})) {
+    if (item.primary_slice === sliceId || (item.applies_to || []).includes(sliceId)) {
+      relevantIds.add(blockId);
+    }
+  }
+  return context.directionBlocks
+    .filter((block) => relevantIds.has(block.id))
+    .map((block) => ({
+      id: block.id,
+      path: block.path,
+      direction: block.details?.direction || null,
+      verification: block.details?.verification || null
+    }));
+}
+
+function assuranceReferenceRecords(context, slice) {
+  const available = new Map(
+    normalizedProjectProfile(context.workspace.settings).references.map((reference) => [
+      reference.id,
+      reference
+    ])
+  );
+  return (slice.assurance_gate?.references || []).map((id) => {
+    const reference = available.get(id);
+    if (!reference || !reference.exists || !reference.sha256) {
+      throw new Error(
+        `Assurance reference ${id} is unavailable. Register the durable project-profile file before preparing review.`
+      );
+    }
+    return {
+      id: reference.id,
+      path: reference.path,
+      label: reference.label,
+      notes: reference.notes,
+      status: reference.status,
+      sha256: reference.sha256
+    };
+  });
+}
+
+function assuranceResultTemplate(packet) {
+  return {
+    packet_sha256: packet.packet_sha256,
+    slice_id: packet.slice_id,
+    revision: packet.revision,
+    scope_preflight: {
+      status: null,
+      note: null
+    },
+    reviewer: null,
+    checks: (packet.checks || []).map((check) => ({
+      id: check.id,
+      status: null,
+      blocked_reason: null,
+      evidence: []
+    })),
+    findings: [],
+    finding_rechecks: (packet.live_findings || [])
+      .filter((finding) => finding.kind !== "scope")
+      .map((finding) => ({
+        finding_id: finding.id,
+        status: null,
+        note: null,
+        evidence_ref: null
+      }))
+  };
+}
+
+function clearAssuranceWorkingFiles() {
+  for (const filePath of [PATHS.assurancePacket, PATHS.assuranceResult]) {
+    if (exists(filePath)) fs.unlinkSync(filePath);
+  }
+  if (exists(PATHS.assuranceWorkingDir) && fs.readdirSync(PATHS.assuranceWorkingDir).length === 0) {
+    fs.rmdirSync(PATHS.assuranceWorkingDir);
   }
 }
 
@@ -2363,6 +2681,12 @@ function holdImplementationWorkItem(args) {
 }
 
 function recordImplementationAcceptance(args) {
+  const context = implementationCommandContext();
+  if (context.workspace.implementationSpine.schema_version === "0.3.0") {
+    throw new Error(
+      "implementation-acceptance is legacy-only. Use implementation-assurance-prepare and implementation-assurance-submit so reviewer provenance, findings, and revision binding cannot be bypassed."
+    );
+  }
   const [sliceId, checkId, status, kind, ref, ...noteParts] = args;
   if (!sliceId || !checkId || !status || !kind || !ref || !noteParts.length) {
     throw new Error(
@@ -2382,6 +2706,126 @@ function recordImplementationAcceptance(args) {
     })
   );
   console.log(`${CONSOLE_PREFIX} ${checkId}: ${status}`);
+}
+
+function prepareImplementationAssurance(args) {
+  const sliceId = args[0];
+  if (!sliceId) throw new Error("Provide the active implementation slice ID.");
+  let packet = null;
+  runImplementationMutation("implementation-assurance-prepare", (context) => {
+    const slice = context.workspace.implementationSpine.slices.find((entry) => entry.id === sliceId);
+    if (!slice) throw new Error(`Unknown implementation slice: ${sliceId}.`);
+    const prepared = prepareAssuranceReview(context.workspace.implementationSpine, {
+      sliceId,
+      revision: gitRevision(),
+      now: nowIso(),
+      directionExcerpts: assuranceDirectionExcerpts(context, sliceId),
+      referenceRecords: assuranceReferenceRecords(context, slice),
+      tooling: assuranceToolingForSlice(context.workspace.settings, slice)
+    });
+    packet = prepared.packet;
+    return prepared.spine;
+  });
+  writeJsonYaml(PATHS.assurancePacket, packet);
+  writeJsonYaml(PATHS.assuranceResult, assuranceResultTemplate(packet));
+  console.log(`${CONSOLE_PREFIX} assurance packet prepared for ${sliceId}.`);
+  console.log(
+    `${CONSOLE_PREFIX} review _working/assurance/packet.json in a fresh-context agent when available, complete result.json, then submit it.`
+  );
+}
+
+function submitImplementationAssurance(args) {
+  const [reviewerMode, reviewerRef, resultPathArg] = args;
+  if (!reviewerMode || !reviewerRef) {
+    throw new Error(
+      "Usage: implementation-assurance-submit <self|fresh_context_ai|human|specialist|external> <reviewer-ref> [result-path]."
+    );
+  }
+  if (!exists(PATHS.assurancePacket)) {
+    throw new Error("No prepared assurance packet exists. Run implementation-assurance-prepare first.");
+  }
+  const resultPath = resultPathArg ? path.resolve(resultPathArg) : PATHS.assuranceResult;
+  if (!exists(resultPath)) throw new Error(`Assurance result file does not exist: ${resultPath}.`);
+  const packet = readJsonYaml(PATHS.assurancePacket, null);
+  const result = readJsonYaml(resultPath, null);
+  result.reviewer = { mode: reviewerMode, ref: reviewerRef };
+  const sliceId = packet?.slice_id;
+  const updated = runImplementationMutation("implementation-assurance-submit", (context) =>
+    submitAssuranceReview(context.workspace.implementationSpine, {
+      sliceId,
+      revision: gitRevision(),
+      now: nowIso(),
+      packet,
+      result
+    })
+  );
+  clearAssuranceWorkingFiles();
+  const summary = deriveSliceAssuranceSummary(updated, sliceId, { revision: gitRevision() });
+  console.log(
+    `${CONSOLE_PREFIX} assurance ${sliceId}: ${summary.status}; ${summary.open_finding_count} open findings.`
+  );
+}
+
+function remediateImplementationAssurance(args) {
+  const [findingId, ref, ...noteParts] = args;
+  if (!findingId || !ref || !noteParts.length) {
+    throw new Error("Usage: implementation-assurance-remediate <finding-id> <ref> <note>.");
+  }
+  const updated = runImplementationMutation("implementation-assurance-remediate", (context) => {
+    const finding = context.workspace.implementationSpine.assurance?.findings?.[findingId];
+    if (finding && finding.slice_id !== context.workspace.implementationSpine.active_slice) {
+      throw new Error(`Finding ${findingId} does not belong to the active slice.`);
+    }
+    return remediateAssuranceFinding(context.workspace.implementationSpine, {
+      findingId,
+      revision: gitRevision(),
+      ref,
+      note: noteParts.join(" "),
+      now: nowIso()
+    });
+  });
+  console.log(`${CONSOLE_PREFIX} assurance finding ${findingId}: ${updated.assurance.findings[findingId].status}.`);
+}
+
+function reconcileImplementationAssurance(args) {
+  const [findingId, sliceId, checkIdArg, ref, ...noteParts] = args;
+  if (!findingId || !sliceId || !checkIdArg || !ref || !noteParts.length) {
+    throw new Error(
+      "Usage: implementation-assurance-reconcile <finding-id> <slice-id> <check-id|slice> <ref> <note>."
+    );
+  }
+  const checkId = checkIdArg === "slice" ? null : checkIdArg;
+  const updated = runImplementationMutation("implementation-assurance-reconcile", (context) =>
+    reconcileAssuranceFinding(context.workspace.implementationSpine, {
+      findingId,
+      sliceId,
+      checkId,
+      ref,
+      note: noteParts.join(" "),
+      now: nowIso()
+    })
+  );
+  console.log(`${CONSOLE_PREFIX} assurance finding ${findingId}: ${updated.assurance.findings[findingId].status}.`);
+}
+
+function approveImplementationAssurance(args) {
+  const [sliceId, approvalMode, approvedBy, ref] = args;
+  if (!sliceId || !approvalMode || !approvedBy || !ref) {
+    throw new Error(
+      "Usage: implementation-assurance-approve <slice-id> <human|specialist> <approved-by> <ref>. Quote values containing spaces."
+    );
+  }
+  runImplementationMutation("implementation-assurance-approve", (context) =>
+    approveSliceAssurance(context.workspace.implementationSpine, {
+      sliceId,
+      revision: gitRevision(),
+      approvalMode,
+      approvedBy,
+      ref,
+      now: nowIso()
+    })
+  );
+  console.log(`${CONSOLE_PREFIX} assurance approval recorded for ${sliceId}.`);
 }
 
 function checkImplementationPlanSlice(args) {
@@ -2417,6 +2861,7 @@ function closeImplementationPlanSlice(args) {
     })
   );
   const slice = updated.slices.find((entry) => entry.id === sliceId);
+  if (slice?.state === "verified") clearAssuranceWorkingFiles();
   console.log(`${CONSOLE_PREFIX} implementation slice ${sliceId}: ${slice.state}`);
 }
 
@@ -2568,7 +3013,11 @@ function printHelp() {
   console.log("  node _brainwave/_engine/brainwave_runner.js implementation-start <slice-id>");
   console.log("  node _brainwave/_engine/brainwave_runner.js implementation-record <block-id> <implemented|verified> <kind> <ref> <note>");
   console.log("  node _brainwave/_engine/brainwave_runner.js implementation-hold <block-id> <blocked|deferred> <owner> <reopen-when> <reason>");
-  console.log("  node _brainwave/_engine/brainwave_runner.js implementation-acceptance <slice-id> <check-id> <passed|failed|blocked> <kind> <ref> <note>");
+  console.log("  node _brainwave/_engine/brainwave_runner.js implementation-assurance-prepare <slice-id>");
+  console.log("  node _brainwave/_engine/brainwave_runner.js implementation-assurance-submit <reviewer-mode> <reviewer-ref> [result-path]");
+  console.log("  node _brainwave/_engine/brainwave_runner.js implementation-assurance-remediate <finding-id> <ref> <note>");
+  console.log("  node _brainwave/_engine/brainwave_runner.js implementation-assurance-reconcile <finding-id> <slice-id> <check-id|slice> <ref> <note>");
+  console.log("  node _brainwave/_engine/brainwave_runner.js implementation-assurance-approve <slice-id> <human|specialist> <approved-by> <ref>");
   console.log("  node _brainwave/_engine/brainwave_runner.js implementation-check [slice-id]");
   console.log("  node _brainwave/_engine/brainwave_runner.js implementation-close <slice-id>");
   console.log("  node _brainwave/_engine/brainwave_runner.js implementation-audit");
@@ -2623,6 +3072,11 @@ async function main() {
   if (command === "implementation-record") return recordImplementationEvidence(args);
   if (command === "implementation-hold") return holdImplementationWorkItem(args);
   if (command === "implementation-acceptance") return recordImplementationAcceptance(args);
+  if (command === "implementation-assurance-prepare") return prepareImplementationAssurance(args);
+  if (command === "implementation-assurance-submit") return submitImplementationAssurance(args);
+  if (command === "implementation-assurance-remediate") return remediateImplementationAssurance(args);
+  if (command === "implementation-assurance-reconcile") return reconcileImplementationAssurance(args);
+  if (command === "implementation-assurance-approve") return approveImplementationAssurance(args);
   if (command === "implementation-check") return checkImplementationPlanSlice(args);
   if (command === "implementation-close") return closeImplementationPlanSlice(args);
   if (command === "implementation-audit") return writeImplementationAudit();

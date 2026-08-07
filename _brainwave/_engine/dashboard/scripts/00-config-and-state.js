@@ -40,6 +40,15 @@
       const progressModules = Object.values(progress.modules || {});
       const direction = state.direction || {};
       const implementation = state.implementation || {};
+      const assurance = state.assurance || {};
+      const assuranceProfiles = Array.isArray(assurance.profiles)
+        ? assurance.profiles
+        : Object.entries(assurance.profiles || {}).map(([id, profile]) => ({ id, ...(profile || {}) }));
+      const assuranceProfileById = new Map(
+        assuranceProfiles
+          .filter((profile) => profile && profile.id)
+          .map((profile) => [profile.id, profile])
+      );
       const implementationTotals = implementation.totals || {};
       const implementationSlices = Array.isArray(implementation.slices) ? implementation.slices : [];
       const implementationSliceById = new Map(implementationSlices.map((slice) => [slice.id, slice]));

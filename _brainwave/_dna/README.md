@@ -27,11 +27,12 @@ Each module is JSON-compatible YAML with:
 - `name` — human-readable name
 - `description` — purpose and boundaries
 - `documentation_label` — name for the generated output
-- `module_contract` — explicit relevance, timing, ownership, exclusion, coordination, and evidence-freshness boundary
+- `module_contract` — explicit relevance, assurance routing, timing, ownership, exclusion, coordination, and evidence-freshness boundary
 - `nodes` — DNA document groups and DNA documents available for scoping
 
 Every `module_contract` has:
 
+- `assurance_profiles` — one or more base downstream assurance profiles carried by every applicable direction in the module
 - `when_relevant` — the semantic domain gate for selecting the module
 - `selection_signals` — meaningful conditions that strengthen relevance; these guide judgment and are not keywords
 - `owns` — decisions and outputs for which this module is authoritative
@@ -41,6 +42,8 @@ Every `module_contract` has:
 - `timing` — when the domain should be considered, when it may be deliberately deferred, and the conditions that make deferral unsafe
 
 Module contracts prevent a broad module from quietly absorbing a shallow version of every discipline. The agent reads all relevant contracts, selects modules semantically, and explains material omissions before the user agrees. Coordination does not create shared ownership: one module remains authoritative and the other translates or implements its direction.
+
+The installed base assurance profiles are `product_direction`, `experience`, `brand`, `software_quality`, `commercial_validity`, `growth_integrity`, `legal_review`, and `service_operations`; there is no generic catch-all profile. A DNA document group or document may add a narrower profile through `assurance_profiles_add`, such as `data`, `security`, `reliability`, `performance`, or `accessibility`. Consequential nodes may set `assurance_levels_min` for an inherited profile, for example `{"experience": "journey"}`. Parent and child minima resolve to the strongest registered level, flow into implementation work items, and cannot be weakened by slice synthesis. Profiles route proportionate downstream assurance. They do not contain test plans, transfer domain ownership, or require every possible check on every implementation slice.
 
 Every node has a module-local five-digit `id`, `type`, module-relative `path`, `title`, `parent_id`, and `baseline` boolean. A DNA document group explains `when_relevant`; a DNA document explains its `intent`.
 

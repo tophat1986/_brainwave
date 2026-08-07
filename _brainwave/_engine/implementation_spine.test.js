@@ -17,7 +17,16 @@ const {
   closeImplementationSlice,
   implementationContextPayload,
   formatImplementationContext,
-  formatGuardedImplementationContext
+  formatGuardedImplementationContext,
+  proposalFingerprint,
+  deriveSliceAssuranceSummary,
+  prepareAssuranceReview,
+  submitAssuranceReview,
+  remediateAssuranceFinding,
+  reconcileAssuranceFinding,
+  approveSliceAssurance,
+  assuranceClosureErrors,
+  ASSURANCE_PROFILE_CATALOG
 } = require("./implementation_spine");
 const {
   implementationProgressPolicy,
@@ -41,10 +50,19 @@ function authoredProposal(spine, blocks, sliceCount = 1) {
     priority: index === 0 ? "high" : "normal",
     depends_on: index === 0 ? [] : [`SLICE-OUTCOME-${index}`],
     blocking_gates: [],
+    assurance_gate: {
+      profiles: { software_quality: { level: "slice", review: "self_allowed" } },
+      approval: "none",
+      references: []
+    },
     acceptance_checks: [{
       id: `SLICE-OUTCOME-${index + 1}-AC01`,
-      type: "inspection",
-      description: `Verify observable outcome ${index + 1}.`
+      description: `Verify observable outcome ${index + 1}.`,
+      assurance: {
+        profile: "software_quality",
+        method: "inspection",
+        required_evidence: ["inspection_record"]
+      }
     }]
   }));
   blocks.forEach((block, index) => {
@@ -79,7 +97,104 @@ function directionBlock(index, { document = 1, module = "SAPP" } = {}) {
     document_id: documentId,
     document_title: `Document ${document}`,
     path: `_documentation/_DNA-${module}/${documentId}.md`,
+    assurance_profiles: ["software_quality"],
     details: { direction: `Accepted direction ${id}.` }
+  };
+}
+
+function activeAssuranceSpine({
+  profile = "software_quality",
+  method = "inspection",
+  requiredEvidence = ["inspection_record"],
+  review = "self_allowed",
+  approval = "none",
+  level = profile === "experience" ? "component" : "slice",
+  references = []
+} = {}) {
+  const block = directionBlock(1);
+  block.assurance_profiles = [profile];
+  const inputSource = source();
+  const inventory = buildImplementationSpine({
+    source: inputSource,
+    blocks: [block],
+    now: "2026-08-05T12:00:00.000Z"
+  });
+  const planned = authoredProposal(inventory, [block]);
+  planned.slices[0].assurance_gate = {
+    profiles: { [profile]: { level, review } },
+    approval,
+    references
+  };
+  planned.slices[0].acceptance_checks[0].assurance = {
+    profile,
+    method,
+    required_evidence: requiredEvidence
+  };
+  planned.plan_status = "approved";
+  planned.approval = {
+    approved_at: "2026-08-05T12:01:00.000Z",
+    approved_by: "reviewer",
+    git_revision: "abc1234"
+  };
+  const active = startImplementationSlice(planned, {
+    sliceId: planned.slices[0].id,
+    now: "2026-08-05T12:02:00.000Z",
+    source: inputSource
+  });
+  const item = active.work_items[block.id];
+  item.state = "implemented";
+  item.implementation_evidence = [{ kind: "code", ref: "src/outcome.js", note: "Outcome implementation." }];
+  return { spine: active, block, source: inputSource, sliceId: active.slices[0].id };
+}
+
+function assuranceResult(packet, {
+  reviewerMode = "self",
+  scopeStatus = "sufficient",
+  checkStatus = "passed",
+  evidence = null,
+  findings = [],
+  findingRechecks = []
+} = {}) {
+  const defaultKind = packet.checks[0].assurance.required_evidence[0];
+  const defaultEvidence = {
+    kind: defaultKind,
+    ref: "test-results/review.json",
+    revision: packet.revision,
+    note: "Current review evidence."
+  };
+  if (defaultKind === "rendered_surface") {
+    Object.assign(defaultEvidence, {
+      target: "primary surface",
+      state: "populated",
+      viewport: "compact",
+      reference_ids: packet.assurance_gate.references || []
+    });
+  }
+  if (defaultKind === "journey_trace") {
+    Object.assign(defaultEvidence, {
+      target: "critical journey",
+      entry_point: "supported entry",
+      expected_destination: "intended destination",
+      expected_return: "return to the prior context",
+      retained_context: "the user's active entity and progress remain intact"
+    });
+  }
+  return {
+    packet_sha256: packet.packet_sha256,
+    slice_id: packet.slice_id,
+    revision: packet.revision,
+    reviewer: { mode: reviewerMode, ref: `review:${reviewerMode}` },
+    scope_preflight: { status: scopeStatus, note: scopeStatus === "sufficient" ? "The sealed scope is sufficient." : "The sealed scope omits a material risk." },
+    checks: [{
+      id: packet.checks[0].id,
+      status: checkStatus,
+      evidence: evidence === null
+        ? [defaultEvidence]
+        : evidence,
+      ...(checkStatus === "blocked" ? { blocked_reason: "Required environment is unavailable." } : {})
+    }],
+    findings,
+    finding_rechecks: findingRechecks
   };
 }
 
@@ -204,10 +319,19 @@ test("measures a synthesized 720-block plan's effective cross-linked scope and b
     priority: "normal",
     depends_on: [],
     blocking_gates: [],
+    assurance_gate: {
+      profiles: { software_quality: { level: "slice", review: "self_allowed" } },
+      approval: "none",
+      references: []
+    },
     acceptance_checks: [{
       id: `SLICE-${index + 1}-AC01`,
-      type: "inspection",
-      description: `Inspect outcome ${index + 1}.`
+      description: `Inspect outcome ${index + 1}.`,
+      assurance: {
+        profile: "software_quality",
+        method: "inspection",
+        required_evidence: ["inspection_record"]
+      }
     }]
   }));
   blocks.forEach((block, index) => {
@@ -398,7 +522,20 @@ test("requires complete existing-build reconciliation and binds review to the se
     depends_on: [],
     blocking_gates: [],
     state: "verified",
-    acceptance_checks: [{ id: "SLICE-OUTCOME-AC01", type: "inspection", description: "Inspect it." }]
+    assurance_gate: {
+      profiles: { software_quality: { level: "slice", review: "self_allowed" } },
+      approval: "none",
+      references: []
+    },
+    acceptance_checks: [{
+      id: "SLICE-OUTCOME-AC01",
+      description: "Inspect it.",
+      assurance: {
+        profile: "software_quality",
+        method: "inspection",
+        required_evidence: ["inspection_record"]
+      }
+    }]
   }];
   for (const item of Object.values(proposal.work_items)) item.primary_slice = "SLICE-OUTCOME";
   let candidate = applyImplementationProposal(inventory, proposal);
@@ -437,4 +574,309 @@ test("requires complete existing-build reconciliation and binds review to the se
     applicableBlockIds: blocks.map((block) => block.id)
   });
   assert.match(validation.errors.join(" "), /changed after validation|no longer matches/);
+});
+
+test("seals inherited profiles and separates profile, method, and evidence contracts", () => {
+  const block = directionBlock(1);
+  const inputSource = source();
+  const inventory = buildImplementationSpine({
+    source: inputSource,
+    blocks: [block],
+    now: "2026-08-05T12:00:00.000Z"
+  });
+  const planned = authoredProposal(inventory, [block]);
+  const originalFingerprint = proposalFingerprint(planned);
+  planned.slices[0].assurance_gate.profiles.software_quality.review = "fresh_context_required";
+  assert.notEqual(proposalFingerprint(planned), originalFingerprint);
+  assert.equal(buildImplementationProposalTemplate(inventory).proposal_version, "0.2.0");
+  assert.equal(ASSURANCE_PROFILE_CATALOG.software_quality.title, "Software quality");
+
+  planned.slices[0].assurance_gate = {
+    profiles: { experience: { level: "surface", review: "self_allowed" } },
+    approval: "none",
+    references: []
+  };
+  planned.slices[0].acceptance_checks[0].assurance = {
+    profile: "experience",
+    method: "unit",
+    required_evidence: ["test_report"]
+  };
+  const validation = validateImplementationSpine(planned, {
+    source: inputSource,
+    applicableBlockIds: [block.id]
+  });
+  assert.match(validation.errors.join(" "), /omits inherited profile software_quality/);
+  assert.match(validation.errors.join(" "), /method unit is incompatible with profile experience/);
+  assert.match(validation.errors.join(" "), /profile experience level surface requires render_review/);
+  assert.match(validation.errors.join(" "), /profile experience level surface requires end_to_end/);
+
+  planned.slices[0].acceptance_checks[0].assurance = {
+    profile: "experience",
+    method: "render_review",
+    required_evidence: ["review_record"]
+  };
+  const weakEvidence = validateImplementationSpine(planned, {
+    source: inputSource,
+    applicableBlockIds: [block.id]
+  });
+  assert.match(weakEvidence.errors.join(" "), /method render_review requires rendered_surface evidence/);
+});
+
+test("prevents slices from weakening inherited minimum assurance levels", () => {
+  const block = directionBlock(1, { module: "PDEX" });
+  block.assurance_profiles = ["experience"];
+  block.assurance_levels_min = { experience: "journey" };
+  const inputSource = source();
+  const inventory = buildImplementationSpine({
+    source: inputSource,
+    blocks: [block],
+    now: "2026-08-05T12:00:00.000Z"
+  });
+  const planned = authoredProposal(inventory, [block]);
+  planned.slices[0].assurance_gate = {
+    profiles: { experience: { level: "component", review: "self_allowed" } },
+    approval: "none",
+    references: []
+  };
+  planned.slices[0].acceptance_checks[0].assurance = {
+    profile: "experience",
+    method: "render_review",
+    required_evidence: ["rendered_surface"]
+  };
+  const validation = validateImplementationSpine(planned, {
+    source: inputSource,
+    applicableBlockIds: [block.id]
+  });
+  assert.match(validation.errors.join(" "), /profile experience must be at least journey; found component/);
+});
+
+test("requires resolved UI harness decisions before experience assurance review", () => {
+  const setup = activeAssuranceSpine({
+    profile: "experience",
+    method: "render_review",
+    requiredEvidence: ["rendered_surface"]
+  });
+  assert.throws(
+    () => prepareAssuranceReview(setup.spine, {
+      sliceId: setup.sliceId,
+      revision: "visual-a",
+      now: "2026-08-05T12:03:00.000Z"
+    }),
+    /experience assurance tooling is unresolved/
+  );
+  const prepared = prepareAssuranceReview(setup.spine, {
+    sliceId: setup.sliceId,
+    revision: "visual-a",
+    now: "2026-08-05T12:03:00.000Z",
+    tooling: {
+      component_ui: { decision: "declined", adapter: null, capabilities: [], note: "The route harness covers this small surface." },
+      browser_journey: { decision: "selected", adapter: "playwright", capabilities: ["viewport_capture"] }
+    }
+  });
+  assert.equal(prepared.packet.tooling.browser_journey.adapter, "playwright");
+});
+
+test("requires semantic navigation expectations in experience journey evidence", () => {
+  const setup = activeAssuranceSpine({
+    profile: "experience",
+    method: "end_to_end",
+    requiredEvidence: ["journey_trace"]
+  });
+  const prepared = prepareAssuranceReview(setup.spine, {
+    sliceId: setup.sliceId,
+    revision: "journey-a",
+    now: "2026-08-05T12:03:00.000Z",
+    tooling: {
+      component_ui: { decision: "not_applicable", adapter: null, capabilities: [], note: "No reusable component states changed." },
+      browser_journey: { decision: "selected", adapter: "playwright", capabilities: ["interaction_trace"] }
+    }
+  });
+  const result = assuranceResult(prepared.packet);
+  delete result.checks[0].evidence[0].expected_destination;
+  assert.throws(
+    () => submitAssuranceReview(prepared.spine, {
+      sliceId: setup.sliceId,
+      revision: "journey-a",
+      now: "2026-08-05T12:04:00.000Z",
+      packet: prepared.packet,
+      result
+    }),
+    /expected_destination, expected_return, and retained_context/
+  );
+});
+
+test("keeps finding IDs stable through remediation and a later revision-bound recheck", () => {
+  const setup = activeAssuranceSpine();
+  const prepared = prepareAssuranceReview(setup.spine, {
+    sliceId: setup.sliceId,
+    revision: "rev-a",
+    now: "2026-08-05T12:03:00.000Z",
+    directionExcerpts: [{ block_id: setup.block.id, direction: "Deliver the outcome.", verification: "Inspect it." }]
+  });
+  const failed = submitAssuranceReview(prepared.spine, {
+    sliceId: setup.sliceId,
+    revision: "rev-a",
+    now: "2026-08-05T12:04:00.000Z",
+    packet: prepared.packet,
+    result: assuranceResult(prepared.packet, {
+      checkStatus: "failed",
+      evidence: [],
+      findings: [{
+        check_id: prepared.packet.checks[0].id,
+        kind: "defect",
+        severity: "high",
+        summary: "The assembled outcome does not match the accepted behaviour.",
+        evidence_ref: "test-results/review.json"
+      }]
+    })
+  });
+  assert.equal(deriveSliceAssuranceSummary(failed, setup.sliceId).status, "changes_required");
+  assert.ok(failed.assurance.findings["QF-0001"]);
+
+  const recompiled = buildImplementationSpine({
+    source: setup.source,
+    blocks: [setup.block],
+    existing: failed,
+    now: "2026-08-05T12:04:30.000Z"
+  });
+  assert.equal(recompiled.assurance.findings["QF-0001"].status, "needs_reconciliation");
+  const replacement = authoredProposal(recompiled, [setup.block]);
+  const reconciled = reconcileAssuranceFinding(replacement, {
+    findingId: "QF-0001",
+    sliceId: replacement.slices[0].id,
+    checkId: replacement.slices[0].acceptance_checks[0].id,
+    ref: "_implementation_review.md",
+    note: "Mapped to the replacement slice and check.",
+    now: "2026-08-05T12:04:45.000Z"
+  });
+  assert.equal(reconciled.assurance.findings["QF-0001"].status, "open");
+
+  const remediated = remediateAssuranceFinding(failed, {
+    findingId: "QF-0001",
+    revision: "rev-b",
+    ref: "src/outcome.js",
+    note: "Corrected the assembled outcome.",
+    now: "2026-08-05T12:05:00.000Z"
+  });
+  assert.equal(remediated.assurance.findings["QF-0001"].status, "recheck_required");
+  const recheckPacket = prepareAssuranceReview(remediated, {
+    sliceId: setup.sliceId,
+    revision: "rev-b",
+    now: "2026-08-05T12:06:00.000Z"
+  });
+  const passed = submitAssuranceReview(recheckPacket.spine, {
+    sliceId: setup.sliceId,
+    revision: "rev-b",
+    now: "2026-08-05T12:07:00.000Z",
+    packet: recheckPacket.packet,
+    result: assuranceResult(recheckPacket.packet, {
+      findingRechecks: [{ finding_id: "QF-0001", status: "resolved", note: "The corrected outcome now passes." }]
+    })
+  });
+  assert.equal(passed.assurance.findings["QF-0001"].status, "resolved");
+  assert.equal(deriveSliceAssuranceSummary(passed, setup.sliceId, { revision: "rev-b" }).status, "passed");
+
+  const readyToClose = JSON.parse(JSON.stringify(passed));
+  const item = readyToClose.work_items[setup.block.id];
+  item.state = "verified";
+  item.verification_evidence = [{ kind: "inspection", ref: "test-results/review.json", note: "Verified outcome." }];
+  item.last_checked = "2026-08-05T12:07:00.000Z";
+  item.checked_revision = "rev-b";
+  const closed = closeImplementationSlice(readyToClose, {
+    sliceId: setup.sliceId,
+    revision: "rev-b",
+    now: "2026-08-05T12:08:00.000Z",
+    source: setup.source
+  });
+  assert.equal(closed.slices[0].state, "verified");
+});
+
+test("blocks insufficient scope, stale packets, weak reviewer provenance, and missing approval", () => {
+  const scopeSetup = activeAssuranceSpine();
+  const prepared = prepareAssuranceReview(scopeSetup.spine, {
+    sliceId: scopeSetup.sliceId,
+    revision: "scope-a",
+    now: "2026-08-05T12:03:00.000Z"
+  });
+  const tampered = JSON.parse(JSON.stringify(prepared.packet));
+  tampered.checks[0].description = "Tampered contract.";
+  assert.throws(
+    () => submitAssuranceReview(prepared.spine, {
+      sliceId: scopeSetup.sliceId,
+      revision: "scope-a",
+      now: "2026-08-05T12:04:00.000Z",
+      packet: tampered,
+      result: assuranceResult(tampered)
+    }),
+    /packet hash/
+  );
+  const insufficient = submitAssuranceReview(prepared.spine, {
+    sliceId: scopeSetup.sliceId,
+    revision: "scope-a",
+    now: "2026-08-05T12:04:00.000Z",
+    packet: prepared.packet,
+    result: assuranceResult(prepared.packet, { scopeStatus: "insufficient" })
+  });
+  assert.equal(insufficient.assurance.findings["QF-0001"].kind, "scope");
+  assert.match(assuranceClosureErrors(insufficient, scopeSetup.sliceId, "scope-a").join(" "), /scope is not sufficient|unresolved blocking/);
+
+  const approvalSetup = activeAssuranceSpine({
+    profile: "experience",
+    method: "render_review",
+    requiredEvidence: ["rendered_surface"],
+    review: "fresh_context_required",
+    approval: "human",
+    references: ["REF-HOME-01"]
+  });
+  const approvalPacket = prepareAssuranceReview(approvalSetup.spine, {
+    sliceId: approvalSetup.sliceId,
+    revision: "visual-a",
+    now: "2026-08-05T12:03:00.000Z",
+    tooling: {
+      component_ui: { decision: "selected", adapter: "storybook", capabilities: ["isolated_states"] },
+      browser_journey: { decision: "selected", adapter: "playwright", capabilities: ["interaction_trace"] }
+    },
+    referenceRecords: [{ id: "REF-HOME-01", path: "_assets/project_profile/references/home.png", sha256: "a".repeat(64) }]
+  });
+  assert.equal(approvalPacket.packet.tooling.browser_journey.adapter, "playwright");
+  const missingComparison = assuranceResult(approvalPacket.packet, { reviewerMode: "fresh_context_ai" });
+  delete missingComparison.checks[0].evidence[0].reference_ids;
+  assert.throws(
+    () => submitAssuranceReview(approvalPacket.spine, {
+      sliceId: approvalSetup.sliceId,
+      revision: "visual-a",
+      now: "2026-08-05T12:04:00.000Z",
+      packet: approvalPacket.packet,
+      result: missingComparison
+    }),
+    /does not compare sealed reference REF-HOME-01/
+  );
+  assert.throws(
+    () => submitAssuranceReview(approvalPacket.spine, {
+      sliceId: approvalSetup.sliceId,
+      revision: "visual-a",
+      now: "2026-08-05T12:04:00.000Z",
+      packet: approvalPacket.packet,
+      result: assuranceResult(approvalPacket.packet, { reviewerMode: "self" })
+    }),
+    /reviewer mode self is insufficient/
+  );
+  const reviewed = submitAssuranceReview(approvalPacket.spine, {
+    sliceId: approvalSetup.sliceId,
+    revision: "visual-a",
+    now: "2026-08-05T12:04:00.000Z",
+    packet: approvalPacket.packet,
+    result: assuranceResult(approvalPacket.packet, { reviewerMode: "fresh_context_ai" })
+  });
+  assert.match(assuranceClosureErrors(reviewed, approvalSetup.sliceId, "visual-a").join(" "), /requires current human/);
+  const approved = approveSliceAssurance(reviewed, {
+    sliceId: approvalSetup.sliceId,
+    revision: "visual-a",
+    approvalMode: "human",
+    approvedBy: "product owner",
+    ref: "review:visual-a",
+    now: "2026-08-05T12:05:00.000Z"
+  });
+  assert.equal(deriveSliceAssuranceSummary(approved, approvalSetup.sliceId, { revision: "visual-a" }).approval.status, "approved");
+  assert.deepEqual(assuranceClosureErrors(approved, approvalSetup.sliceId, "visual-a"), []);
 });

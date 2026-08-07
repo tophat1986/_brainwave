@@ -38,7 +38,7 @@ test("ships a clean framework release template", () => {
   const sourceSettings = JSON.parse(
     fs.readFileSync(path.join(SOURCE_ROOT, "_settings.yaml"), "utf8")
   );
-  assert.equal(sourceSettings.schema_version, "1.4.0");
+  assert.equal(sourceSettings.schema_version, "1.5.0");
   assert.equal(sourceSettings.guidance_mode, null);
   assert.equal(sourceSettings.build_outcome, null);
   assert.equal(sourceSettings.build_outcome_confirmed_at, null);
@@ -58,6 +58,10 @@ test("ships a clean framework release template", () => {
   assert.equal(sourceSettings.project_profile.status, "not_asked");
   assert.equal(sourceSettings.project_profile.logo.path, null);
   assert.deepEqual(sourceSettings.project_profile.colors, []);
+  assert.deepEqual(sourceSettings.project_profile.references, []);
+  assert.equal(sourceSettings.assurance_tooling.component_ui.decision, "not_reviewed");
+  assert.equal(sourceSettings.assurance_tooling.browser_journey.decision, "not_reviewed");
+  assert.equal(fs.existsSync(path.join(SOURCE_ROOT, "_engine", "assurance.js")), true);
   assert.match(sourceSettings.onboarding_questions[0], /first time using _brainwave/);
   assert.equal(
     sourceSettings.onboarding_questions.some((question) => /build outcome/i.test(question)),

@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.4.0",
+  "schema_version": "1.5.0",
   "configured": false,
   "onboarding_status": "pending",
   "guidance_mode": null,
@@ -20,8 +20,23 @@
       "status": "not_provided"
     },
     "colors": [],
+    "references": [],
     "style_direction": null,
     "updated_at": null
+  },
+  "assurance_tooling": {
+    "component_ui": {
+      "decision": "not_reviewed",
+      "adapter": null,
+      "capabilities": [],
+      "note": null
+    },
+    "browser_journey": {
+      "decision": "not_reviewed",
+      "adapter": null,
+      "capabilities": [],
+      "note": null
+    }
   },
   "profile_last_updated": null,
   "onboarding_questions": [
@@ -38,7 +53,8 @@
     "build_outcome": ["demonstration", "usable_first_version", "complete_product", "custom"],
     "implementation_progress_updates": ["silent", "track", "slice"],
     "project_profile_status": ["not_asked", "not_yet", "working", "confirmed", "deferred"],
-    "project_profile_item_status": ["not_provided", "working", "confirmed"]
+    "project_profile_item_status": ["not_provided", "working", "confirmed"],
+    "assurance_tooling_decision": ["not_reviewed", "selected", "declined", "not_applicable"]
   },
   "engine": {
     "max_files_per_cycle": 120
