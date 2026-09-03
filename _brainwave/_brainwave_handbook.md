@@ -18,6 +18,8 @@ A completed _brainwave returns to `shaping_north_star` when direction changes, `
 
 The dashboard extends these seven foundation stages with an eighth user-facing step, **Deliver the implementation**. It is derived from `_implementation.yaml`, not stored as another lifecycle state.
 
+Before the Seed is captured, _brainwave asks once whether the user has existing material that should inform the conversation. This is a starting-materials check inside `awaiting_seed`, not another lifecycle stage.
+
 ## Guidance Modes
 
 During onboarding, _brainwave asks whether to use:
@@ -78,15 +80,21 @@ The user can choose either route:
 
 For the direct-file route, save the concept and tell the agent: `build concept using the seed file exactly as written`. Saving the file does not lock it. The engine locks its hash only after confirmation and transition to `shaping_north_star`.
 
-## Project Basics
+## Starting Materials and Reference Library
 
-After reading the Seed, _brainwave asks once whether the user already has any project basics to carry forward: a name, short description or tagline, logo, colours, a general style direction, or screenshots, sketches, mock-ups, or examples that show how they imagine it. The question is optional and bundled; `not yet` is a complete answer.
+Before capturing the Seed, _brainwave asks once whether the user already has anything useful to bring in: project identity, research, facts, quotes, links, screenshots, designs, recordings, precedents, or inspiration. The question is optional and bundled; `not yet` is a complete answer. Relevant material can then inform the concept conversation without making the Seed carry all of its detail.
 
-Supplied details are saved in `_settings.yaml` as either working or confirmed. Actual files are stored beneath `_assets/project_profile/` and referenced from the project profile. Reference entries preserve only their safe relative path, label, optional note, status, and content hash when available. They remain supplied inputs until Product Design and Experience DNA agrees how each should influence the product; a screenshot is never assumed to be a literal target from the file alone.
+Project identity is saved in `_settings.yaml`, with supplied identity files beneath `_assets/project_profile/`. Other useful material belongs in the project-owned `_references/` Reference Library. It uses three small structures: an **item** is one discoverable reference, a **collection** groups material captured together, and a **board** curates a cross-cutting view. JSON descriptors make the library searchable; substantial notes remain Markdown and media stays in its native format. The framework-owned `_reference_library_guide.md` defines the capture contract and fixed values.
+
+References are contextual inputs, not accepted direction. A design may be a precedent rather than a target, and a saved claim may still need current verification before public use. DNA blocks may add a concise, typed `Reference Basis` link when a reference materially supports a decision. Agents should shortlist with `references-find` and inspect bounded context with `references-context` before opening many files.
+
+Material under `_references/` may be committed with the repository. Private, licensed, confidential, or identifying material should be checked before copying; use a link-only record when it should not be stored. A `restricted` label describes sensitivity but does not secure a file.
+
+Legacy project-profile reference entries remain valid and appear in the index; new general references use `_references/`.
 
 Colours may each have a name, value, role, intended use, and an optional featured marker for the dashboard. Roles are flexible and repeatable, so a project can have several primary or secondary colours rather than being forced into one slot of each type. Unclassified colours are also allowed.
 
-Project basics are living information. They may evolve as the idea becomes clearer; only the approved Seed is immutable.
+Starting materials are living information. They may evolve as the idea becomes clearer; only the approved Seed is immutable.
 
 ## Agreeing What Will Be Built
 
@@ -115,6 +123,8 @@ Some concepts require **specialist coverage** that the installed DNA does not pr
 
 - **_brainwave Seed:** The user's explicitly approved concept, preserved in its supplied wording and natural shape. It becomes immutable after capture and is never a working-notes document.
 - **North Star:** The living current direction derived from the seed. It may evolve without altering the original seed.
+- **Reference Library:** Project-owned contextual material indexed for discovery without becoming accepted direction.
+- **Reference item, collection, and board:** One discoverable reference, a capture grouping, and a curated cross-cutting view respectively.
 - **DNA Library:** The installed collection of DNA modules available to the project.
 - **DNA module:** A versioned, data-only catalogue of possible documentation for one domain.
 - **Module contract:** A module's explicit relevance, assurance routing, timing, ownership, exclusions, coordination relationships, and current-evidence needs. It keeps domain boundaries clear as the library grows.
@@ -212,6 +222,7 @@ It shows:
 - an eight-step vertical journey: seven foundation stages followed by active implementation delivery
 - in-dashboard previews of the seed, North Star, decisions, handbook, and expressed documents
 - the installed DNA Library, including each module's full DNA document catalogue before a concept is selected
+- a tabular Reference Library view with item, collection, board, source, role, and DNA-link context
 - document and DNA-block progress using canonical IDs and expandable block-level detail
 - after foundation acceptance, an active **Implementation** step showing the proposed or approved tracks and slices, their outcomes, sequence, dependencies, gates, acceptance checks, context size, and progressively disclosed DNA mappings
 - built, checked, underway, and blocked DNA direction coverage together with the latest fresh-context review
@@ -220,7 +231,7 @@ It shows:
 
 The interface is intentionally presentation-led: icons, state, sequence, and visual placeholders do most of the explanatory work. Source links remain available inside previews for users who want to work directly with the files.
 
-The dashboard is derived, not authoritative. `_dna/` owns module definitions, `_brainwave_state.yaml` owns selection, the decisions log owns material rationale, DNA documents own accepted direction, and `_implementation.yaml` owns delivery state and evidence. `_manifest.yaml` supplies the embedded dashboard snapshot.
+The dashboard is derived, not authoritative. `_dna/` owns module definitions, `_brainwave_state.yaml` owns selection, `_references/` owns contextual source material, the decisions log owns material rationale, DNA documents own accepted direction, and `_implementation.yaml` owns delivery state and evidence. `_manifest.yaml` and `_references/_index.json` supply derived snapshots.
 
 Refresh it from the project root:
 
@@ -329,6 +340,7 @@ Framework-owned files may be replaced by a future _brainwave update:
 - `_dna/`
 - `_templates/`
 - `_brainwave_handbook.md`
+- `_reference_library_guide.md`
 - `_brainwave/AGENTS.md`
 
 Project-owned files must never be overwritten by an update:
@@ -338,6 +350,7 @@ Project-owned files must never be overwritten by an update:
 - `_brainwave_state.yaml`
 - `_settings.yaml`
 - `_assets/`
+- `_references/`
 - `_decisions_log.md`
 - `_documentation/`
 - `_implementation_proposal.yaml`

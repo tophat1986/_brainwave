@@ -9,6 +9,7 @@ This project includes `_brainwave/` as its idea-to-documentation foundation.
 - Use `_brainwave/_my_brainwave_north_star.md` as current direction and the relevant files in `_brainwave/_documentation/` as detailed authority.
 - While the lifecycle is active, read `_brainwave/_settings.yaml` `verbosity_budget` and enforce it as the documentation-depth contract: `lean` is minimum sufficient, `standard` is concise and complete rather than near-exhaustive, and `exhaustive` is deep only within agreed scope. Model capability never authorizes more depth than the selected value.
 - Read `_brainwave/_settings.yaml` `project_profile` and its referenced `_brainwave/_assets/` files when project identity is relevant; accepted Product Design and Experience and Brand documentation govern how those inputs are applied.
+- When reference material is relevant, read `_brainwave/_reference_library_guide.md` and use the indexed project-owned `_brainwave/_references/` library. Search textual metadata first and inspect only shortlisted media; references remain contextual inputs unless accepted into the North Star or a DNA block.
 - Follow `_brainwave/AGENTS.md` whenever the lifecycle is active or the user explicitly invokes `_brainwave`.
 - Always refer to the framework by its canonical name, `_brainwave`; preserve the leading underscore and lowercase spelling in all prose.
 - When the stage is `brainwave_documentation_complete`, keep the workflow passive during normal development while continuing to respect the accepted North Star and documentation.

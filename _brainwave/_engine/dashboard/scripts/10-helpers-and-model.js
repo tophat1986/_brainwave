@@ -129,7 +129,10 @@
         module: "Module",
         group: "Doc group",
         document: "Document",
-        block: "Block"
+        block: "Block",
+        reference_item: "Reference",
+        reference_collection: "Collection",
+        reference_board: "Board"
       });
 
       const currentStage = state.lifecycle?.stage || "awaiting_seed";

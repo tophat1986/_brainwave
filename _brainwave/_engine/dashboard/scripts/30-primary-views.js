@@ -43,9 +43,11 @@
       }
 
       function setView(view) {
-        const isJourney = view === "journey";
-        document.getElementById("journey-view").hidden = !isJourney;
-        document.getElementById("library-view").hidden = isJourney;
+        const views = { journey: "journey-view", library: "library-view", references: "references-view" };
+        if (!views[view]) return;
+        Object.entries(views).forEach(([name, id]) => {
+          document.getElementById(id).hidden = name !== view;
+        });
         document.querySelectorAll("[data-view]").forEach((button) => {
           const selected = button.dataset.view === view;
           button.setAttribute("aria-selected", String(selected));
@@ -106,7 +108,8 @@
       function openSearchResult(index) {
         const entry = searchEntries[index];
         if (!entry) return;
-        if (entry.kind === "block") openBlock(entry.blockId, { remember: true });
+        if (entry.referenceId) openReference(entry.referenceId, { remember: true });
+        else if (entry.kind === "block") openBlock(entry.blockId, { remember: true });
         else if (entry.kind === "document") openModuleDocument(entry.moduleId, entry.documentId);
         else openModule(entry.moduleId, { remember: true });
       }

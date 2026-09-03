@@ -32,6 +32,8 @@ When the user explicitly asks to maintain, review, test, package, or release the
 - `_my_brainwave_north_star.md` is the living current direction. Read it before the seed in routine work.
 - `_settings.yaml` owns the user profile, the lightweight project profile, the explicitly confirmed build outcome, and the implementation-only progress-update preference. Treat the build outcome as a project decision, independently of profile onboarding.
 - `_assets/project_profile/`, when created, contains project-owned logos, concept images, and other supplied project-profile assets. Keep file references in `_settings.yaml`; never embed binary assets in YAML.
+- `_references/`, when created, is the project-owned multimodal Reference Library. Its items, collections, boards, adjacent material, and generated index preserve potentially influential context without making it accepted direction.
+- `_reference_library_guide.md` is the framework-owned capture and traversal contract for the Reference Library. Read it before creating or changing reference records.
 - `_dna/` contains versioned, immutable DNA-module definitions. It does not contain project selection state.
 - `_brainwave_state.yaml` owns lifecycle, selected DNA-module versions, and expressed entries.
 - `_documentation/_DNA-CODE/` contains generated DNA documentation, separated by its registered four-letter module code.
@@ -68,9 +70,10 @@ In every mode, write information once in its owning artifact and cross-reference
 Preserve a natural conversation while delivering a small, consistent set of intentional service moments. Keep these separate from approval gates and adaptive discovery questions.
 
 - After the user answers whether this is their first time, introduce `_dashboard.html` in both guidance modes before the remaining profile questions, seed routes, or concept questions. Use friendly, simple language: explain that it is the visual place to follow the journey, decisions, documents, and progress, and that it can be opened now or anytime. Do not add technical caveats. Record `dashboard_introduced_at` in `_brainwave_state.yaml` only after delivering the introduction.
-- After reading the approved Seed and any supplied materials, infer any project basics already present, then ask once: **Do you already have any project basics you'd like us to carry forward—such as a name, a short description or tagline, a logo, colours, a general style direction, or screenshots, sketches, mock-ups, or examples that show how you imagine it? Share whatever you have, or say “not yet” and we can shape it later.** Do not split this into separate questions or repeat known details. `not_yet` and `deferred` are complete, non-blocking answers.
-- Save project basics in `_settings.yaml` `project_profile`. Mark supplied items as `working` or `confirmed`; never treat a rough idea as final. Save actual files beneath `_assets/project_profile/` and record their relative paths. Record `project_basics_checked_at` in `_brainwave_state.yaml` after the response is captured.
-- Record supplied concept or reference assets in `project_profile.references` using only a safe relative path, label, optional note, working or confirmed status, and a content hash when available. These fields preserve supplied input; Product Design and Experience DNA owns later interpretation, classification, and use.
+- After profile setup and before offering the Seed routes, ask once: **Before we capture your concept, do you already have anything you'd like _brainwave to carry forward—such as research, facts, links, Figma or other designs, screenshots, documents, recordings, examples, a name, logo, colours, or a general style direction? Share whatever you have, or say “not yet”; references can also be added later.** Keep this optional and bundled. Do not split it into a questionnaire. `not_yet` and `deferred` are complete, non-blocking answers.
+- Save project identity in `_settings.yaml` `project_profile`. Mark supplied items as `working` or `confirmed`; never treat a rough idea as final. Save actual identity files beneath `_assets/project_profile/` and record their relative paths. Record `project_basics_checked_at` in `_brainwave_state.yaml` after the starting-materials response is captured.
+- Capture supplied reference material through `_references/` according to `_reference_library_guide.md`. Use searchable JSON sidecars, preserve source and specific locator information, record why the material was saved, and warn before copying private or restricted material into a repository that may be public. Existing `project_profile.references` entries remain valid legacy inputs and must not be discarded.
+- Reference material may inform concept discussion and the living North Star, but it must never be silently inserted into the Seed or treated as accepted direction. Product Design and Experience DNA owns the eventual interpretation of design references; the relevant owning DNA block must accept any material product implication.
 - Represent each supplied colour with its own name, value, optional free-form role, optional usage, `featured` flag, and working or confirmed status. Roles are repeatable: a palette may contain several primary, secondary, supporting, neutral, semantic, or custom-role colours. Never force colours into unique primary/secondary/tertiary slots. `featured` controls which colours subtly influence the dashboard overview without changing their brand role.
 - A supplied logo, palette, name, or style is an input to later Brand Identity DNA work, not automatic evidence that brand documentation is unnecessary. Reuse it, avoid reinvention, and ask only for material gaps later.
 - Only the Seed is immutable. Project-profile information remains living and may move from working to confirmed or be deliberately replaced.
@@ -98,7 +101,7 @@ In every mode, updates are informational. Continue automatically across eligible
 
 Treat concept shaping as an adaptive conversation, not a form or fixed interview. The user should feel forward movement while _brainwave protects them from consequential omissions.
 
-- Interpret the seed, North Star, prior answers, and supplied artifacts before asking anything. Never ask the user to repeat information already available.
+- Interpret the seed, North Star, prior answers, and relevant Reference Library metadata before asking anything. Use `references-find` and bounded `references-context` rather than loading the whole library or inspecting every media file. Never ask the user to repeat information already available.
 - Ask one to three questions at a time, choosing the questions with the greatest effect on downstream direction, module selection, or expensive-to-reverse foundations.
 - Begin with broad, high-leverage meaning before implementation detail. Consider intended build outcome and trajectory; users and use context; platforms, distribution, countries and languages; identity and experience expectations; accounts, data, interaction and risk; commercial and service operations; and AI or regulated behaviour. These are coverage lenses, not a questionnaire to recite.
 - Route venture and launch depth with four early lenses: who funds the product and what could make it economically unsustainable; how intended users will find and adopt it; whether users, data, claims, money, sectors, countries, or distribution create legal or policy consequences; and whether people, partners, support, scheduling, fulfilment, or escalation are part of delivering value. Derive answers from context first and ask only the smallest consequential branch.
@@ -115,7 +118,7 @@ Proportional scope never means careless quality. A demonstration may contain few
 
 ## Seed Input Routes
 
-At `awaiting_seed`, offer the user two equal routes once:
+At `awaiting_seed`, complete the optional starting-materials check from the Experience Protocol, then offer the user two equal routes once:
 
 - **Discuss the concept:** develop it naturally in chat, then capture only the explicitly approved seed.
 - **Use a prepared concept:** paste it into chat for verbatim capture, or save it directly in `_my_brainwave_seed.md`.
@@ -142,9 +145,9 @@ When the user says `build concept`:
    - `onboarding_status: complete`
    - `profile_last_updated: <ISO timestamp>`
    - Apply the selected working mode immediately.
-4. If the stage is `awaiting_seed`, follow the Seed Input Routes. For conversational capture, preserve the user's supplied wording and natural structure. Do not complete the optional template as a schema or infer missing content. If materially paraphrasing or restructuring, show the exact proposed seed and obtain approval before writing it. For a directly saved seed, obtain confirmation to use the file exactly as written. Transition to `shaping_north_star`; this locks the seed hash.
-5. At the start of `shaping_north_star`, read the Seed and supplied materials, then complete the one-time project-basics check from the Experience Protocol. Save the result to `_settings.yaml` and `_brainwave_state.yaml` before agreeing the North Star.
-6. During `shaping_north_star`, ask one to three targeted questions at a time. Establish:
+4. Complete the one-time optional starting-materials check from the Experience Protocol before capturing the Seed. Save project identity in `_settings.yaml`, references under `_references/`, and the checkpoint in `_brainwave_state.yaml`. Use relevant reference metadata to inform the conversation without silently changing the user's concept.
+5. If the stage is `awaiting_seed`, follow the Seed Input Routes. For conversational capture, preserve the user's supplied wording and natural structure. Do not complete the optional template as a schema or infer missing content. If materially paraphrasing or restructuring, show the exact proposed seed and obtain approval before writing it. For a directly saved seed, obtain confirmation to use the file exactly as written. Transition to `shaping_north_star`; this locks the seed hash.
+6. During `shaping_north_star`, read the Seed first for provenance and retrieve only relevant Reference Library context, then ask one to three targeted questions at a time. Establish:
    - why the idea should exist
    - who it is for
    - what it should enable
@@ -190,6 +193,7 @@ During `building_brainwave_documentation`:
 - Mark document completion explicitly with `Documentation status: complete`; legacy `Status: complete` remains readable during migration. Word count never determines completion.
 - Record decisions in their owning document or ADR, not in the immutable seed.
 - Avoid duplicating North Star direction or decisions owned by another module.
+- When a Reference Library item materially supports or influences a DNA block, add the optional `#### Reference Basis` section using the exact typed-link syntax in `_reference_library_guide.md`. Link only relevant items, collections, or boards; reference links provide context and never transfer direction authority away from the DNA block.
 - Treat a change as editorial only when no reasonable downstream behaviour could differ. Otherwise present it for explicit user agreement.
 - Express each coherent direction, obligation, or verifiable rule as one DNA block using `_DNA-CODE-00000.01`. Follow the minimum block contract in `_dna/README.md`; subsection headings do not receive separate IDs.
 - When direction materially changes, create the next block, link it with `Supersedes`, and retain the old block only as a compact `superseded` tombstone. Do not silently rewrite agreed history.
@@ -260,7 +264,7 @@ After completion, _brainwave enters **ambient delivery alignment**. Remain passi
 - Use work-item `implemented` only with concise inspectable implementation evidence and work-item `verified` only with verification evidence. A slice becomes `verified` only when its scope preflight is sufficient, every sealed assurance check passes at the current Git revision, no live finding remains, and any required approval is current.
 - Before recording work-item `verified` or submitting assurance, ensure the checked behaviour exists at the current Git revision; then commit the closed spine and derived-state update before selecting another slice.
 - Treat alignment as an evidence-backed semantic assessment, not mathematical proof. Look for material divergence in user behaviour, product promises, data use, permissions, risk, launch dependencies, and system boundaries; do not map every implementation detail to DNA.
-- Reuse confirmed project-profile materials and referenced `_assets/`; accepted Product Design and Experience documentation governs reference meaning and surface or journey application, while accepted Brand documentation governs identity application.
+- Reuse confirmed project-profile materials and relevant Reference Library items; accepted Product Design and Experience documentation governs reference meaning and surface or journey application, while accepted Brand documentation governs identity application. Retrieve only references linked to the active DNA blocks or explicitly relevant to the current slice.
 - Do not create another implementation ID or duplicate implementation log. DNA block IDs remain the traceability identity; `_manifest.yaml` and `_dashboard.html` are derived views.
 - Keep technical health, DNA direction coverage, external gates, and release readiness as separate states. A runnable application is not evidence that the accepted product is complete.
 - Commit a clean checkpoint before selecting another slice. Run `implementation-audit` for the experiment record.

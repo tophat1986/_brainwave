@@ -16,6 +16,7 @@ const SOURCE_ASSURANCE = path.join(__dirname, "assurance.js");
 const SOURCE_IMPLEMENTATION_PROGRESS = path.join(__dirname, "implementation_progress.js");
 const SOURCE_PROJECT_INTEGRATION = path.join(__dirname, "project_integration.js");
 const SOURCE_DASHBOARD_RENDERER = path.join(__dirname, "dashboard_renderer.js");
+const SOURCE_REFERENCE_LIBRARY = path.join(__dirname, "reference_library.js");
 const SOURCE_DASHBOARD = path.join(__dirname, "dashboard");
 const SOURCE_CURSOR_CONFIG = path.join(SOURCE_PROJECT_ROOT, ".cursor", "hooks.json");
 const SOURCE_CLAUDE_CONFIG = path.join(SOURCE_PROJECT_ROOT, ".claude", "settings.json");
@@ -152,6 +153,10 @@ function createWorkspace(t, options = {}) {
   fs.copyFileSync(
     SOURCE_DASHBOARD_RENDERER,
     path.join(root, "_engine", "dashboard_renderer.js")
+  );
+  fs.copyFileSync(
+    SOURCE_REFERENCE_LIBRARY,
+    path.join(root, "_engine", "reference_library.js")
   );
   fs.cpSync(SOURCE_DASHBOARD, path.join(root, "_engine", "dashboard"), { recursive: true });
   if (options.copyHooks) {
@@ -427,6 +432,10 @@ test("dashboard JavaScript parses and presents the expanded DNA boundaries", () 
   assert.match(html, /Exhaustive — deep within scope/);
   assert.match(html, /Project basics/);
   assert.match(html, /Getting started/);
+  assert.match(html, /Reference Library/);
+  assert.match(html, /id="references-view"/);
+  assert.match(html, /function renderReferences/);
+  assert.match(html, /function openReference/);
   assert.match(html, /implementationPlanCard/);
   assert.match(html, /implementationItemByBlockId/);
   assert.match(html, /Delivery plan needed/);
@@ -476,6 +485,164 @@ test("dashboard embeds manifest text without expanding replacement tokens", (t) 
     state.presentation.content.north_star.markdown,
     /All `\$` amounts remain literal alongside \$& and \$' and \$\$ sequences\./
   );
+});
+
+test("Reference Library indexes, searches, and traverses items, collections, and boards", (t) => {
+  const { root } = createWorkspace(t, { selected: false });
+  const referencesRoot = path.join(root, "_references");
+  fs.mkdirSync(referencesRoot, { recursive: true });
+  fs.writeFileSync(path.join(referencesRoot, "purchase.png"), "fixture-image-bytes", "utf8");
+  writeJson(path.join(referencesRoot, "design.collection.json"), {
+    schema_version: "1.0.0",
+    id: "collection-design-export",
+    title: "Design export",
+    summary: "Screens captured from the current design file.",
+    status: "working",
+    source: {
+      provider: "figma",
+      url: "https://www.figma.com/file/example"
+    },
+    defaults: {
+      roles: ["current_project_material"],
+      tags: ["purchase-flow"],
+      storage: "tracked",
+      design_status: "working"
+    }
+  });
+  writeJson(path.join(referencesRoot, "purchase.reference.json"), {
+    schema_version: "1.0.0",
+    id: "ref-purchase-options",
+    kind: "image",
+    title: "Purchase options screen",
+    summary: "A screen that presents purchasing choices for a saved product.",
+    why_saved: "Makes the purchase interaction discoverable without scanning the full design file.",
+    collection: "collection-design-export",
+    representation: { path: "purchase.png" },
+    source: {
+      locator: "Page: Commerce; Frame: Purchase options"
+    }
+  });
+  writeJson(path.join(referencesRoot, "market.reference.json"), {
+    schema_version: "1.0.0",
+    id: "ref-market-claim",
+    kind: "claim",
+    title: "Market waste estimate",
+    summary: "A sourced estimate of avoidable consumer spending.",
+    why_saved: "Potential evidence for later positioning copy.",
+    roles: ["evidence"],
+    claim: "A measured share of spending is avoidable.",
+    scope: "United Kingdom consumers",
+    as_of: "2025",
+    verification_status: "source_checked",
+    source: { url: "https://example.com/research" }
+  });
+  writeJson(path.join(referencesRoot, "commerce.board.json"), {
+    schema_version: "1.0.0",
+    id: "board-commerce",
+    title: "Commerce signals",
+    summary: "Design and evidence useful to the commerce journey.",
+    status: "curated",
+    members: [
+      { ref: "collection-design-export", note: "Current product direction." },
+      "ref-market-claim"
+    ]
+  });
+
+  const validation = runEngine(root, "references-validate");
+  assert.equal(validation.status, 0, validation.stderr);
+  const indexed = runEngine(root, "references-index");
+  assert.equal(indexed.status, 0, indexed.stderr);
+
+  const index = JSON.parse(fs.readFileSync(path.join(referencesRoot, "_index.json"), "utf8"));
+  assert.deepEqual(index.totals, {
+    items: 2,
+    collections: 1,
+    boards: 1,
+    restricted: 0,
+    legacy_items: 0
+  });
+  const purchase = index.items.find((item) => item.id === "ref-purchase-options");
+  assert.deepEqual(purchase.roles, ["current_project_material"]);
+  assert.deepEqual(purchase.tags, ["purchase-flow"]);
+  assert.equal(purchase.source.provider, "figma");
+  assert.equal(purchase.source.locator, "Page: Commerce; Frame: Purchase options");
+  assert.equal(purchase.design_status, "working");
+  assert.equal(purchase.representation.path, "_references/purchase.png");
+  assert.equal(purchase.representation.path_exists, true);
+  assert.match(purchase.representation.sha256, /^[a-f0-9]{64}$/);
+
+  const found = runEngine(root, "references-find", "purchase", "options", "--limit", "3");
+  assert.equal(found.status, 0, found.stderr);
+  const search = JSON.parse(found.stdout);
+  assert.equal(search.results[0].id, "ref-purchase-options");
+
+  const collectionResult = runEngine(root, "references-context", "collection-design-export");
+  assert.equal(collectionResult.status, 0, collectionResult.stderr);
+  assert.deepEqual(JSON.parse(collectionResult.stdout).contained.map((item) => item.id), ["ref-purchase-options"]);
+
+  const boardResult = runEngine(root, "references-board", "board-commerce");
+  assert.equal(boardResult.status, 0, boardResult.stderr);
+  assert.deepEqual(
+    JSON.parse(boardResult.stdout).contained.map((item) => item.id),
+    ["collection-design-export", "ref-market-claim"]
+  );
+});
+
+test("Reference Library rejects unsupported fixed values", (t) => {
+  const { root } = createWorkspace(t, { selected: false });
+  writeJson(path.join(root, "_references", "invalid.reference.json"), {
+    schema_version: "1.0.0",
+    id: "ref-invalid",
+    kind: "moodboard",
+    title: "Invalid record",
+    summary: "An invalid record used to exercise validation.",
+    why_saved: "Validation fixture.",
+    roles: ["inspiration"],
+    status: "published",
+    design_status: "mature"
+  });
+
+  const result = runEngine(root, "references-validate");
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /`kind` must be one of/);
+  assert.match(result.stderr, /`status` must be one of/);
+  assert.match(result.stderr, /`design_status` must be one of/);
+});
+
+test("DNA Reference Basis creates bidirectional indexed links", (t) => {
+  const { root } = createWorkspace(t, { expressed: true });
+  writeJson(path.join(root, "_references", "evidence.reference.json"), {
+    schema_version: "1.0.0",
+    id: "ref-market-evidence",
+    kind: "webpage",
+    title: "Market evidence",
+    summary: "Evidence relevant to the accepted system boundary.",
+    why_saved: "Supports a specific direction decision.",
+    roles: ["evidence"],
+    source: { url: "https://example.com/evidence" }
+  });
+  assert.equal(runEngine(root, "run").status, 0);
+  const documentPath = scaffoldedDocumentPath(root);
+  const withReference = fs.readFileSync(documentPath, "utf8").replace(
+    "#### Direction",
+    "#### Reference Basis\n\n- `ref-market-evidence` — supports — Establishes the evidence basis.\n\n#### Direction"
+  );
+  fs.writeFileSync(documentPath, withReference, "utf8");
+
+  const refreshed = runEngine(root, "refresh");
+  assert.equal(refreshed.status, 0, refreshed.stderr);
+  const manifest = JSON.parse(fs.readFileSync(path.join(root, "_manifest.yaml"), "utf8"));
+  assert.deepEqual(manifest.direction.blocks[0].reference_links, [{
+    reference_id: "ref-market-evidence",
+    relationship: "supports",
+    note: "Establishes the evidence basis."
+  }]);
+  const item = manifest.references.items.find((reference) => reference.id === "ref-market-evidence");
+  assert.equal(item.dna_links[0].block_id, manifest.direction.blocks[0].id);
+
+  const context = runEngine(root, "references-context", "ref-market-evidence");
+  assert.equal(context.status, 0, context.stderr);
+  assert.equal(JSON.parse(context.stdout).dna_links[0].relationship, "supports");
 });
 
 test("keeps user-facing lifecycle terminology aligned across surfaces", () => {
@@ -735,6 +902,56 @@ test("new experience protocol asks one bundled project-basics question after the
   assert.match(context, /Do you already have any project basics/);
   assert.match(context, /Do not split this into separate questions/);
   assert.match(context, /project_basics_checked_at/);
+});
+
+test("current experience protocol asks for starting materials before offering Seed routes", () => {
+  const runtime = {
+    root: SOURCE_ROOT,
+    cwd: SOURCE_PROJECT_ROOT,
+    state: {
+      stage: "awaiting_seed",
+      experience_checkpoints: {
+        dashboard_introduced_at: "2026-09-03T12:00:00.000Z",
+        project_basics_checked_at: null
+      }
+    },
+    settings: {
+      schema_version: "1.6.0",
+      configured: true,
+      onboarding_status: "complete",
+      guidance_mode: "concise",
+      technical_proficiency: "intermediate",
+      ideation_mode: "thought_partner",
+      verbosity_budget: "standard",
+      allowed_values: {
+        guidance_mode: ["guided", "concise"],
+        technical_proficiency: ["beginner", "intermediate", "architect"],
+        ideation_mode: ["thought_partner", "fast_execution"],
+        verbosity_budget: ["lean", "standard", "exhaustive"]
+      }
+    },
+    seed: "",
+    northStar: ""
+  };
+
+  const pending = buildSessionContext(runtime);
+  assert.match(pending, /Before offering the Seed routes/);
+  assert.match(pending, /research, facts, links, Figma or other designs/);
+  assert.match(pending, /_reference_library_guide\.md/);
+  assert.doesNotMatch(pending, /Offer two equal seed routes/);
+
+  const checked = buildSessionContext({
+    ...runtime,
+    state: {
+      ...runtime.state,
+      experience_checkpoints: {
+        ...runtime.state.experience_checkpoints,
+        project_basics_checked_at: "2026-09-03T12:05:00.000Z"
+      }
+    }
+  });
+  assert.match(checked, /Offer two equal seed routes/);
+  assert.doesNotMatch(checked, /Before offering the Seed routes/);
 });
 
 test("shaping context applies the selected working mode", () => {
@@ -1076,6 +1293,34 @@ test("new experience protocol requires the dashboard introduction before Seed ca
   writeJson(statePath, state);
   const delivered = runEngine(root, "transition", "shaping_north_star");
   assert.equal(delivered.status, 0);
+});
+
+test("current experience protocol requires the starting-materials check before Seed capture", (t) => {
+  const { root } = createWorkspace(t, { selected: false, stage: "awaiting_seed" });
+  const settingsPath = path.join(root, "_settings.yaml");
+  const statePath = path.join(root, "_brainwave_state.yaml");
+  const settings = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
+  const state = JSON.parse(fs.readFileSync(statePath, "utf8"));
+  settings.schema_version = "1.6.0";
+  settings.guidance_mode = "concise";
+  settings.allowed_values.guidance_mode = ["guided", "concise"];
+  state.seed.locked_sha256 = null;
+  state.seed.captured_at = null;
+  state.experience_checkpoints = {
+    dashboard_introduced_at: "2026-09-03T12:00:00.000Z",
+    project_basics_checked_at: null
+  };
+  writeJson(settingsPath, settings);
+  writeJson(statePath, state);
+
+  const pending = runEngine(root, "transition", "shaping_north_star");
+  assert.equal(pending.status, 1);
+  assert.match(pending.stderr, /before capturing the Seed, ask once for any existing starting materials/);
+
+  state.experience_checkpoints.project_basics_checked_at = "2026-09-03T12:05:00.000Z";
+  writeJson(statePath, state);
+  const checked = runEngine(root, "transition", "shaping_north_star");
+  assert.equal(checked.status, 0, checked.stderr);
 });
 
 test("new experience protocol requires the project-basics check before North Star agreement", (t) => {
@@ -2235,7 +2480,7 @@ test("ships explicit module contracts, baseline semantics, and separated product
 
   assert.equal(sapp.dna_version, "1.4.0");
   assert.equal(brand.dna_version, "1.4.0");
-  assert.equal(experience.dna_version, "0.2.0");
+  assert.equal(experience.dna_version, "0.3.0");
   assert.equal(strategy.dna_version, "0.2.0");
   assert.equal(commercial.dna_version, "0.2.0");
   assert.equal(growth.dna_version, "0.2.0");

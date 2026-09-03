@@ -18,6 +18,7 @@
       <div class="view-switch" role="tablist" aria-label="Dashboard view">
         <button class="view-tab" type="button" role="tab" aria-selected="true" aria-controls="journey-view" data-view="journey">Your brainwave</button>
         <button class="view-tab" type="button" role="tab" aria-selected="false" aria-controls="library-view" data-view="library" tabindex="-1">DNA Library</button>
+        <button class="view-tab" type="button" role="tab" aria-selected="false" aria-controls="references-view" data-view="references" tabindex="-1">References</button>
       </div>
 
       <nav class="utilities" aria-label="Dashboard tools">
@@ -60,6 +61,17 @@
           </div>
         </div>
         <div class="library-grid" id="library"></div>
+      </section>
+
+      <section id="references-view" aria-labelledby="references-title" hidden>
+        <div class="view-heading reference-heading">
+          <div>
+            <h1 id="references-title">Reference Library</h1>
+            <p>Useful source material, precedents, evidence, and inspiration connected to the project.</p>
+          </div>
+          <div class="reference-summary" id="reference-summary"></div>
+        </div>
+        <div id="reference-library"></div>
       </section>
     </main>
 

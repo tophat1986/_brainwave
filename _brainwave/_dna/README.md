@@ -66,6 +66,7 @@ Direction status: active
 Supersedes: none
 
 #### Context
+#### Reference Basis
 #### Direction
 #### Rationale
 #### Alternatives Considered
@@ -74,7 +75,7 @@ Supersedes: none
 #### Verification
 ```
 
-The headings prompt deliberate thinking without prescribing domain-specific answers. Write `Not applicable — <reason>` where a consideration genuinely does not apply; do not add filler.
+`Reference Basis` is optional. When present, each entry must use the typed-link syntax in `_reference_library_guide.md`; the engine validates its reference ID and relationship and derives reverse links for traversal. Omit the section when no saved reference materially supports or influences the block. The other headings prompt deliberate thinking without prescribing domain-specific answers. Write `Not applicable — <reason>` where a consideration genuinely does not apply; do not add filler.
 
 Direction status is one of:
 

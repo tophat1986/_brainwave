@@ -45,6 +45,12 @@ const {
   IMPLEMENTATION_PROGRESS_UPDATE_MODES,
   implementationProgressPolicy
 } = require("./implementation_progress");
+const {
+  REFERENCE_RELATIONSHIPS,
+  scanReferenceLibrary,
+  searchReferenceLibrary,
+  referenceContext
+} = require("./reference_library");
 const { writeDashboard } = require("./dashboard_renderer");
 
 const ROOT = path.resolve(__dirname, "..");
@@ -64,6 +70,8 @@ const PATHS = Object.freeze({
   assuranceWorkingDir: path.join(ROOT, "_working", "assurance"),
   assurancePacket: path.join(ROOT, "_working", "assurance", "packet.json"),
   assuranceResult: path.join(ROOT, "_working", "assurance", "result.json"),
+  referencesDir: path.join(ROOT, "_references"),
+  referencesIndex: path.join(ROOT, "_references", "_index.json"),
   manifest: path.join(ROOT, "_manifest.yaml"),
   dashboard: path.join(ROOT, "_dashboard.html")
 });
@@ -410,7 +418,7 @@ function evidenceIsRecorded(value) {
 
 function defaultSettings() {
   return {
-    schema_version: "1.5.0",
+    schema_version: "1.6.0",
     configured: false,
     onboarding_status: "pending",
     guidance_mode: null,
@@ -496,7 +504,7 @@ function defaultState() {
 
 function defaultManifestSkeleton() {
   return {
-    schema_version: "3.0.0",
+    schema_version: "3.1.0",
     generated_at: nowIso(),
     workspace_root: ".",
     framework: {
@@ -548,6 +556,29 @@ function defaultManifestSkeleton() {
         dashboard_introduced_at: null,
         project_basics_checked_at: null
       }
+    },
+    references: {
+      path: "_references",
+      guide_path: "_reference_library_guide.md",
+      exists: false,
+      enums: {
+        kinds: [],
+        roles: [],
+        design_statuses: [],
+        relationships: []
+      },
+      totals: {
+        items: 0,
+        collections: 0,
+        boards: 0,
+        restricted: 0,
+        legacy_items: 0
+      },
+      kinds: {},
+      collections: [],
+      boards: [],
+      items: [],
+      validation: { errors: [], warnings: [] }
     },
     settings: {
       path: "_settings.yaml",
@@ -1107,7 +1138,7 @@ function loadWorkspace(options = {}) {
   const modules = loadDnaModules();
   const state = readJsonYaml(PATHS.state, defaultState());
   validateState(state, modules, options);
-  return {
+  const workspace = {
     settings,
     modules,
     state,
@@ -1118,8 +1149,34 @@ function loadWorkspace(options = {}) {
     implementationSpine: exists(PATHS.implementation)
       ? readJsonYaml(PATHS.implementation, null)
       : null,
-    previousManifest: readJsonYaml(PATHS.manifest, defaultManifestSkeleton())
+    previousManifest: readJsonYaml(PATHS.manifest, defaultManifestSkeleton()),
+    referenceLibrary: null
   };
+  const projectProfile = normalizedProjectProfile(settings);
+  const legacyItems = projectProfile.references.map((reference) => ({
+    id: reference.id,
+    kind: /\.(?:avif|gif|jpe?g|png|svg|webp)$/i.test(reference.path) ? "image" : "document",
+    title: reference.label || path.basename(reference.path),
+    summary: reference.notes || "Supplied project-profile reference.",
+    why_saved: reference.notes || "Preserved as an existing project reference.",
+    roles: ["working_material"],
+    tags: [],
+    status: reference.status || "working",
+    sensitivity: "normal",
+    storage: "tracked",
+    collection: null,
+    source: null,
+    representation: {
+      path: reference.path,
+      path_exists: reference.exists,
+      sha256: reference.sha256
+    },
+    links: [],
+    source_file: "_settings.yaml",
+    legacy: true
+  }));
+  workspace.referenceLibrary = scanReferenceLibrary(ROOT, { legacyItems });
+  return workspace;
 }
 
 function gitRevision() {
@@ -1318,7 +1375,31 @@ function buildScaffoldContent(module, fileNode) {
   ].join("\n");
 }
 
-function parseDnaBlocks(module, fileNode, content) {
+function parseReferenceBasis(section, blockId, knownReferenceIds, errors) {
+  const body = blockSectionMarkdown(section, "Reference Basis");
+  if (!body) return [];
+  const links = [];
+  for (const line of body.split(/\r?\n/).map((entry) => entry.trim()).filter(Boolean)) {
+    const match = line.match(/^-\s+`([^`]+)`\s+(?:—|-)\s+([a-z_]+)(?:\s+(?:—|-)\s+(.+))?$/);
+    if (!match) {
+      errors.push(`${blockId} has an invalid Reference Basis entry: ${line}`);
+      continue;
+    }
+    const [, referenceId, relationship, note] = match;
+    if (!REFERENCE_RELATIONSHIPS.includes(relationship)) {
+      errors.push(`${blockId} uses unsupported reference relationship \`${relationship}\`.`);
+      continue;
+    }
+    if (knownReferenceIds && !knownReferenceIds.has(referenceId)) {
+      errors.push(`${blockId} references unavailable Reference Library item \`${referenceId}\`.`);
+      continue;
+    }
+    links.push({ reference_id: referenceId, relationship, note: optionalText(note) });
+  }
+  return links;
+}
+
+function parseDnaBlocks(module, fileNode, content, options = {}) {
   const documentId = qualifiedNodeId(module, fileNode.id);
   const headingPattern =
     /^###\s+`?(_DNA-[A-Z]{4}-\d{5}\.\d{2})`?\s+(?:-|—)\s+(.+?)\s*$/gm;
@@ -1389,6 +1470,13 @@ function parseDnaBlocks(module, fileNode, content) {
       }
     }
 
+    const referenceLinks = directionStatus === "superseded"
+      ? []
+      : parseReferenceBasis(section, id, options.knownReferenceIds, blockErrors);
+    for (const error of blockErrors) {
+      if (!errors.includes(error)) errors.push(error);
+    }
+
     blocks.push({
       id,
       slice: id.split(".").pop(),
@@ -1396,6 +1484,7 @@ function parseDnaBlocks(module, fileNode, content) {
       direction_status: directionStatus,
       supersedes,
       superseded_by: supersededBy,
+      reference_links: referenceLinks,
       legacy_delivery_status: LEGACY_DNA_BLOCK_STATUSES.includes(legacyStatus)
         ? legacyStatus
         : null,
@@ -1554,6 +1643,7 @@ function manifestAssuranceSummary(spine, slice, currentRevision) {
 function buildManifest(workspace, command, taskPlan = [], prior = null) {
   const manifest = defaultManifestSkeleton();
   const projectProfile = normalizedProjectProfile(workspace.settings);
+  manifest.references = JSON.parse(JSON.stringify(workspace.referenceLibrary));
   const previous = prior || workspace.previousManifest;
   if (previous && Array.isArray(previous.events)) {
     manifest.events = previous.events.slice(-100);
@@ -1662,7 +1752,13 @@ function buildManifest(workspace, command, taskPlan = [], prior = null) {
         const content = fileExists ? readText(absolute) : "";
         processingStatus = fileExists ? fileStatusFromContent(content) : "not_started";
         const parsedBlocks = fileExists
-          ? parseDnaBlocks(module, node, content)
+          ? parseDnaBlocks(module, node, content, {
+              knownReferenceIds: new Set([
+                ...workspace.referenceLibrary.items,
+                ...workspace.referenceLibrary.collections,
+                ...workspace.referenceLibrary.boards
+              ].map((reference) => reference.id))
+            })
           : { blocks: [], errors: [] };
         blockCount = parsedBlocks.blocks.length;
         contractErrors = parsedBlocks.errors;
@@ -1801,6 +1897,30 @@ function buildManifest(workspace, command, taskPlan = [], prior = null) {
     }
   }
 
+  const referencesById = new Map([
+    ...manifest.references.items,
+    ...manifest.references.collections,
+    ...manifest.references.boards
+  ].map((reference) => [reference.id, reference]));
+  for (const block of directionBlocks) {
+    for (const link of block.reference_links || []) {
+      const reference = referencesById.get(link.reference_id);
+      if (!reference) continue;
+      if (!Array.isArray(reference.dna_links)) reference.dna_links = [];
+      reference.dna_links.push({
+        block_id: block.id,
+        relationship: link.relationship,
+        note: link.note,
+        path: block.path
+      });
+    }
+  }
+  for (const reference of referencesById.values()) {
+    if (Array.isArray(reference.dna_links)) {
+      reference.dna_links.sort((left, right) => left.block_id.localeCompare(right.block_id));
+    }
+  }
+
   const source = implementationSource(workspace, directionBlocks);
   const applicableBlockIds = directionBlocks
     .filter((block) => !["superseded", "not_applicable"].includes(block.direction_status))
@@ -1877,6 +1997,7 @@ function buildManifest(workspace, command, taskPlan = [], prior = null) {
 
 function injectManifestIntoDashboard(manifest) {
   // Keep the existing facade so every runner command follows one rendering path.
+  if (exists(PATHS.referencesDir)) writeJsonYaml(PATHS.referencesIndex, manifest.references);
   writeDashboard(PATHS.dashboard, manifest);
 }
 
@@ -1919,6 +2040,10 @@ function settingsRequireBuildOutcome(settings) {
 
 function settingsRequireExperienceProtocol(settings) {
   return settingsSchemaAtLeast(settings, 1, 3);
+}
+
+function settingsRequireStartingMaterialsBeforeSeed(settings) {
+  return settingsSchemaAtLeast(settings, 1, 6);
 }
 
 function isSettingsConfigured(settings) {
@@ -1973,6 +2098,17 @@ function assertProjectBasicsChecked(workspace) {
   ) {
     throw new Error(
       "Experience pre-check failed: after reading the Seed, check once for any existing project name, short description or tagline, logo, colours, or style direction. Record the answer in `_settings.yaml` and `project_basics_checked_at` in `_brainwave_state.yaml` before agreeing the North Star."
+    );
+  }
+}
+
+function assertStartingMaterialsChecked(workspace) {
+  if (
+    settingsRequireStartingMaterialsBeforeSeed(workspace.settings) &&
+    !workspace.state.experience_checkpoints?.project_basics_checked_at
+  ) {
+    throw new Error(
+      "Experience pre-check failed: before capturing the Seed, ask once for any existing starting materials such as research, facts, links, Figma or other designs, screenshots, documents, recordings, examples, or project basics. Capture supplied references through the Reference Library, allow `not yet`, and record `project_basics_checked_at` in `_brainwave_state.yaml`."
     );
   }
 }
@@ -2037,7 +2173,13 @@ function expressedBlockContractErrors(workspace) {
   for (const { module, node } of expressedFileEntries(workspace)) {
     const absolute = nodeOutputPath(module, node);
     if (!exists(absolute)) continue;
-    const parsed = parseDnaBlocks(module, node, readText(absolute));
+    const parsed = parseDnaBlocks(module, node, readText(absolute), {
+      knownReferenceIds: new Set([
+        ...workspace.referenceLibrary.items,
+        ...workspace.referenceLibrary.collections,
+        ...workspace.referenceLibrary.boards
+      ].map((reference) => reference.id))
+    });
     errors.push(...parsed.errors);
   }
   return errors;
@@ -2257,6 +2399,7 @@ function transitionStage(targetStage) {
     if (settingsRequireExperienceProtocol(workspace.settings)) {
       assertSettingsReady(workspace.settings);
       assertDashboardIntroduced(workspace);
+      assertStartingMaterialsChecked(workspace);
     }
     if (!workspace.seedText.trim()) {
       throw new Error("Cannot capture the _brainwave Seed because `_my_brainwave_seed.md` is empty.");
@@ -2283,7 +2426,9 @@ function transitionStage(targetStage) {
     assertNorthStarAgreed(workspace.northStarText);
   }
   if (targetStage === "selecting_dna") {
-    assertProjectBasicsChecked(workspace);
+    if (!settingsRequireStartingMaterialsBeforeSeed(workspace.settings)) {
+      assertProjectBasicsChecked(workspace);
+    }
   }
   if (
     [
@@ -2432,25 +2577,30 @@ function assuranceDirectionExcerpts(context, sliceId) {
 
 function assuranceReferenceRecords(context, slice) {
   const available = new Map(
-    normalizedProjectProfile(context.workspace.settings).references.map((reference) => [
-      reference.id,
-      reference
-    ])
+    [
+      ...context.workspace.referenceLibrary.items,
+      ...context.workspace.referenceLibrary.collections,
+      ...context.workspace.referenceLibrary.boards
+    ].map((reference) => [reference.id, reference])
   );
   return (slice.assurance_gate?.references || []).map((id) => {
     const reference = available.get(id);
-    if (!reference || !reference.exists || !reference.sha256) {
+    const referenceHash = reference?.representation?.sha256 || reference?.descriptor_sha256;
+    if (!reference || !referenceHash) {
       throw new Error(
-        `Assurance reference ${id} is unavailable. Register the durable project-profile file before preparing review.`
+        `Assurance reference ${id} is unavailable. Register and index the durable Reference Library item before preparing review.`
       );
     }
     return {
       id: reference.id,
-      path: reference.path,
-      label: reference.label,
-      notes: reference.notes,
+      path: reference.representation?.path || reference.source_file,
+      label: reference.title,
+      notes: reference.why_saved || reference.summary,
+      kind: reference.kind || reference.type,
+      summary: reference.summary || null,
+      source: reference.source || null,
       status: reference.status,
-      sha256: reference.sha256
+      sha256: referenceHash
     };
   });
 }
@@ -2892,6 +3042,9 @@ function printStatus() {
   console.log(
     `${CONSOLE_PREFIX} documentation_detail: ${manifest.settings.verbosity_budget || "not_configured"}`
   );
+  console.log(
+    `${CONSOLE_PREFIX} references: ${manifest.references.totals.items} items, ${manifest.references.totals.collections} collections, ${manifest.references.totals.boards} boards`
+  );
   console.log(`${CONSOLE_PREFIX} implementation_spine: ${manifest.implementation.mode}`);
   console.log(
     `${CONSOLE_PREFIX} implementation_progress_updates: ${manifest.settings.implementation_progress_updates}`
@@ -2913,6 +3066,60 @@ function refreshDerivedState() {
   const workspace = loadWorkspace();
   persistWorkspaceManifest(workspace, "refresh");
   console.log(`${CONSOLE_PREFIX} derived state refreshed at ${nowIso()}`);
+}
+
+function validateReferenceLibrary() {
+  const workspace = loadWorkspace();
+  const references = workspace.referenceLibrary;
+  console.log(`${CONSOLE_PREFIX} references: ${references.totals.items} items, ${references.totals.collections} collections, ${references.totals.boards} boards`);
+  for (const warning of references.validation.warnings) {
+    console.log(`${CONSOLE_PREFIX} reference warning: ${warning}`);
+  }
+  if (references.validation.errors.length) {
+    throw new Error(`Reference Library validation failed: ${references.validation.errors.join(" ")}`);
+  }
+  console.log(`${CONSOLE_PREFIX} Reference Library valid`);
+}
+
+function indexReferenceLibrary() {
+  fs.mkdirSync(PATHS.referencesDir, { recursive: true });
+  const workspace = loadWorkspace();
+  const manifest = persistWorkspaceManifest(workspace, "references-index");
+  for (const warning of manifest.references.validation.warnings) {
+    console.log(`${CONSOLE_PREFIX} reference warning: ${warning}`);
+  }
+  if (manifest.references.validation.errors.length) {
+    throw new Error(`Reference Library index contains errors: ${manifest.references.validation.errors.join(" ")}`);
+  }
+  console.log(`${CONSOLE_PREFIX} Reference Library indexed: ${manifest.references.totals.items} items, ${manifest.references.totals.collections} collections, ${manifest.references.totals.boards} boards`);
+}
+
+function findReferences(args) {
+  const limitIndex = args.indexOf("--limit");
+  let limit = 8;
+  const queryParts = [...args];
+  if (limitIndex >= 0) {
+    limit = Number(args[limitIndex + 1]) || 8;
+    queryParts.splice(limitIndex, 2);
+  }
+  const query = queryParts.join(" ").trim();
+  if (!query) throw new Error("Provide text to search for in the Reference Library.");
+  const workspace = loadWorkspace();
+  const manifest = buildWorkspaceManifest(workspace, "references-find");
+  const results = searchReferenceLibrary(manifest.references, query, { limit });
+  console.log(JSON.stringify({ query, count: results.length, results }, null, 2));
+}
+
+function printReferenceContext(args, boardOnly = false) {
+  const id = String(args[0] || "").trim();
+  if (!id) throw new Error(`Provide a Reference Library ${boardOnly ? "board" : "item, collection, or board"} ID.`);
+  const workspace = loadWorkspace();
+  const manifest = buildWorkspaceManifest(workspace, boardOnly ? "references-board" : "references-context");
+  const context = referenceContext(manifest.references, id);
+  if (!context || (boardOnly && context.target.type !== "board")) {
+    throw new Error(`Reference Library ${boardOnly ? "board " : ""}\`${id}\` was not found.`);
+  }
+  console.log(JSON.stringify(context, null, 2));
 }
 
 function recordAlignmentReview(args) {
@@ -3005,6 +3212,11 @@ function printHelp() {
   console.log("  node _brainwave/_engine/brainwave_runner.js unintegrate  (from project root)");
   console.log("  node _brainwave/_engine/brainwave_runner.js status");
   console.log("  node _brainwave/_engine/brainwave_runner.js refresh");
+  console.log("  node _brainwave/_engine/brainwave_runner.js references-index");
+  console.log("  node _brainwave/_engine/brainwave_runner.js references-validate");
+  console.log("  node _brainwave/_engine/brainwave_runner.js references-find <query> [--limit <count>]");
+  console.log("  node _brainwave/_engine/brainwave_runner.js references-context <item|collection|board-id>");
+  console.log("  node _brainwave/_engine/brainwave_runner.js references-board <board-id>");
   console.log("  node _brainwave/_engine/brainwave_runner.js implementation-compile [--existing-build]");
   console.log("  node _brainwave/_engine/brainwave_runner.js implementation-synthesize <authored-by> [proposal-path]");
   console.log("  node _brainwave/_engine/brainwave_runner.js implementation-review");
@@ -3063,6 +3275,11 @@ async function main() {
   }
   if (command === "status") return printStatus();
   if (command === "refresh") return refreshDerivedState();
+  if (command === "references-index") return indexReferenceLibrary();
+  if (command === "references-validate") return validateReferenceLibrary();
+  if (command === "references-find") return findReferences(args);
+  if (command === "references-context") return printReferenceContext(args);
+  if (command === "references-board") return printReferenceContext(args, true);
   if (command === "implementation-compile") return compileImplementationSpine(args);
   if (command === "implementation-synthesize") return synthesizeImplementationPlan(args);
   if (command === "implementation-review") return writeImplementationReview();

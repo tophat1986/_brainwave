@@ -119,6 +119,10 @@ function settingsRequireExperienceProtocol(settings) {
   return settingsSchemaAtLeast(settings, 1, 3);
 }
 
+function settingsRequireStartingMaterialsBeforeSeed(settings) {
+  return settingsSchemaAtLeast(settings, 1, 6);
+}
+
 function buildOutcomeIsReady(settings) {
   return Boolean(
     !settingsRequireBuildOutcome(settings) ||
@@ -240,6 +244,10 @@ function buildSessionContext(runtime) {
       runtime.settings.project_profile?.status &&
       runtime.settings.project_profile.status !== "not_asked"
   );
+  const startingMaterialsRequired = settingsRequireStartingMaterialsBeforeSeed(runtime.settings);
+  const startingMaterialsChecked = Boolean(
+    runtime.state.experience_checkpoints?.project_basics_checked_at
+  );
   const lines = [
     `_brainwave is active at stage \`${stage}\`. The exact user-facing label is "${displayStage}". Follow ${at("AGENTS.md")} and ${at("_brainwave_handbook.md")}.`,
     `Use "${displayStage}" when stating the current step in the first assistant reply; keep the lifecycle ID internal.`
@@ -271,7 +279,19 @@ function buildSessionContext(runtime) {
     lines.push(`Mention ${at("_dashboard.html")} once near the start as the visual way to follow progress.`);
   }
 
-  if (stage === "awaiting_seed") {
+  if (
+    stage === "awaiting_seed" &&
+    startingMaterialsRequired &&
+    settingsConfigured &&
+    dashboardIntroduced &&
+    !startingMaterialsChecked
+  ) {
+    lines.push(
+      `Before offering the Seed routes, ask one optional bundled starting-materials question: "Before we capture your concept, do you already have anything you'd like _brainwave to carry forward—such as research, facts, links, Figma or other designs, screenshots, documents, recordings, examples, a name, logo, colours, or a general style direction? Share whatever you have, or say 'not yet'; references can also be added later." Do not split this into a questionnaire. Save project identity in ${at("_settings.yaml")} and capture reference material under ${at("_references/")} only after reading ${at("_reference_library_guide.md")}. Warn before copying private or restricted material into a repository that may be public. Existing project-profile references remain valid. Record the project_basics_checked_at checkpoint in ${at("_brainwave_state.yaml")} after the response. References may inform the discussion but must not be silently inserted into the Seed or treated as accepted direction.`
+    );
+  }
+
+  if (stage === "awaiting_seed" && (!startingMaterialsRequired || startingMaterialsChecked)) {
     if (runtime.seed.trim()) {
       lines.push(
         `A prepared concept already exists in ${at("_my_brainwave_seed.md")}. Do not rewrite or restructure it. Ask the user to confirm that it should be used exactly as written, then transition to \`shaping_north_star\`, which locks its hash.`
@@ -281,12 +301,12 @@ function buildSessionContext(runtime) {
         `Offer two equal seed routes, preferably with the host's native structured-choice UI: discuss the concept naturally in chat, or use a prepared concept by pasting it for verbatim capture or saving it directly in ${at("_my_brainwave_seed.md")}. Capture only explicitly approved content, preserve the user's supplied wording and natural structure, and do not infer missing content or fit template headings. If materially paraphrasing or restructuring, show the exact proposed seed for approval before writing it.`
       );
     }
-  } else if (!runtime.seed.trim()) {
+  } else if (stage !== "awaiting_seed" && !runtime.seed.trim()) {
     lines.push(
       `The seed is unexpectedly missing. Restore the approved content in ${at("_my_brainwave_seed.md")} before continuing.`
     );
   } else if (stage === "shaping_north_star") {
-    if (experienceRequired && !projectBasicsChecked) {
+    if (experienceRequired && !startingMaterialsRequired && !projectBasicsChecked) {
       lines.push(
         `Read the Seed and any supplied materials first, then ask one optional bundled project-basics question without repeating known details: "Do you already have any project basics you'd like us to carry forward—such as a name, a short description or tagline, a logo, colours, a general style direction, or screenshots, sketches, mock-ups, or examples that show how you imagine it? Share whatever you have, or say 'not yet' and we can shape it later." Do not split this into separate questions. Save supplied details as working or confirmed in ${at("_settings.yaml")} \`project_profile\`; save actual files under a project-owned \`_assets/project_profile/\` folder and record their paths. For each colour, preserve its name, value, optional repeatable role, optional usage, and whether it should be featured in the dashboard; never force unique primary, secondary, or tertiary slots. Preserve supplied references in \`project_profile.references\` using a safe relative path, label, optional note, status, and content hash when available; do not classify their intended use because Product Design and Experience DNA owns that decision. Treat \`not_yet\` and \`deferred\` as complete answers, then record \`project_basics_checked_at\` in ${at("_brainwave_state.yaml")}.`
       );

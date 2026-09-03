@@ -1,7 +1,7 @@
 {
   "schema_version": "4.0.0",
   "dna_code": "PDEX",
-  "dna_version": "0.2.0",
+  "dna_version": "0.3.0",
   "name": "Product Design and Experience DNA",
   "description": "A proportionate catalogue for defining the complete human experience of a digital product: purposeful journeys, interaction, hierarchy, interface content, accessibility, adaptation, localisation, visual composition, distinctiveness, and experience verification. It converts the North Star, product evidence, and brand identity into build-ready experience direction without owning technical implementation.",
   "documentation_label": "product experience documentation",
@@ -86,7 +86,7 @@
       "type": "file",
       "path": "00100_experience_direction/00104_design_exploration_and_references.md",
       "title": "Design Exploration and References",
-      "intent": "Consume supplied screenshots, sketches, mock-ups, and examples from the project profile; classify their intended use inside this document; identify what should be learned rather than copied; explore materially different directions when choices are consequential; and preserve the agreed convergence for later rendered comparison.",
+      "intent": "Consume relevant screenshots, sketches, mock-ups, designs, precedents, and examples from the Reference Library or legacy project profile; classify their intended use inside this document; identify what should be learned rather than copied; explore materially different directions when choices are consequential; and preserve the agreed convergence for later rendered comparison.",
       "parent_id": "00100",
       "baseline": true
     },

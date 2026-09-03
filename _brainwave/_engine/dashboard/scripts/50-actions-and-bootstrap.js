@@ -25,6 +25,7 @@
         else if (action === "module-document") openModuleDocument(target.dataset.module, target.dataset.document);
         else if (action === "document") openDocument(target.dataset.path);
         else if (action === "block") openBlock(target.dataset.block);
+        else if (action === "reference") openReference(target.dataset.reference, { remember: true });
         else if (action === "copy-alignment-prompt") copyAlignmentReviewPrompt(target);
         else if (action === "inspector-back") backInspector();
         else if (action === "close-inspector") closeInspector();
@@ -70,6 +71,7 @@
       renderProjectOverview();
       renderJourney();
       renderLibrary();
+      renderReferences();
       window.addEventListener("popstate", syncInspectorFromRoute);
       window.addEventListener("hashchange", syncInspectorFromRoute);
       syncInspectorFromRoute();

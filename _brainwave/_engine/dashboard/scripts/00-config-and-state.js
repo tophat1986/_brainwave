@@ -39,6 +39,12 @@
       const progress = state.progress || {};
       const progressModules = Object.values(progress.modules || {});
       const direction = state.direction || {};
+      const references = state.references || {};
+      const referenceItems = Array.isArray(references.items) ? references.items : [];
+      const referenceCollections = Array.isArray(references.collections) ? references.collections : [];
+      const referenceBoards = Array.isArray(references.boards) ? references.boards : [];
+      const referenceRecords = [...referenceItems, ...referenceCollections, ...referenceBoards];
+      const referenceById = new Map(referenceRecords.map((reference) => [reference.id, reference]));
       const implementation = state.implementation || {};
       const assurance = state.assurance || {};
       const assuranceProfiles = Array.isArray(assurance.profiles)
@@ -151,6 +157,31 @@
           context: block.document_title || block.module_name || "DNA block",
           moduleId: block.module_id || String(block.id || "").match(/^(_DNA-[A-Z0-9]{4})-/)?.[1] || "",
           blockId: block.id
+        });
+      }
+      for (const reference of referenceRecords) {
+        searchEntries.push({
+          kind: `reference_${reference.type}`,
+          id: reference.id,
+          title: reference.title || reference.id,
+          context: [
+            reference.kind,
+            reference.summary,
+            reference.why_saved,
+            reference.source?.provider,
+            reference.source?.locator,
+            reference.source?.citation,
+            reference.claim,
+            reference.quote,
+            reference.attribution,
+            reference.visible_text,
+            reference.visual_description,
+            reference.exclusions,
+            ...(reference.tags || [])
+          ]
+            .filter(Boolean)
+            .join(" · "),
+          referenceId: reference.id
         });
       }
       searchEntries.forEach((entry, index) => {

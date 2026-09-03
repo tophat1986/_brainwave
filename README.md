@@ -12,6 +12,8 @@ _brainwave calls its documentation system **DNA**. A **DNA module** is a version
 
 The user journey has eight steps. The first seven establish the accepted foundation; the eighth keeps implementation actively sequenced and checked against it:
 
+Before those steps, the agent asks once about existing starting material—such as research, facts, designs, screenshots, links, or project identity—so useful context can be captured before the Seed is shaped.
+
 1. **Capture the idea** — preserve the original concept as the immutable _brainwave Seed.
 2. **Agree the direction** — shape and approve the living North Star.
 3. **Choose DNA modules** — select the documentation domains relevant to the concept.
@@ -69,7 +71,7 @@ Model capability does not set documentation length. The persistent `_settings.ya
 
 Once the foundation is agreed, implementation can often move to a more cost-effective capable model because the agent is following documented decisions rather than repeatedly guessing at intent.
 
-Read the [_brainwave handbook](./_brainwave/_brainwave_handbook.md) for the complete lifecycle and terminology. Open `_brainwave/_dashboard.html` for the guided journey, document previews, DNA library, and block progress.
+Read the [_brainwave handbook](./_brainwave/_brainwave_handbook.md) for the complete lifecycle and terminology. Open `_brainwave/_dashboard.html` for the guided journey, document previews, DNA library, Reference Library, and block progress.
 
 > _brainwave is currently a `0.x` release candidate. Battle-test it on a non-critical project before relying on it as the sole record of architectural decisions.
 
@@ -88,6 +90,7 @@ my-project/
 |   |-- AGENTS.md
 |   |-- _brainwave_state.yaml
 |   |-- _documentation/
+|   |-- _references/          optional project-owned material
 |   `-- ...
 `-- app/
     `-- ...
@@ -106,7 +109,8 @@ Recommended when you have not created your project repository yet.
 1. Use GitHub's **Use this template** action to create the project repository. This is the recommended route because it starts with its own Git history and remote.
 2. Confirm Node.js 20 or newer is installed.
 3. Open an AI-agent chat from the repository root. If the agent does not discover project instructions automatically, ask it to read `AGENTS.md` first.
-4. Choose either seed route:
+4. The agent will first ask whether you have useful starting material to capture or link. This can include project identity, research, facts, quotes, designs, screenshots, recordings, precedents, or inspiration; `not yet` is a complete answer.
+5. Choose either seed route:
    - **Discuss or paste in chat:** send:
 
      > Use _brainwave to capture the following idea as the immutable seed, then `build concept`: `<your idea>`
@@ -115,10 +119,10 @@ Recommended when you have not created your project repository yet.
 
      > `build concept` using the seed file exactly as written.
 
-5. Shape the North Star, explicitly agree how far the current idea should be taken, and then agree the resulting direction.
-6. Choose the relevant DNA modules and scope only the DNA documents the project needs.
-7. Let the engine scaffold the scoped DNA documents beneath `_brainwave/_documentation/_DNA-CODE/`, then build their content and traceable DNA blocks.
-8. Review the foundation before accepting `brainwave_documentation_complete`.
+6. Shape the North Star, explicitly agree how far the current idea should be taken, and then agree the resulting direction.
+7. Choose the relevant DNA modules and scope only the DNA documents the project needs.
+8. Let the engine scaffold the scoped DNA documents beneath `_brainwave/_documentation/_DNA-CODE/`, then build their content and traceable DNA blocks.
+9. Review the foundation before accepting `brainwave_documentation_complete`.
 
 If you intentionally clone this repository instead, replace its `origin` with the new project's remote before beginning product work. A normal clone retains the upstream _brainwave remote.
 
@@ -221,6 +225,10 @@ _DNA-SAPP-00302.01
 
 The final decimal position identifies a DNA block inside a document. The block remains the stable traceability identity and source of accepted direction. `_implementation.yaml` references those same IDs and is the separate single source of implementation sequence, status, and concise current evidence; no second task-ID system is introduced.
 
+## Reference Library
+
+`_brainwave/_references/` preserves useful research, claims, quotes, links, media, designs, precedents, and inspiration without making them accepted product direction. JSON descriptors keep items searchable, while collections group captures and boards curate useful views. A DNA block can link a material reference through an optional typed `Reference Basis`; the DNA direction remains authoritative. See the [Reference Library guide](./_brainwave/_reference_library_guide.md) for the compact record format, privacy boundary, and agent workflow.
+
 After the foundation is accepted, _brainwave compiles an unmapped DNA-block inventory rather than pretending document boundaries are implementation slices. An AI planning pass uses the North Star and project-specific journey, priority, delivery, acceptance, architecture, and gate direction to author a hybrid outcome-led proposal; existing products also receive a code-and-test reconciliation pass. The engine imports and validates that proposal, generates a human-readable review, and permits approval only after that exact review. Agents then work through one coherent slice at a time, retrieve only its referenced DNA passages, persist evidence outside their context window, and reconstruct previous, current, and next work with one command.
 
 DNA direction coverage is deliberately narrower than a project-completion estimate: it counts applicable documented directions that are built or checked, while blockers remain visible separately. It does not claim to measure effort remaining, time-to-finish, or release readiness.
@@ -237,6 +245,11 @@ node _brainwave/_engine/brainwave_runner.js unintegrate
 node _brainwave/_engine/brainwave_runner.js dna
 node _brainwave/_engine/brainwave_runner.js status
 node _brainwave/_engine/brainwave_runner.js refresh
+node _brainwave/_engine/brainwave_runner.js references-validate
+node _brainwave/_engine/brainwave_runner.js references-index
+node _brainwave/_engine/brainwave_runner.js references-find <query> [--limit <count>]
+node _brainwave/_engine/brainwave_runner.js references-context <item|collection|board-id>
+node _brainwave/_engine/brainwave_runner.js references-board <board-id>
 node _brainwave/_engine/brainwave_runner.js implementation-compile [--existing-build]
 node _brainwave/_engine/brainwave_runner.js implementation-synthesize <authored-by> [proposal-path]
 node _brainwave/_engine/brainwave_runner.js implementation-review

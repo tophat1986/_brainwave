@@ -114,7 +114,8 @@
           `<div class="state-row"><span>${esc(label)}</span><strong>${label === "Colours" ? value : esc(value)}</strong></div>`
         ).join("");
         const dashboardReady = Boolean(experienceCheckpoints.dashboard_introduced_at);
-        const basicsReady = Boolean(experienceCheckpoints.project_basics_checked_at);
+        const startingMaterialsReady = Boolean(experienceCheckpoints.project_basics_checked_at);
+        const referenceTotals = references.totals || {};
         const implementationProgress = (() => {
           if (!foundationComplete) return "Starts after foundation";
           if (implementation.mode === "not_compiled") return "Plan not compiled";
@@ -136,7 +137,7 @@
             <section class="state-section"><h3 class="state-section-title">Project basics</h3><div class="state-grid">${projectRows}</div></section>
             <section class="state-section"><h3 class="state-section-title">Getting started</h3><div class="state-grid">
               <div class="state-row"><span>Dashboard</span><strong><span class="checkpoint-value ${dashboardReady ? "complete" : ""}">${dashboardReady ? "Introduced" : "Still to introduce"}</span></strong></div>
-              <div class="state-row"><span>Project basics</span><strong><span class="checkpoint-value ${basicsReady ? "complete" : ""}">${basicsReady ? "Checked" : "Still to discuss"}</span></strong></div>
+              <div class="state-row"><span>Starting materials</span><strong><span class="checkpoint-value ${startingMaterialsReady ? "complete" : ""}">${startingMaterialsReady ? "Checked" : "Still to discuss"}</span></strong></div>
             </div></section>
             <section class="state-section"><h3 class="state-section-title">Progress</h3><div class="state-grid">
               <div class="state-row"><span>Current step</span><strong>${esc(currentDefinition.action)}</strong></div>
@@ -144,6 +145,7 @@
               <div class="state-row"><span>North Star</span><strong>${esc(titleCase(state.north_star?.status || "Waiting"))}</strong></div>
               <div class="state-row"><span>DNA modules</span><strong>${esc(dashboardStats.selectedModuleNames.join(" · ") || "—")}</strong></div>
               <div class="state-row"><span>DNA documents</span><strong>${dashboardStats.completeDocuments}/${dashboardStats.expressedDocuments}</strong></div>
+              <div class="state-row"><span>References</span><strong>${Number(referenceTotals.items || 0)} items · ${Number(referenceTotals.collections || 0)} collections · ${Number(referenceTotals.boards || 0)} boards</strong></div>
               <div class="state-row"><span>Implementation</span><strong>${esc(implementationProgress)}</strong></div>
             </div></section>
             <details class="technical-details"><summary>Technical details</summary><div class="state-grid">
@@ -252,6 +254,14 @@
         const sections = detailLabels.filter(([key]) => block.details?.[key]).map(([key, label]) =>
           `<section class="block-section"><div class="block-section-label">${label}</div><div class="reader">${markdownToHtml(block.details[key])}</div></section>`
         ).join("");
+        const referenceSections = (block.reference_links || []).length
+          ? `<section class="block-section"><div class="block-section-label">Reference basis</div><div class="reference-related-list">${block.reference_links.map((link) => {
+              const reference = referenceById.get(link.reference_id);
+              return reference
+                ? linkedReferenceButton(reference, [titleCase(link.relationship), link.note].filter(Boolean).join(" · "))
+                : "";
+            }).join("")}</div></section>`
+          : "";
         const evidenceSections = showingAlignment && workItem
           ? [["implementation_evidence", "Implementation evidence"], ["verification_evidence", "Verification evidence"]].map(([key, label]) => {
               const evidence = Array.isArray(workItem[key]) ? workItem[key] : [];
@@ -267,7 +277,7 @@
           eyebrow: block.document_title || "DNA block",
           title: block.title,
           meta: statusLabel,
-          html: `<div class="block-identity"><span class="status-dot ${esc(status)}"></span>${esc(block.id)}</div>${plannedSlice ? `<div class="block-check-meta"><span>Planned in: ${esc(plannedSlice.title)}</span><span>${esc(plannedSlice.id)}</span></div>` : ""}${checked}<div class="block-sections">${sections || emptyReader()}${evidenceSections}</div>`,
+          html: `<div class="block-identity"><span class="status-dot ${esc(status)}"></span>${esc(block.id)}</div>${plannedSlice ? `<div class="block-check-meta"><span>Planned in: ${esc(plannedSlice.title)}</span><span>${esc(plannedSlice.id)}</span></div>` : ""}${checked}<div class="block-sections">${sections || emptyReader()}${referenceSections}${evidenceSections}</div>`,
           sourcePath: block.path,
           blockId: block.id
         }, { remember, syncRoute });

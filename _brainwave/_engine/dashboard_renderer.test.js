@@ -128,6 +128,25 @@ test("includes compact assurance affordances in the existing dashboard surfaces"
   assert.doesNotMatch(html, /assurance-gallery/);
 });
 
+test("includes the Reference Library as a searchable tabular view", () => {
+  const html = renderDashboard({
+    references: {
+      totals: { items: 1, collections: 0, boards: 0 },
+      items: [{ id: "ref-example", type: "item", kind: "image", title: "Example", summary: "A saved example.", roles: ["precedent"] }],
+      collections: [],
+      boards: [],
+      validation: { errors: [], warnings: [] }
+    }
+  });
+
+  assert.match(html, /id="references-view"/);
+  assert.match(html, /class="reference-table"/);
+  assert.match(html, /referenceRecords/);
+  assert.match(html, /reference_item/);
+  assert.match(html, /function openReference/);
+  assert.ok(html.indexOf("const searchEntries = []") < html.indexOf("for (const reference of referenceRecords)"));
+});
+
 test("rejects missing and duplicate shell placeholders with clear errors", async (t) => {
   const root = temporaryDirectory(t);
 
