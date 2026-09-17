@@ -30,7 +30,7 @@ When the user explicitly asks to maintain, review, test, package, or release the
 
 - `_my_brainwave_seed.md` preserves the user's approved concept in its supplied wording and natural shape, then becomes immutable. Do not expand it for completeness, fit it to template headings, append working notes, or place decisions in it.
 - `_my_brainwave_north_star.md` is the living current direction. Read it before the seed in routine work.
-- `_settings.yaml` owns the user profile, the lightweight project profile, the explicitly confirmed build outcome, and the implementation-only progress-update preference. Treat the build outcome as a project decision, independently of profile onboarding.
+- `_settings.yaml` owns the user profile, separate shaping, documentation, and implementation modes, the lightweight project profile, the explicitly confirmed build outcome, and the implementation-only progress-update preference. Treat the build outcome as a project decision, independently of profile onboarding.
 - `_assets/project_profile/`, when created, contains project-owned logos, concept images, and other supplied project-profile assets. Keep file references in `_settings.yaml`; never embed binary assets in YAML.
 - `_references/`, when created, is the project-owned multimodal Reference Library. Its items, collections, boards, adjacent material, and generated index preserve potentially influential context without making it accepted direction.
 - `_reference_library_guide.md` is the framework-owned capture and traversal contract for the Reference Library. Read it before creating or changing reference records.
@@ -80,12 +80,29 @@ Preserve a natural conversation while delivering a small, consistent set of inte
 
 The engine may prevent lifecycle progression when a required experience checkpoint has not been recorded. This assures delivery without requiring the user to approve informational moments.
 
-## Working Mode
+## Phase Modes
 
-Use `_settings.yaml` `ideation_mode` while shaping the North Star. Both modes preserve the same coverage, risk, build-outcome, and approval gates.
+Read the mode for the current phase from `_settings.yaml` at phase entry, resume, compaction, and reopening:
 
-- `thought_partner` — interpret, challenge, and recommend rather than only reflect. Once the core value, interaction, and naturally created assets are clear, run one silent opportunity scan before North Star agreement. Test whether the product's data, content, entities, transactions, signals, workflows, or relationships could create disproportionate user, discovery, retention, commercial, partner, or learning value, including a useful public or partner-facing surface. Surface at most two model-generated hypotheses only when they reuse core assets, have a clear causal loop, could change direction, and have a small reversible test. State the upside, assumptions, risks, and test, then ask the user to adopt, defer, or reject each one. Do not manufacture novelty or expand direction or scope without approval.
-- `fast_execution` — propose the strongest supported direction directly. Use labelled working assumptions for reversible gaps and ask only when a decision is consequential, difficult to reverse, preference-dependent, or requires approval. Present alternatives only when their trade-off is material or the user asks.
+| Setting | Scope |
+|---|---|
+| `shaping_mode` | Seed discussion, North Star, DNA module selection, and document scope |
+| `documentation_mode` | Building and reviewing the scoped DNA foundation |
+| `implementation_mode` | Planning, building, and verifying against accepted DNA and an approved implementation plan |
+
+Ask for an unselected mode when its phase begins; do not require documentation or implementation choices during initial onboarding. Explain the three choices and record the user's selection. A mode governs decisions inside task-authorized work, not the task's mandate. Continue an already authorized end-to-end task across phases without repeating phase-entry permission; a mode selection is needed only when that phase's mode is unset. A documentation-only request does not authorize product development. Reopening a phase reloads its own mode, not the mode of the phase just left.
+
+- `thought_partner` — interpret, challenge, and recommend; discuss material choices with the user before accepting them.
+- `fast_execution` — propose the strongest supported direction, advance reversible in-scope choices as labelled working assumptions, and group only decisions requiring user input. Ask when consequential, difficult-to-reverse, preference-dependent, or reserved decisions cannot be resolved under existing authority. Present alternatives only for a material trade-off or when asked.
+- `autonomous` — explicit selection delegates supported decisions within this phase and the supplied brief. Accept and record those decisions without repetitive approval. Ask only for missing information or authority that materially blocks sound work, and continue other eligible work while waiting.
+
+In shaping, the Seed approval and explicit build-outcome confirmation remain user-owned initial bounds in every mode. Once those are established, autonomous shaping may agree the North Star, select modules, and settle proportionate document scope within the supplied brief. In documentation, autonomous mode may accept in-scope authoring decisions and the final foundation after the required review. In implementation, it may resolve supported implementation choices within accepted DNA and the approved plan; approval of the exact reviewed implementation plan remains a human authority handoff.
+
+No mode expands task, phase, or scope; changes accepted direction silently; invents facts or user approval; or removes quality, specialist, safety, or external gates. Scope expansion and changes to accepted direction still require user agreement. Drafting a proposal is not accepting it. Explicitly delegated in-scope authority supplied separately remains valid in any mode; thought partner and fast execution do not grant it themselves. Record agent decisions honestly as made under delegated phase authority, never as user approval.
+
+During thought-partner shaping, once the core value, interaction, and naturally created assets are clear, run one silent opportunity scan before North Star agreement. Test whether the product's data, content, entities, transactions, signals, workflows, or relationships could create disproportionate user, discovery, retention, commercial, partner, or learning value, including a useful public or partner-facing surface. Surface at most two model-generated hypotheses only when they reuse core assets, have a clear causal loop, could change direction, and have a small reversible test. State the upside, assumptions, risks, and test, then ask the user to adopt, defer, or reject each one. Do not manufacture novelty or expand direction or scope without approval.
+
+For legacy settings, only an absent phase field permits a valid `ideation_mode` of `thought_partner` or `fast_execution` to supply shaping or documentation mode. It never supplies autonomous authority or implementation mode. Legacy implementation retains its existing approval and continuation policy without new delegation. A present null phase field is unselected; an invalid value must be corrected, never silently inherited or defaulted.
 
 ## Implementation Progress Updates
 
@@ -95,7 +112,7 @@ Use `_settings.yaml` `ideation_mode` while shaping the North Star. Both modes pr
 - `track` — the default; give one concise goal-level update when every slice in an approved implementation track is `verified`, as well as the required updates above.
 - `slice` — give one concise update whenever an implementation slice closes, as well as the required updates above.
 
-In every mode, updates are informational. Continue automatically across eligible slices and tracks without asking for permission. A held slice does not stop unrelated eligible work. Pause when implementation authority is stale or invalid, for required safety authorization, or when no other safe eligible work remains. When the user changes the preference, write the exact value to `_settings.yaml`.
+Progress cadence is independent of `implementation_mode`: it controls reporting frequency, not decision authority or continuation. Updates are informational. Continue automatically across authorized eligible slices and tracks without asking for permission. A held slice does not stop unrelated eligible work. Apply the implementation mode when a material choice arises; pause when implementation authority is stale or invalid, for required safety authorization, or when no other safe eligible work remains. When the user changes the progress preference, write the exact value to `_settings.yaml`.
 
 ## Progressive Discovery and Coverage
 
@@ -106,8 +123,8 @@ Treat concept shaping as an adaptive conversation, not a form or fixed interview
 - Begin with broad, high-leverage meaning before implementation detail. Consider intended build outcome and trajectory; users and use context; platforms, distribution, countries and languages; identity and experience expectations; accounts, data, interaction and risk; commercial and service operations; and AI or regulated behaviour. These are coverage lenses, not a questionnaire to recite.
 - Route venture and launch depth with four early lenses: who funds the product and what could make it economically unsustainable; how intended users will find and adopt it; whether users, data, claims, money, sectors, countries, or distribution create legal or policy consequences; and whether people, partners, support, scheduling, fulfilment, or escalation are part of delivering value. Derive answers from context first and ask only the smallest consequential branch.
 - Use each answer to decide which follow-up is material. Do not ask branches made irrelevant by earlier answers, and do not force the user to specify decisions better made later inside the owning DNA document.
-- Ask when an unknown is consequential, difficult to reverse, preference-dependent, or capable of changing the product boundary. For reversible, low-consequence gaps, propose a clearly labelled working assumption and allow correction.
-- If the user is unsure, explain the practical consequence, recommend a direction, and let them approve, reject, or defer it. Do not disguise a recommendation as a discovered fact.
+- Resolve unknowns under the current phase mode. Ask when required information or a reserved decision is missing; autonomous shaping may make supported in-brief choices, but cannot infer private preferences, confirm the build outcome, or expand the product boundary. Label reversible working assumptions and allow correction.
+- If user input is needed, explain the practical consequence and recommend a direction they can approve, reject, or defer. Do not disguise a recommendation or delegated decision as a discovered fact.
 - At natural checkpoints, give a compact progress reflection: what is now understood, which material area comes next, and which deeper matters are safely deferred to DNA documentation. Do not show a long checklist of unanswered questions.
 - Before North Star agreement and again before recommending DNA modules, perform a silent coverage review. A material concern must be understood as relevant, deliberately deferred, not applicable, or still unknown. Surface only states that require the user's attention; preserve meaningful direction or boundaries in the North Star and module-selection rationale rather than creating a duplicate questionnaire artifact.
 - Use each module contract's `timing` guidance to distinguish what should shape the foundation now from what can wait. Phase alone is never a safe reason to defer a consequence: risk overrides maturity for real personal data, vulnerable users, regulated or high-consequence activity, payments, public claims, contractual commitments, platform distribution, or human-dependent service. Record a material deferral with its reason and the event that must reopen it.
@@ -127,7 +144,7 @@ Prefer the host's native structured-choice UI when available. If the user saves 
 
 ## Decision Logging
 
-Before materially changing an agreed North Star, recording DNA module selection or DNA document scope, or creating or removing generated DNA documentation, append the approved rationale to `_decisions_log.md` using its local template. Do not log routine answers, implementation progress, file inventories, or handover state.
+Before materially changing an agreed North Star, recording DNA module selection or DNA document scope, or creating or removing generated DNA documentation, append the accepted rationale to `_decisions_log.md` using its local template. Identify the actual decision-maker in `approved_by`: the user or the agent acting under delegated shaping authority. Changes to accepted direction or scope still require user agreement. Do not log routine answers, implementation progress, file inventories, or handover state.
 
 ## Trigger: `build concept`
 
@@ -136,7 +153,7 @@ When the user says `build concept`:
 1. Read `_brainwave_state.yaml` and `_settings.yaml`.
 2. If profile settings are incomplete, ask the guidance question first. After the user answers it, introduce the dashboard as required by the Experience Protocol, record `dashboard_introduced_at`, then ask:
    - Technical proficiency: `beginner`, `intermediate`, or `architect`
-   - Working mode: `thought_partner` or `fast_execution`
+   - Shaping mode: `thought_partner`, `fast_execution`, or `autonomous`; ask later for documentation and implementation modes when those phases begin
    - Documentation detail: `lean` (minimum sufficient), `standard` (concise and complete), or `exhaustive` (deep treatment within agreed scope)
    If the profile is already complete but the dashboard checkpoint is missing, deliver and record the dashboard introduction before continuing.
 3. Write profile answers to `_settings.yaml` automatically and set:
@@ -144,10 +161,10 @@ When the user says `build concept`:
    - `configured: true`
    - `onboarding_status: complete`
    - `profile_last_updated: <ISO timestamp>`
-   - Apply the selected working mode immediately.
+   - Apply the selected shaping mode immediately.
 4. Complete the one-time optional starting-materials check from the Experience Protocol before capturing the Seed. Save project identity in `_settings.yaml`, references under `_references/`, and the checkpoint in `_brainwave_state.yaml`. Use relevant reference metadata to inform the conversation without silently changing the user's concept.
 5. If the stage is `awaiting_seed`, follow the Seed Input Routes. For conversational capture, preserve the user's supplied wording and natural structure. Do not complete the optional template as a schema or infer missing content. If materially paraphrasing or restructuring, show the exact proposed seed and obtain approval before writing it. For a directly saved seed, obtain confirmation to use the file exactly as written. Transition to `shaping_north_star`; this locks the seed hash.
-6. During `shaping_north_star`, read the Seed first for provenance and retrieve only relevant Reference Library context, then ask one to three targeted questions at a time. Establish:
+6. During `shaping_north_star`, read the Seed for detailed intent and retrieve only relevant Reference Library context. Apply shaping mode; when input is needed, ask one to three targeted questions at a time. Establish:
    - why the idea should exist
    - who it is for
    - what it should enable
@@ -162,13 +179,13 @@ When the user says `build concept`:
    - **Build the complete product** (`complete_product`) — everything agreed as part of the current product direction works properly for its intended users, with nothing inside that boundary left as a mock-up, placeholder, or unfinished future task.
    - A user-defined outcome (`custom`) through the host's normal free-form choice when available.
 8. Do not infer or default the build outcome. Explain the selected outcome in the context of this concept, obtain explicit confirmation, then write its value and confirmation time to `_settings.yaml`. Capture the agreed interpretation concisely in the North Star under `What We Are Building`; keep detailed capability scope and completion rules in their owning DNA documentation.
-9. Keep `_my_brainwave_north_star.md` at `Status: shaping` until the build outcome has been confirmed and the user explicitly agrees the North Star.
-10. After agreement, set `Status: agreed` and transition to `selecting_dna`.
-11. Explain that DNA modules are curated catalogues of possible documentation for relevant domains, then recommend one or more modules using semantic judgment, the conversation's meaning, and each module's `module_contract`. Use its relevance, selection signals, timing, ownership, exclusions, coordination, and live-verification needs as a coherent boundary; do not use keyword matching. Explain both the recommendation and any material omission or deferral, including its re-entry trigger, then obtain explicit user agreement.
-12. Record the approved selection with `select-dna`, log its rationale, and transition to `scoping_brainwave_documentation`.
-13. Propose only relevant DNA documents within the selected modules. Use the confirmed build outcome as context for the recommendation, not as a substitute for user-approved DNA document scope. Use each DNA document group's `when_relevant` as the domain gate, treat `baseline: true` children as the normal recommendation once that group is relevant, and use each file's `intent` to decide whether optional children are material. Group obvious related recommendations into concise approval slices rather than presenting a long document-by-document questionnaire. Explicit user-approved scope remains authoritative.
-14. Log the approved DNA document scope and rationale, express entries using canonical references such as `_DNA-SAPP-00201`, and transition to `building_brainwave_documentation`.
-15. Run the engine to scaffold only the scoped DNA documents.
+9. Keep `_my_brainwave_north_star.md` at `Status: shaping` until the build outcome has been confirmed and the North Star is accepted: obtain user agreement in thought-partner or fast-execution mode unless explicitly delegated; in autonomous mode, agree supported direction within the supplied brief under delegated shaping authority.
+10. Record who accepted the direction and on what authority, set `Status: agreed`, and transition to `selecting_dna`.
+11. Explain that DNA modules are curated catalogues of possible documentation for relevant domains, then recommend one or more modules using semantic judgment, the conversation's meaning, and each module's `module_contract`. Use its relevance, selection signals, timing, ownership, exclusions, coordination, and live-verification needs as a coherent boundary; do not use keyword matching. Explain the recommendation and material omissions or deferrals, including re-entry triggers. Obtain user agreement unless autonomous shaping or separate explicit delegation authorizes the in-brief selection; specialist-coverage limitations retain their user-agreement gate.
+12. Record the accepted selection with `select-dna`, log its rationale and actual decision authority, and transition to `scoping_brainwave_documentation`.
+13. Propose only relevant DNA documents within the selected modules. Use the confirmed build outcome as context, not as a substitute for an explicit scope decision. Use each DNA document group's `when_relevant` as the domain gate, treat `baseline: true` children as the normal recommendation once that group is relevant, and use each file's `intent` to decide whether optional children are material. Obtain user agreement in concise related groups unless autonomous shaping or separate delegation authorizes the initial in-brief scope. Existing accepted scope remains authoritative; expansion requires user agreement.
+14. Log the accepted DNA document scope, rationale, and decision authority, express entries using canonical references such as `_DNA-SAPP-00201`, and transition to `building_brainwave_documentation`.
+15. Load `documentation_mode`, asking for its selection only if unset, and run the engine to scaffold only the scoped DNA documents. Continue if documentation work is already task-authorized; shaping mode does not carry its authority into documentation.
 
 ## DNA Documentation
 
@@ -187,14 +204,18 @@ An Architecture Decision Record (ADR) is one type of software architecture docum
 
 During `building_brainwave_documentation`:
 
-- Work in coherent, dependency-aware slices, including dependencies between modules.
-- Use the North Star as current direction.
+- At each slice start, including resume or compaction, read `documentation_mode`, the current North Star, document status, and relevant `Document Open Questions`; choose one coherent decision or tightly coupled set. Scan concept headings and relevant reference-collection metadata before retrieving only the source passages and DNA dependencies needed for that slice. Split work that cannot be considered together reliably.
+- Use the North Star as current direction and relevant Seed passages as detailed intent. Omission from the North Star does not discard concept detail; explicit later decisions govern conflicts, and approved document scope still applies.
+- Before developing a new answer, inspect relevant concept passages, reference metadata and source passages, and existing DNA. Reuse applicable research; investigate only gaps that could change the decision. Follow `_reference_library_guide.md` for retrieval and capture.
+- Develop unresolved decisions rather than paraphrasing the concept. Distinguish accepted direction, evidence, derived implications, working assumptions, and open choices. Resolve material constraints, failure and recovery behaviour, and dependencies in their owning blocks; cross-reference shared decisions.
+- Before moving to the next slice, check source fidelity, agreement with dependent blocks, and whether the direction and verification support implementation. Resolve or record remaining choices under `documentation_mode`: discuss material choices in thought-partner mode, advance reversible assumptions in fast-execution mode, and accept supported in-scope decisions under autonomous documentation authority. Continue other eligible work when a slice awaits input.
 - Reconcile each newly agreed decision against the North Star before completing affected documentation. If the North Star remains accurate, keep the decision in its owning document. If the decision exposes ambiguity without changing direction, clarify the living North Star minimally. If it changes direction materially, log the rationale and return to `shaping_north_star`.
-- Mark document completion explicitly with `Documentation status: complete`; legacy `Status: complete` remains readable during migration. Word count never determines completion.
+- Before marking a document complete, apply the readiness checks below: resolve blocking choices and preserve non-blocking unknowns explicitly. Mark completion with `Documentation status: complete`; legacy `Status: complete` remains readable during migration. Word count never determines completion.
 - Record decisions in their owning document or ADR, not in the immutable seed.
 - Avoid duplicating North Star direction or decisions owned by another module.
-- When a Reference Library item materially supports or influences a DNA block, add the optional `#### Reference Basis` section using the exact typed-link syntax in `_reference_library_guide.md`. Link only relevant items, collections, or boards; reference links provide context and never transfer direction authority away from the DNA block.
-- Treat a change as editorial only when no reasonable downstream behaviour could differ. Otherwise present it for explicit user agreement.
+- When a Reference Library item materially supports or influences a DNA block, include `#### Reference Basis` using the exact typed-link syntax in `_reference_library_guide.md`; omit it otherwise. Link only relevant items, collections, or boards and identify the source passage and its implication. References never transfer direction authority away from the DNA block.
+- For already accepted direction, treat a change as editorial only when no reasonable downstream behaviour could differ. Otherwise obtain explicit user agreement. New in-scope proposals follow `documentation_mode`; record delegated acceptance in the owning document as an agent decision under delegated documentation authority.
+- Before pausing unfinished authoring, record the pending decision, recommendation, source or dependency links, next action, and whether a user answer is awaited in the owning document's `Document Open Questions`. Replace or remove resolved entries; do not accumulate a handover log.
 - Express each coherent direction, obligation, or verifiable rule as one DNA block using `_DNA-CODE-00000.01`. Follow the minimum block contract in `_dna/README.md`; subsection headings do not receive separate IDs.
 - When direction materially changes, create the next block, link it with `Supersedes`, and retain the old block only as a compact `superseded` tombstone. Do not silently rewrite agreed history.
 - Keep each block focused on accepted direction and its verification criteria. Delivery state and evidence belong only in `_implementation.yaml` after compilation.
@@ -211,19 +232,21 @@ For anything users will see or experience:
 
 Transition to `reviewing_brainwave_documentation` only when every expressed document is explicitly complete. Review every expressed document for gaps, contradictions, cross-module conflicts, unresolved material questions, and downstream readiness. In particular:
 
-- compare later decisions with every relevant North Star statement
+- compare later decisions with relevant North Star statements and in-scope concept detail; account for explicit superseding decisions
+- check that material references were interpreted, cited, and translated into direction without promoting assumptions or recommendations into evidence or approval
 - trace material invariants through their owning data, security, experience, implementation, and verification documents
 - ensure user-facing behaviour and messages do not weaken privacy, permission, or threat-model requirements
 - ensure documents consuming another DNA module translate all relevant source decisions without redefining them
 - when Legal, Policy and Market Access DNA is selected, reject claims of legal advice, approval, certification, or compliance; obligations missing jurisdiction or current authoritative sources and dates; concealed uncertainty; invented qualified-review outcomes; and launch-readiness claims while a required review gate remains unresolved
-- identify any behaviour introduced without explicit user agreement
+- identify any behaviour adopted without user agreement or explicit delegated authority; do not treat a draft proposal as accepted
+- ask whether an implementation agent using the relevant blocks and their referenced dependencies can proceed without inventing material product decisions; resolve gaps while preserving deliberate implementation discretion
 - for software products, run a silent conditional application-anatomy scan: for each included capability, check the normal setup, everyday use, management, recovery, and exit or closure behaviour it implies; record material gaps in their owning Software Application or Product Design and Experience documents as included, deliberately excluded, not applicable, or unresolved, without adding features merely because they are conventional
 
-Transition to `brainwave_documentation_complete` only after explicit user acceptance.
+Transition to `brainwave_documentation_complete` only after the required review and foundation acceptance. In thought-partner or fast-execution mode, obtain explicit user acceptance unless it has separately been delegated. In autonomous documentation mode, the agent may accept the reviewed in-scope foundation under delegated documentation authority. The lifecycle transition records the effective phase mode and authority source; identify the actual actor in the completion response and never claim user acceptance on the agent's behalf. Completion does not authorize implementation: continue to implementation only when the user's task already includes it or the user requests it.
 
 ## DNA and Engine Boundaries
 
-- The AI agent interprets meaning, asks questions, recommends modules and entries, and records selection only after user agreement.
+- The AI agent interprets meaning, asks questions, recommends modules and entries, and records selection after user agreement or supported in-brief acceptance under delegated shaping authority.
 - The engine validates lifecycle, seed integrity, DNA schema and versions, naming, selection state, and filesystem state.
 - The engine never interprets the seed or North Star and never selects modules or entries.
 - DNA modules are data-only JSON-compatible YAML. Never execute code referenced by a module.
@@ -236,7 +259,7 @@ Transition to `brainwave_documentation_complete` only after explicit user accept
 - A DNA document's first three numeric digits identify its DNA document group.
 - Product-root `AGENTS.md`, `CLAUDE.md`, `.cursor/hooks.json`, `.claude/settings.json`, and `.codex/hooks.json` are discovery bridges only. Tool-neutral session policy lives in `_engine/runtime/`, platform adapters live in `_engine/adapters/`, and bridge installation and removal live in `_engine/project_integration.js`.
 
-If direction changes after completion:
+If direction changes after completion, obtain user agreement and reload the reopened phase's own mode:
 
 - Return to `shaping_north_star` when the North Star changes materially.
 - Return to `selecting_dna` when the relevant domains change.
@@ -249,16 +272,16 @@ After completion, _brainwave enters **ambient delivery alignment**. Remain passi
 - Present this delivery period as the eighth user-facing journey step, **Deliver the implementation**, while retaining `brainwave_documentation_complete` as the final foundation lifecycle state.
 
 - DNA documents remain the authority for accepted direction. `_implementation.yaml` is the sole authority for implementation sequence, state, evidence, checked time, and checked Git revision.
-- If no spine exists, run `implementation-compile`; add `--existing-build` when the repository already contains product work. Compilation creates an unmapped DNA-block inventory and `_implementation_proposal.yaml`, never document-derived slices.
+- When implementation is task-authorized, load `implementation_mode`, asking for its selection only if unset; legacy settings retain their existing implementation policy without delegated authority. If no spine exists, run `implementation-compile`; add `--existing-build` when the repository already contains product work. Compilation creates an unmapped DNA-block inventory and `_implementation_proposal.yaml`, never document-derived slices.
 - Before synthesis, inspect the North Star and the project-specific documents that actually provide the delivery backbone: journeys, outcome or capability priorities, delivery phases, acceptance criteria, architecture boundaries, and risk or external-gate direction where present. DNA documents remain direction authority and their file boundaries are not slice boundaries.
 - Author only the draft proposal artifact. Prefer coherent observable outcome slices; use dedicated `foundation` or `external_gate` slices only with explicit justification. Give every slice an order, dependencies, gates, a sealed assurance gate, and acceptance checks whose profile, level, method, and evidence shape cover every inherited assurance profile and meet every inherited `assurance_levels_min`. Map every applicable DNA block to exactly one primary slice and add `applies_to` links where cross-cutting direction governs other slices.
 - In `--existing-build` mode, inspect current code, tests, and rendered journeys and complete every block's planning assessment. These observations guide sequencing but do not count as delivery evidence.
-- Run `implementation-synthesize <authored-by>`, then `implementation-review`. Present `_implementation_review.md` to the user and explain what approval accepts. Only after explicit approval run `implementation-approve <approved-by>`.
+- Run `implementation-synthesize <authored-by>`, then `implementation-review`. Present `_implementation_review.md` to the user and explain what approval accepts. In every implementation mode, including autonomous, only after explicit user approval of that exact plan run `implementation-approve <approved-by>`. This human authority handoff does not create repeated permission checkpoints inside the approved plan.
 - `_implementation_proposal.yaml` is an agent-authored draft input. `_implementation.yaml` is command-owned: never directly edit delivery states, evidence, holds, approval, revisions, audit fields, or its sealed proposal.
 - At session start, resume, and after compaction, run `implementation-context`. Work only on the active or recommended slice and read only its referenced DNA passages and direct dependencies.
 - At the first slice requiring user-interface assurance, inspect the existing stack and tooling. Require the needed capabilities—isolated component rendering and interaction checks, browser journey execution, and rendered comparison where applicable—before recommending compatible tools such as Storybook or Playwright. Record the selected equivalent, explicit decline, or not-applicable decision in `_settings.yaml` `assurance_tooling`; `not_reviewed` blocks UI assurance preparation and the active packet repeats the resolved decisions. Reuse an adequate equivalent and do not add UI tooling to slices that do not need it.
 - For consequential experience, security, architecture, and release assurance, prefer an independent-context reviewer: a fresh sub-agent when the host supports it, otherwise a fresh task, chat, or human reviewer. If only same-context self-review is available, record that limitation and do not describe it as independent assurance.
-- Follow `_settings.yaml` `implementation_progress_updates` for implementation communication only. Closing a slice or completing a track never becomes a permission checkpoint; continue into other eligible work automatically.
+- Apply `implementation_mode` to implementation decisions within accepted DNA and the approved plan. Follow the independent `implementation_progress_updates` setting for communication frequency only. Closing a slice or completing a track never becomes a permission checkpoint; continue into other authorized eligible work automatically.
 - Use `implementation-start`, `implementation-record`, and `implementation-hold` for delivery work. When the slice is ready, use `implementation-assurance-prepare`, give the bounded packet to the sealed reviewer mode, submit its result with `implementation-assurance-submit`, remediate stable `QF-*` findings, and recheck them before `implementation-close`. Use `implementation-assurance-approve` only when the sealed gate requires human or specialist approval. `implementation-acceptance` is legacy-only.
 - A blocked or deferred slice is not automatically recommended. Start it explicitly only after its recorded `reopen_when` condition has been met.
 - Use work-item `implemented` only with concise inspectable implementation evidence and work-item `verified` only with verification evidence. A slice becomes `verified` only when its scope preflight is sufficient, every sealed assurance check passes at the current Git revision, no live finding remains, and any required approval is current.

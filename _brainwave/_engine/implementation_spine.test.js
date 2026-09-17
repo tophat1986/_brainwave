@@ -212,7 +212,7 @@ test("keeps implementation progress cadence separate from delivery state", () =>
   );
   assert.match(
     formatImplementationProgressPolicy(implementationProgressPolicy({})),
-    /continue automatically across eligible slices and tracks/
+    /decision authority and continuation follow implementation_mode/
   );
 });
 

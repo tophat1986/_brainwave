@@ -42,14 +42,29 @@ The user-facing journey is:
 7. Ready for implementation.
 8. Deliver the implementation.
 
-## Working Modes
+## Phase Modes
 
-Working mode changes how _brainwave shapes direction, not its quality or approval gates:
+Each phase has its own decision mode in `_settings.yaml`:
 
-- `thought_partner` — interprets, challenges, recommends, and runs one bounded opportunity scan before North Star agreement. It surfaces only strong, testable hypotheses and never adds them to the direction without approval.
-- `fast_execution` — proposes the strongest supported direction directly, uses reversible working assumptions, and limits questions or alternatives to material decisions.
+| Setting | Work it governs |
+|---|---|
+| `shaping_mode` | Seed discussion, North Star, DNA modules, and document scope |
+| `documentation_mode` | Building and reviewing the scoped DNA foundation |
+| `implementation_mode` | Planning, building, and verifying against accepted DNA and an approved implementation plan |
 
-Guidance mode controls process explanation. Working mode controls decision collaboration. Detail level controls depth.
+Choose each mode when its phase begins; there is no need to choose documentation or implementation modes during initial onboarding. Reopening a phase uses its own saved mode.
+
+- `thought_partner` — discusses material choices, challenges assumptions, and recommends a direction. During shaping it also surfaces up to two strong, testable opportunity hypotheses for the user to adopt, defer, or reject.
+- `fast_execution` — proposes the strongest supported direction, advances reversible in-scope assumptions, and groups only decisions requiring user input.
+- `autonomous` — explicit selection delegates supported decisions within that phase and the supplied brief, with questions only for missing information or authority that materially blocks sound work.
+
+The Seed and build outcome still require the user's explicit confirmation. After those initial bounds are set, autonomous shaping may agree the North Star, select modules, and settle the initial document scope. Autonomous documentation may accept in-scope authoring decisions and the final foundation after the required review; these are recorded honestly as agent decisions under delegated documentation authority. Autonomous implementation resolves supported choices within accepted DNA and the approved plan. The exact reviewed implementation plan still needs human approval in every mode.
+
+A mode does not expand the task, phase, or scope, change accepted direction silently, invent facts or user approval, or remove quality, specialist, safety, or external gates. Expanding scope or changing accepted direction requires user agreement. A draft remains a proposal until accepted. Separate explicit delegation remains valid in any mode; thought partner and fast execution do not grant it themselves.
+
+An authorized end-to-end task continues across phases without repeated permission requests; an unset mode is selected when needed. Accepting a documentation foundation does not itself authorize product development. Guidance mode controls process explanation, phase modes control decision collaboration, documentation detail controls depth, and implementation progress updates control reporting frequency.
+
+Legacy `ideation_mode` values of `thought_partner` or `fast_execution` supply shaping and documentation modes only where their phase fields are absent. They never grant autonomous authority or supply implementation mode; legacy implementation keeps its existing approval and continuation policy. A present null field awaits selection, while an invalid phase value must be corrected rather than silently inherited.
 
 ## Documentation Detail
 
@@ -69,7 +84,7 @@ Implementation progress updates begin only after the foundation is accepted and 
 - `track` — the default goal-level cadence; report when every slice in an approved implementation track is `verified`, plus the required updates above.
 - `slice` — report whenever an implementation slice closes, plus the required updates above.
 
-The preference lives in `_settings.yaml` as `implementation_progress_updates` and may be changed at any time. Every mode continues automatically across eligible work. A progress update is never a request for permission to start the next slice or track, and a held slice does not stop unrelated eligible work.
+The preference lives in `_settings.yaml` as `implementation_progress_updates` and may be changed at any time. It is independent of `implementation_mode`: reporting cadence does not grant decision authority or govern continuation. Every implementation mode continues automatically across authorized eligible work, applying its decision rules when a material choice arises. A progress update never asks permission to start the next slice or track, and a held slice does not stop unrelated eligible work.
 
 ## Providing the Seed
 
@@ -86,7 +101,7 @@ Before capturing the Seed, _brainwave asks once whether the user already has any
 
 Project identity is saved in `_settings.yaml`, with supplied identity files beneath `_assets/project_profile/`. Other useful material belongs in the project-owned `_references/` Reference Library. It uses three small structures: an **item** is one discoverable reference, a **collection** groups material captured together, and a **board** curates a cross-cutting view. JSON descriptors make the library searchable; substantial notes remain Markdown and media stays in its native format. The framework-owned `_reference_library_guide.md` defines the capture contract and fixed values.
 
-References are contextual inputs, not accepted direction. A design may be a precedent rather than a target, and a saved claim may still need current verification before public use. DNA blocks may add a concise, typed `Reference Basis` link when a reference materially supports a decision. Agents should shortlist with `references-find` and inspect bounded context with `references-context` before opening many files.
+References are contextual inputs, not accepted direction. A design may be a precedent rather than a target, and a saved claim may still need current verification before public use. DNA blocks include a concise, typed `Reference Basis` link when a reference materially supports or influences a decision. Agents should shortlist with `references-find` and inspect relevant context with `references-context` before opening many files.
 
 Material under `_references/` may be committed with the repository. Private, licensed, confidential, or identifying material should be checked before copying; use a link-only record when it should not be stored. A `restricted` label describes sensitivity but does not secure a file.
 
@@ -111,7 +126,7 @@ The chosen outcome changes the breadth of what is built, not the care applied in
 
 ## Progressive Discovery
 
-_brainwave does not present a long setup questionnaire. It interprets what the user has already supplied, asks one to three high-leverage questions at a time, and uses each answer to decide which branch is relevant next.
+_brainwave does not present a long setup questionnaire. It interprets what the user has already supplied and applies the current phase mode. When input is needed, it asks one to three high-leverage questions at a time and uses each answer to decide which branch is relevant next.
 
 Early questions concentrate on decisions that reshape many later choices: intended outcome and trajectory, users and use context, platforms and reach, countries and languages, identity and experience expectations, data and interaction risk, and AI behaviour. The agent also routes four venture-and-launch lenses without reciting them as a form: who funds the product and what could make it uneconomic; how people will discover and adopt it; whether users, data, claims, money, markets, sectors, or distribution create legal or policy consequences; and whether human or partner service, support, scheduling, fulfilment, or escalation delivers part of the value. Deeper details stay with their owning DNA documents.
 
@@ -131,7 +146,7 @@ Some concepts require **specialist coverage** that the installed DNA does not pr
 - **Assurance profile:** A compact routing label that carries the relevant kind of downstream checking from DNA direction into implementation. Profiles do not contain test plans or transfer domain ownership.
 - **DNA document group:** A coherent folder of related DNA documents.
 - **DNA document:** One expressed document such as system context, schema strategy, or voice and tone.
-- **Baseline:** A DNA module or DNA document the agent should normally recommend when its module or parent DNA document group is relevant. It guides proportionate scoping but never overrides explicit user agreement.
+- **Baseline:** A DNA module or DNA document the agent should normally recommend when its module or parent DNA document group is relevant. It guides proportionate scoping but never overrides accepted scope or the user's boundaries.
 - **DNA block:** One coherent direction, obligation, or verifiable rule inside a document. It is also the smallest implementation-traceability unit.
 - **Expressed:** Agreed as relevant and recorded in the current _brainwave scope.
 - **DNA documentation:** The full generated set across all selected DNA modules.
@@ -251,7 +266,7 @@ An `aligned` result is accepted only when the implementation spine is current an
 
 `brainwave_documentation_complete` automatically enters ambient delivery alignment. This is not an eighth lifecycle stage and is not a user setting. Passive means _brainwave stops initiating foundation ceremony; it does not mean the accepted direction becomes invisible or optional.
 
-At foundation acceptance, run `implementation-compile`. Add `--existing-build` when adopting the spine into a repository where product work is already underway. Compilation inventories every applicable current DNA block into draft `_implementation.yaml` and writes `_implementation_proposal.yaml`; it deliberately creates no slices because the deterministic engine cannot interpret product meaning.
+After foundation acceptance, proceed to implementation when the task includes it or the user requests it. Load `implementation_mode`, asking for a choice only if unset, then run `implementation-compile`. Add `--existing-build` when adopting the spine into a repository where product work is already underway. Compilation inventories every applicable current DNA block into draft `_implementation.yaml` and writes `_implementation_proposal.yaml`; it deliberately creates no slices because the deterministic engine cannot interpret product meaning.
 
 Slice synthesis is a first-class planning step. An agent reads the North Star and discovers the project-specific documents that provide an outcome backbone—such as critical journeys, capability or outcome priorities, delivery phases, acceptance criteria, architecture boundaries, and risk or external-gate direction. These roles are semantic and data-driven; no DNA IDs are hardcoded. DNA documents remain direction authority and DNA blocks remain the atomic traceability items, but document boundaries do not automatically become slice boundaries.
 
@@ -261,7 +276,7 @@ Every slice must fit a bounded execution context. `_brainwave` measures primary 
 
 For existing-build adoption, the synthesis pass also inspects the current code, tests, and representative rendered journeys. Each block receives a planning assessment of absent, partial, apparently implemented, or apparently verified with inspectable references where applicable. These assessments inform grouping and order but do not count as delivery evidence; guarded evidence commands still establish implementation coverage.
 
-Run `implementation-synthesize <authored-by>` to import and validate the proposal into the command-owned spine. Run `implementation-review` to create `_implementation_review.md`, then present that review to the user. It explains the outcome grouping, ownership, cross-cutting links, order, dependencies, gates, checks, and existing-build snapshot, plus exactly what approval means. `implementation-approve` rejects a plan until that exact proposal fingerprint has been reviewed. Status counters alone are never a sufficient approval request.
+Run `implementation-synthesize <authored-by>` to import and validate the proposal into the command-owned spine. Run `implementation-review` to create `_implementation_review.md`, then present that review to the user. It explains the outcome grouping, ownership, cross-cutting links, order, dependencies, gates, checks, and existing-build snapshot, plus exactly what approval means. Every mode, including autonomous, requires explicit user approval of that exact reviewed plan before `implementation-approve`. This human authority handoff is retained; repeated permission inside the approved plan is unnecessary. The command rejects a plan until its current fingerprint has been reviewed. Status counters alone are never a sufficient approval request.
 
 `_implementation_proposal.yaml` is the agent-authored draft input. `_implementation.yaml` remains the sole authority and is command-owned: agents do not directly edit delivery states, evidence, holds, approval, revisions, audit fields, or a sealed proposal.
 
@@ -271,7 +286,7 @@ When the slice is ready for QA, `implementation-assurance-prepare` generates a m
 
 When a slice needs user-interface assurance, the agent first inspects the existing stack and requires the capabilities needed for isolated component checks, browser journeys, and rendered comparison. Storybook, Playwright, or another tool is recommended only when it fits the project; an adequate existing equivalent is reused. The selected adapter, explicit decline, or not-applicable decision is recorded in `_settings.yaml` `assurance_tooling` and repeated only in applicable QA packets, so a fresh agent receives the reminder without burdening non-UI work; an unresolved `not_reviewed` decision blocks UI assurance preparation. Consequential experience, security, architecture, and release assurance should use an independent-context reviewer—a fresh sub-agent where supported, otherwise a fresh task, chat, or human. Same-context self-review remains visible as a limitation rather than being described as independent.
 
-The same packet carries the current `implementation_progress_updates` policy. `silent`, `track`, and `slice` change only when the user receives an informational update. They never change plan approval, evidence requirements, state transitions, or automatic continuation through eligible work.
+The same packet carries the effective `implementation_mode` and independent `implementation_progress_updates` policy. The decision mode governs supported choices inside accepted DNA and the approved plan. `silent`, `track`, and `slice` change only when the user receives an informational update; they never change plan approval, evidence requirements, state transitions, or automatic continuation through authorized eligible work.
 
 The checked behaviour must already exist at the current Git revision before work-item verification or assurance submission. A slice closes as `verified` only when its scope preflight is sufficient, every assurance check passes at that revision, no live finding remains, and required approval is current. The resulting spine and derived-state mutation is then committed before another slice begins.
 
@@ -304,7 +319,7 @@ DNA documents remain controlled living specifications. An editorial clarificatio
 
 The agent may recommend any relevant combination. Counts and document names are read directly from the module files and dashboard, so this handbook does not duplicate their catalogues.
 
-For a typical public venture, the agent normally considers PSTR, PDEX, SAPP, BRND, COMM, and GROW as a coherent profile. LEGL always receives a short consequence screen and expands only when users, data, claims, money, markets, sectors, content, contracts, or distribution trigger it. SOPS expands when people, partners, support, customer success, fulfilment, scheduling, execution of established moderation policy, complaints, or escalation help deliver the product's value. These are routing heuristics rather than a preset: the user still agrees the modules and the proportionate document scope.
+For a typical public venture, the agent normally considers PSTR, PDEX, SAPP, BRND, COMM, and GROW as a coherent profile. LEGL always receives a short consequence screen and expands only when users, data, claims, money, markets, sectors, content, contracts, or distribution trigger it. SOPS expands when people, partners, support, customer success, fulfilment, scheduling, execution of established moderation policy, complaints, or escalation help deliver the product's value. These are routing heuristics rather than a preset: modules and proportionate document scope are accepted by the user or under delegated shaping authority within the supplied brief.
 
 The library direction is concentric rather than monolithic. A venture-building experience is a profile that selects several clear domains, not one module that owns an entire company. Specialist overlays may later cover trust and safety, marketplaces and networks, AI product assurance, product experimentation where it outgrows PSTR, and regulated sectors.
 
@@ -312,7 +327,7 @@ The library direction is concentric rather than monolithic. A venture-building e
 
 - Preserve the user's wording and natural structure when capturing the seed. Do not expand it to fill a template or infer missing content; obtain approval before any material paraphrase or restructuring.
 - Preserve `_my_brainwave_seed.md` exactly after capture.
-- Read `_my_brainwave_north_star.md` first for current direction.
+- Read `_my_brainwave_north_star.md` first for current direction and relevant Seed passages for detailed intent. Omission from the North Star does not discard concept detail; explicit later decisions govern conflicts and agreed scope still applies.
 - Ask one to three high-leverage questions at a time, interpret existing answers first, and route only material follow-ups.
 - Confirm how far the user wants to take the current idea before agreeing the North Star; do not infer or default the outcome.
 - Do not require exhaustive answers; resolve or explicitly mark only materially important gaps.
@@ -323,10 +338,14 @@ The library direction is concentric rather than monolithic. A venture-building e
 - Preserve supplied screenshots and examples as project-profile inputs until Product Design and Experience DNA agrees their intended use.
 - In Legal, Policy and Market Access documentation, completion means the source-linked detection, questions, evidence, and review route are documented; it never means legal approval, professional advice, certification, or compliance. Preserve jurisdictions, source dates, uncertainty, and qualified-review gates.
 - Use each DNA document group's `when_relevant` as the domain gate, its baseline documents as the normal starting point, and each file's `intent` to decide which optional documents are material.
-- Obtain explicit user agreement before recording DNA module selection or DNA document scope.
+- Record DNA module selection and initial document scope after user agreement or supported in-brief decisions under autonomous shaping or separate explicit delegation. Identify the actual decision-maker; scope expansion still requires user agreement.
 - Keep DNA definitions unchanged during a project. Project selection belongs in `_brainwave_state.yaml`.
 - Record a decision in its owning DNA block or ADR, not in the seed or a duplicate ledger.
-- After DNA documentation is complete, use the implementation spine for sequence, delivery status, evidence, and compact cross-context handoff. Do not put delivery state back into DNA documents.
+- Before authoring, inspect relevant existing decisions and reference sources; reuse applicable research and link material reference use in `Reference Basis`. Distinguish evidence, implications, assumptions, proposals, and accepted direction. Resolve material constraints, failures, and dependencies at the selected depth.
+- At each slice start or resume, reload the phase mode, current direction, document status and relevant `Document Open Questions`; inspect source headings and reference metadata, then read only the passages and dependencies needed for one coherent decision. Check source fidelity, consistency and implementability before moving on. Preserve unfinished decisions and whether a user answer is awaited in the owning document's `Document Open Questions`; continue other eligible work while awaiting input.
+- Before completion, check that an implementation agent can act from the relevant blocks and dependencies without inventing material product decisions; empty or placeholder-only `Direction` and `Verification` sections cannot complete an active block.
+- After required review, obtain user acceptance of the foundation unless autonomous documentation or separate explicit delegation authorizes agent acceptance. Record the real actor and authority; acceptance does not itself authorize product development.
+- For authorized implementation after foundation acceptance, use the implementation spine for sequence, delivery status, evidence, and compact cross-context handoff. Do not put delivery state back into DNA documents.
 - Never silently rewrite accepted DNA direction to match implementation. Use user-approved supersession for a local behavioural change, and reopen the appropriate lifecycle stage when the North Star, relevant domains, or DNA document scope changes.
 - Describe built and checked block counts as DNA direction coverage, never as overall product completion or release readiness.
 - Recommend the dashboard's copyable fresh-context review prompt before releases, pilots, major handoffs, broad readiness claims, and overall alignment assessments.
@@ -364,6 +383,6 @@ Until an automated updater exists, update framework-owned files only and run `in
 
 ## When _brainwave Is Complete
 
-`brainwave_documentation_complete` means the initial DNA documentation foundation has been accepted. It does not mean the resulting product or brand has been implemented.
+`brainwave_documentation_complete` means the initial DNA documentation foundation has passed its required review and been accepted by the user or an agent under delegated documentation authority. The lifecycle transition records the effective phase mode and authority source; the completion response identifies the actual actor. It neither authorizes product development nor means the resulting product or brand has been implemented.
 
 At this stage, _brainwave stops announcing or initiating its foundation workflow during ordinary development and enters ambient delivery alignment. DNA blocks remain lightweight direction and traceability anchors. `_implementation.yaml` maps every applicable block to a coherent slice and owns the states `not_started`, `in_progress`, `implemented`, `verified`, `blocked`, and `deferred`. The dashboard derives honest direction coverage and provides the fresh-context review journey when broader assurance is needed.

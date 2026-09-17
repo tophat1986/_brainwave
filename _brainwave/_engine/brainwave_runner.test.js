@@ -13,6 +13,7 @@ const SOURCE_PROJECT_ROOT = path.resolve(SOURCE_ROOT, "..");
 const SOURCE_RUNNER = path.join(__dirname, "brainwave_runner.js");
 const SOURCE_IMPLEMENTATION_SPINE = path.join(__dirname, "implementation_spine.js");
 const SOURCE_ASSURANCE = path.join(__dirname, "assurance.js");
+const SOURCE_WORKING_MODES = path.join(__dirname, "working_modes.js");
 const SOURCE_IMPLEMENTATION_PROGRESS = path.join(__dirname, "implementation_progress.js");
 const SOURCE_PROJECT_INTEGRATION = path.join(__dirname, "project_integration.js");
 const SOURCE_DASHBOARD_RENDERER = path.join(__dirname, "dashboard_renderer.js");
@@ -142,6 +143,7 @@ function createWorkspace(t, options = {}) {
     path.join(root, "_engine", "implementation_spine.js")
   );
   fs.copyFileSync(SOURCE_ASSURANCE, path.join(root, "_engine", "assurance.js"));
+  fs.copyFileSync(SOURCE_WORKING_MODES, path.join(root, "_engine", "working_modes.js"));
   fs.copyFileSync(
     SOURCE_IMPLEMENTATION_PROGRESS,
     path.join(root, "_engine", "implementation_progress.js")
@@ -253,12 +255,20 @@ function scaffoldedDocumentPath(root) {
   );
 }
 
+const FIXTURE_DIRECTION = "The client accesses application data through the application service.";
+const FIXTURE_VERIFICATION = "Trace client data requests and confirm they cross the application service boundary.";
+
+function completeFixtureDocument(content) {
+  return content
+    .replace("Documentation status: in_progress", "Documentation status: complete")
+    .replace("#### Direction\n\n", `#### Direction\n\n${FIXTURE_DIRECTION}\n\n`)
+    .replace("#### Verification\n\n", `#### Verification\n\n${FIXTURE_VERIFICATION}\n\n`);
+}
+
 function acceptFoundation(root) {
   assert.equal(runEngine(root, "run").status, 0);
   const documentPath = scaffoldedDocumentPath(root);
-  const complete = fs
-    .readFileSync(documentPath, "utf8")
-    .replace("Documentation status: in_progress", "Documentation status: complete");
+  const complete = completeFixtureDocument(fs.readFileSync(documentPath, "utf8"));
   fs.writeFileSync(documentPath, complete, "utf8");
   assert.equal(runEngine(root, "transition", "reviewing_brainwave_documentation").status, 0);
   assert.equal(runEngine(root, "transition", "brainwave_documentation_complete").status, 0);
@@ -420,7 +430,9 @@ test("dashboard JavaScript parses and presents the expanded DNA boundaries", () 
     "onboarding_status",
     "guidance_mode",
     "technical_proficiency",
-    "ideation_mode",
+    "shaping_mode",
+    "documentation_mode",
+    "implementation_mode",
     "verbosity_budget",
     "build_outcome",
     "implementation_progress_updates"
@@ -588,6 +600,54 @@ test("Reference Library indexes, searches, and traverses items, collections, and
   );
 });
 
+test("Reference Library CLI bounds previews and retrieves later collection, board and search pages", (t) => {
+  const { root } = createWorkspace(t, { selected: false });
+  const referencesRoot = path.join(root, "_references");
+  writeJson(path.join(referencesRoot, "evidence.collection.json"), {
+    schema_version: "1.0.0", id: "collection-evidence", title: "Evidence collection",
+    summary: "A collection larger than one context page.", defaults: { roles: ["evidence"] }
+  });
+  const ids = Array.from({ length: 60 }, (_, n) => `ref-evidence-${String(n).padStart(3, "0")}`);
+  for (const [index, id] of ids.entries()) {
+    writeJson(path.join(referencesRoot, `${id}.reference.json`), {
+      schema_version: "1.0.0", id, kind: "research_note", title: `Lookup evidence ${index}`,
+      summary: "lookup ".repeat(index === 0 ? 20000 : 200), why_saved: "Source retrieval fixture.",
+      collection: "collection-evidence",
+      source: { locator: "Candidate comparison!B2:F12" }
+    });
+  }
+  writeJson(path.join(referencesRoot, "evidence.board.json"), {
+    schema_version: "1.0.0", id: "board-evidence", title: "Evidence board",
+    summary: "A view across the collection.", members: ids
+  });
+  const packet = (...args) => {
+    const result = runEngine(root, ...args);
+    assert.equal(result.status, 0, result.stderr);
+    assert.ok(Buffer.byteLength(result.stdout, "utf8") <= 32768);
+    return JSON.parse(result.stdout);
+  };
+  const source = packet("references-context", ids[0]);
+  assert.equal(source.target.preview.truncated, true);
+  assert.equal(source.target.source.locator, "Candidate comparison!B2:F12");
+  for (const [command, id] of [["references-context", "collection-evidence"], ["references-board", "board-evidence"]]) {
+    const first = packet(command, id);
+    assert.equal(first.pagination.total, ids.length);
+    assert.ok(first.pagination.next_offset > 0);
+    const next = packet(command, id, "--offset", String(first.pagination.next_offset));
+    assert.equal(next.contained[0].id, ids[first.pagination.next_offset]);
+    const later = packet(command, id, "--offset", "50");
+    assert.equal(later.contained[0].id, ids[50]);
+  }
+  const firstSearch = packet("references-find", "lookup", "--limit", "50");
+  assert.equal(firstSearch.pagination.total, ids.length);
+  assert.ok(firstSearch.pagination.next_offset > 0);
+  const nextSearch = packet("references-find", "lookup", "--offset", String(firstSearch.pagination.next_offset), "--limit", "50");
+  assert.equal(nextSearch.results[0].id, ids[firstSearch.pagination.next_offset]);
+  const invalid = runEngine(root, "references-context", "collection-evidence", "--offset", "-1");
+  assert.equal(invalid.status, 1);
+  assert.match(invalid.stderr, /offset/);
+});
+
 test("Reference Library rejects unsupported fixed values", (t) => {
   const { root } = createWorkspace(t, { selected: false });
   writeJson(path.join(root, "_references", "invalid.reference.json"), {
@@ -643,6 +703,54 @@ test("DNA Reference Basis creates bidirectional indexed links", (t) => {
   const context = runEngine(root, "references-context", "ref-market-evidence");
   assert.equal(context.status, 0, context.stderr);
   assert.equal(JSON.parse(context.stdout).dna_links[0].relationship, "supports");
+});
+
+test("completed reference-backed DNA retains source locators and rejects broken reference links", (t) => {
+  const { root } = createWorkspace(t, { expressed: true });
+  const referencesRoot = path.join(root, "_references");
+  fs.mkdirSync(referencesRoot, { recursive: true });
+  fs.writeFileSync(path.join(referencesRoot, "capture-research.md"), [
+    "# Capture comparison", "", "## Findings", "",
+    "Fictional fixture: Decoder A preserves string identifiers locally; Decoder B requires a paid service.", "",
+    "## Limitations", "", "Decoding does not establish catalogue recognition."
+  ].join("\n"));
+  writeJson(path.join(referencesRoot, "capture.reference.json"), {
+    schema_version: "1.0.0",
+    id: "ref-capture-research",
+    kind: "research_note",
+    title: "Capture comparison",
+    summary: "Fictional barcode decoder recommendation and its limits.",
+    why_saved: "Reuse existing research when defining the client boundary.",
+    roles: ["evidence"],
+    representation: { path: "capture-research.md" },
+    source: { citation: "Fictional test research", locator: "Findings and Limitations" }
+  });
+  assert.equal(runEngine(root, "run").status, 0);
+  const documentPath = scaffoldedDocumentPath(root);
+  const note = "Findings and Limitations: local string decoding; catalogue recognition remains a separate boundary.";
+  const completed = completeFixtureDocument(fs.readFileSync(documentPath, "utf8"))
+    .replace(FIXTURE_DIRECTION, "Decode identifiers locally with Decoder A; pass strings unchanged to the existing catalogue boundary.")
+    .replace(FIXTURE_VERIFICATION, "Confirm a leading-zero identifier reaches the catalogue unchanged and camera images remain local.")
+    .replace("#### Direction", `#### Reference Basis\n\n- \`ref-capture-research\` — supports — ${note}\n\n#### Direction`);
+  fs.writeFileSync(documentPath, completed);
+  const review = runEngine(root, "transition", "reviewing_brainwave_documentation");
+  assert.equal(review.status, 0, review.stderr);
+  const manifest = JSON.parse(fs.readFileSync(path.join(root, "_manifest.yaml"), "utf8"));
+  assert.deepEqual(manifest.direction.blocks[0].reference_links, [{
+    reference_id: "ref-capture-research", relationship: "supports", note
+  }]);
+  const retrieved = runEngine(root, "references-context", "ref-capture-research");
+  assert.equal(retrieved.status, 0, retrieved.stderr);
+  const context = JSON.parse(retrieved.stdout);
+  assert.equal(context.target.source.locator, "Findings and Limitations");
+  assert.match(context.target.representation.sha256, /^[a-f0-9]{64}$/);
+  assert.equal(context.dna_links[0].block_id, "_DNA-SAPP-00201.01");
+  assert.equal(context.dna_links[0].note, note);
+
+  fs.writeFileSync(documentPath, completed.replace("`ref-capture-research`", "`ref-missing-research`"));
+  const acceptance = runEngine(root, "transition", "brainwave_documentation_complete");
+  assert.equal(acceptance.status, 1);
+  assert.match(acceptance.stderr, /references unavailable Reference Library item `ref-missing-research`/);
 });
 
 test("keeps user-facing lifecycle terminology aligned across surfaces", () => {
@@ -1003,6 +1111,179 @@ test("shaping context applies the selected working mode", () => {
   assert.doesNotMatch(selecting, /opportunity scan/);
 });
 
+test("authoring context applies working modes, source reuse and existing question handoff", () => {
+  const baseRuntime = {
+    root: SOURCE_ROOT,
+    cwd: SOURCE_PROJECT_ROOT,
+    state: { stage: "building_brainwave_documentation" },
+    seed: "A concept with details beyond the North Star.",
+    northStar: "# North Star\n\nStatus: agreed\n",
+    settings: {
+      configured: true,
+      guidance_mode: "concise",
+      technical_proficiency: "intermediate",
+      verbosity_budget: "standard"
+    }
+  };
+  const contextFor = (mode, stage = "building_brainwave_documentation") => buildSessionContext({
+    ...baseRuntime,
+    state: { stage },
+    settings: { ...baseRuntime.settings, ideation_mode: mode }
+  });
+  const partner = contextFor("thought_partner");
+  const fast = contextFor("fast_execution");
+  assert.match(partner, /Discuss material choices with a supported recommendation/);
+  assert.match(fast, /Advance reversible in-scope choices as labelled working assumptions without waiting/);
+  assert.match(fast, /group only decisions requiring user input/);
+  assert.doesNotMatch(fast, /group decisions for review/);
+  for (const context of [partner, fast]) {
+    assert.match(context, /slice start, resume or compaction, reload current direction, document status and relevant Document Open Questions/);
+    assert.match(context, /concept headings and reference-collection metadata/);
+    assert.match(context, /read only needed source passages and DNA dependencies/);
+    assert.match(context, /Check source fidelity, consistency and implementability before moving on/);
+    assert.match(context, /continue other eligible work while awaiting input/);
+    assert.match(context, /relevant Seed passages as detailed intent/);
+    assert.match(context, /reuse applicable research/);
+    assert.match(context, /evidence, implications, assumptions, proposals and accepted decisions/);
+    assert.match(context, /Cite material reference use in Reference Basis/);
+    assert.match(context, /design references; other evidence follows its owning domain/);
+    assert.match(context, /whether an answer is awaited in Document Open Questions/);
+    assert.match(context, /thought_partner and fast_execution grant no delegation by themselves/);
+    assert.match(context, /Changes to accepted direction or scope retain their approval requirements/);
+    assert.doesNotMatch(context, /opportunity scan|_authoring\.yaml|use the seed only for provenance/);
+  }
+  const review = contextFor("thought_partner", "reviewing_brainwave_documentation");
+  assert.match(review, /cited reference implications/);
+  assert.match(review, /Resolve blocking choices; preserve non-blocking unknowns/);
+  assert.match(review, /without inventing material product decisions/);
+  assert.doesNotMatch(review, /opportunity scan/);
+  const shaping = contextFor("thought_partner", "shaping_north_star");
+  assert.match(shaping, /omission from the North Star does not discard concept detail/);
+  assert.doesNotMatch(shaping, /use the seed only for provenance/);
+});
+
+test("runtime phase modes are isolated and autonomous prompts retain authority boundaries", () => {
+  const settings = {
+    schema_version: "1.7.0", configured: true, guidance_mode: "concise",
+    technical_proficiency: "intermediate", verbosity_budget: "standard",
+    shaping_mode: "thought_partner", documentation_mode: "fast_execution", implementation_mode: "autonomous",
+    build_outcome: "usable_first_version", build_outcome_confirmed_at: "2026-09-17T12:00:00Z",
+    project_profile: { status: "not_yet" }
+  };
+  const context = (stage, changes = {}) => buildSessionContext({
+    root: SOURCE_ROOT, cwd: SOURCE_PROJECT_ROOT, seed: "A supplied concept.",
+    northStar: "# North Star\n\nStatus: agreed\n",
+    settings: { ...settings, ...changes },
+    state: { stage, experience_checkpoints: { dashboard_introduced_at: "recorded", project_basics_checked_at: "recorded" } }
+  });
+  const modes = ["thought_partner", "fast_execution", "autonomous"];
+  for (const [stage, field] of [
+    ["shaping_north_star", "shaping_mode"], ["selecting_dna", "shaping_mode"],
+    ["scoping_brainwave_documentation", "shaping_mode"],
+    ["building_brainwave_documentation", "documentation_mode"],
+    ["reviewing_brainwave_documentation", "documentation_mode"],
+    ["brainwave_documentation_complete", "implementation_mode"]
+  ]) {
+    for (const mode of modes) {
+      const baseline = context(stage, { [field]: mode });
+      for (const other of ["shaping_mode", "documentation_mode", "implementation_mode"].filter((key) => key !== field)) {
+        for (const value of [...modes, null, "invalid"]) {
+          assert.equal(context(stage, { [field]: mode, [other]: value }), baseline, `${stage}: ${other} leaked into ${field}`);
+        }
+      }
+    }
+  }
+  const unset = context("building_brainwave_documentation", { shaping_mode: "autonomous", documentation_mode: null });
+  assert.match(unset, /Choose `documentation_mode`/);
+  assert.doesNotMatch(unset, /Build only the scoped DNA/);
+  const author = context("reviewing_brainwave_documentation", { documentation_mode: "autonomous" });
+  assert.match(author, /accept the foundation under delegated documentation authority/);
+  assert.match(author, /does not authorize starting implementation/);
+  const shaping = context("shaping_north_star", { shaping_mode: "autonomous", build_outcome: null });
+  assert.match(shaping, /How far would you like us to take this idea/);
+  assert.match(shaping, /Do not infer or default the answer/);
+  const implementation = context("brainwave_documentation_complete");
+  assert.match(implementation, /user acceptance of the exact reviewed plan in every mode/);
+  assert.match(implementation, /implementation cannot rewrite product direction/);
+});
+
+test("legacy phase resolution leaves stored preferences unchanged and rejects invalid overrides", (t) => {
+  for (const omitSchema of [false, true]) {
+    const { root } = createWorkspace(t, { expressed: true });
+    const settingsPath = path.join(root, "_settings.yaml");
+    if (omitSchema) {
+      const saved = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
+      delete saved.schema_version;
+      writeJson(settingsPath, saved);
+    }
+    const original = fs.readFileSync(settingsPath, "utf8");
+    assert.equal(runEngine(root, "run").status, 0);
+    assert.equal(fs.readFileSync(settingsPath, "utf8"), original);
+    const manifest = JSON.parse(fs.readFileSync(path.join(root, "_manifest.yaml"), "utf8"));
+    assert.equal(manifest.settings.working_modes.shaping.source, "legacy");
+    assert.equal(manifest.settings.working_modes.documentation.source, "legacy");
+    assert.equal(manifest.settings.working_modes.implementation.delegated, false);
+    assert.equal(manifest.settings.working_modes.implementation.requires_selection, false);
+    writeJson(settingsPath, { ...JSON.parse(original), documentation_mode: "invalid" });
+    const rejected = runEngine(root, "run");
+    assert.equal(rejected.status, 1);
+    assert.match(rejected.stderr, /Invalid documentation_mode/);
+  }
+});
+
+test("phase selection is just in time and autonomous work cannot bypass readiness or plan approval", (t) => {
+  const { root } = createWorkspace(t, { stage: "scoping_brainwave_documentation", expressed: true });
+  const settingsPath = path.join(root, "_settings.yaml");
+  const settings = {
+    ...JSON.parse(fs.readFileSync(settingsPath, "utf8")), schema_version: "1.7.0",
+    guidance_mode: "concise", shaping_mode: "autonomous", documentation_mode: null, implementation_mode: null,
+    build_outcome: "usable_first_version", build_outcome_confirmed_at: "2026-09-17T12:00:00Z"
+  };
+  delete settings.ideation_mode;
+  writeJson(settingsPath, settings);
+  const pending = runEngine(root, "transition", "building_brainwave_documentation");
+  assert.equal(pending.status, 1);
+  assert.match(pending.stderr, /Choose documentation_mode/);
+  settings.documentation_mode = "autonomous";
+  writeJson(settingsPath, settings);
+  assert.equal(runEngine(root, "transition", "building_brainwave_documentation").status, 0);
+  assert.equal(runEngine(root, "run").status, 0);
+  const documentPath = scaffoldedDocumentPath(root);
+  const draft = fs.readFileSync(documentPath, "utf8");
+  fs.writeFileSync(documentPath, draft.replace("Documentation status: in_progress", "Documentation status: complete"));
+  const hollow = runEngine(root, "transition", "reviewing_brainwave_documentation");
+  assert.equal(hollow.status, 1);
+  assert.match(hollow.stderr, /DNA block contract failed/);
+  fs.writeFileSync(documentPath, completeFixtureDocument(draft));
+  assert.equal(runEngine(root, "transition", "reviewing_brainwave_documentation").status, 0);
+  assert.equal(runEngine(root, "transition", "brainwave_documentation_complete").status, 0);
+  const manifest = JSON.parse(fs.readFileSync(path.join(root, "_manifest.yaml"), "utf8"));
+  const event = manifest.events.at(-1);
+  assert.equal(event.data.working_phase, "documentation");
+  assert.equal(event.data.authority, "delegated_phase_authority");
+  assert.equal(fs.existsSync(path.join(root, "_implementation.yaml")), false);
+  assert.equal(runEngine(root, "implementation-compile").status, 0);
+  const waiting = JSON.parse(runEngine(root, "implementation-context", "--json").stdout);
+  assert.equal(waiting.execution_policy.continue_automatically, false);
+  assert.match(waiting.exact_next_command, /Choose implementation_mode/);
+  const unselected = runEngine(root, "implementation-approve", "Product owner");
+  assert.equal(unselected.status, 1);
+  assert.match(unselected.stderr, /Choose implementation_mode/);
+  settings.implementation_mode = "autonomous";
+  writeJson(settingsPath, settings);
+  const unreviewed = runEngine(root, "implementation-approve", "Product owner");
+  assert.equal(unreviewed.status, 1);
+  assert.match(unreviewed.stderr, /review|synthesi/i);
+  const spine = compileAndApproveSpine(root);
+  assert.equal(spine.approval.approved_by, "Product owner");
+  const packet = JSON.parse(runEngine(root, "implementation-context", "--json").stdout);
+  assert.equal(packet.execution_policy.mode, "autonomous");
+  assert.equal(packet.execution_policy.continue_automatically, true);
+  assert.equal(Object.hasOwn(packet.progress_updates, "continue_automatically"), false);
+  assert.equal(runEngine(root, "implementation-start", spine.slices[0].id).status, 0);
+  assert.equal(runEngine(root, "implementation-close", spine.slices[0].id).status, 1);
+});
+
 test("working mode contracts stay aligned across agent and user guidance", () => {
   const directive = fs.readFileSync(path.join(SOURCE_ROOT, "AGENTS.md"), "utf8");
   const handbook = fs.readFileSync(path.join(SOURCE_ROOT, "_brainwave_handbook.md"), "utf8");
@@ -1010,7 +1291,11 @@ test("working mode contracts stay aligned across agent and user guidance", () =>
   for (const content of [directive, handbook]) {
     assert.match(content, /thought_partner/);
     assert.match(content, /fast_execution/);
-    assert.match(content, /opportunity scan/);
+    assert.match(content, /autonomous/);
+    for (const setting of ["shaping_mode", "documentation_mode", "implementation_mode"]) {
+      assert.ok(content.includes(setting), `${setting} must be documented for agents and users`);
+    }
+    assert.match(content, /opportunity (scan|hypotheses)/);
   }
 });
 
@@ -1081,7 +1366,7 @@ test("incomplete profile context asks the guidance question first", () => {
   assert.match(context, /first time with _brainwave before the other three/);
   assert.match(context, /native structured-choice UI/);
   assert.match(context, /"Yes — guide me" to `guided`/);
-  assert.match(context, /Apply the selected working mode immediately/);
+  assert.match(context, /Apply the selected shaping mode immediately/);
   assert.match(context, /Offer two equal seed routes/);
   assert.match(context, /preserve the user's supplied wording and natural structure/);
 });
@@ -1184,8 +1469,8 @@ test("session context uses canonical DNA stage labels and artifacts", () => {
   });
 
   assert.match(scoping, /exact user-facing label is "Scope DNA documents"/);
-  assert.match(scoping, /proportionate DNA documents from the selected DNA modules/);
-  assert.match(scoping, /grouping obvious related documents into concise approval slices/);
+  assert.match(scoping, /proportionate DNA documents from the selected modules/);
+  assert.match(scoping, /Group related recommendations into concise approval slices/);
   assert.match(building, /exact user-facing label is "Build DNA documentation"/);
   assert.match(building, /scoped DNA documentation and its traceable DNA blocks/);
   assert.match(building, /never legal approval or compliance/);
@@ -1421,7 +1706,8 @@ test("manifest carries the complete setup and project profile into the dashboard
   const dashboard = fs.readFileSync(path.join(root, "_dashboard.html"), "utf8");
 
   assert.equal(manifest.settings.technical_proficiency, "intermediate");
-  assert.equal(manifest.settings.ideation_mode, "thought_partner");
+  assert.equal(manifest.settings.shaping_mode, "thought_partner");
+  assert.equal(manifest.settings.documentation_mode, "thought_partner");
   assert.equal(manifest.settings.verbosity_budget, "standard");
   assert.equal(manifest.settings.implementation_progress_updates, "track");
   assert.equal(manifest.presentation.project_title, "Signal Garden");
@@ -1495,6 +1781,7 @@ test("scaffolds only expressed documents under the DNA namespace without copying
   assert.equal(result.status, 0);
   assert.match(scaffold, /Documentation status: in_progress/);
   assert.match(scaffold, /_my_brainwave_north_star\.md/);
+  assert.match(scaffold, /relevant passages in `_my_brainwave_seed\.md`/);
   assert.match(scaffold, /_DNA-SAPP.*1\.4\.0/);
   assert.match(scaffold, /### _DNA-SAPP-00201\.01 - Initial Direction/);
   assert.match(scaffold, /#### Alternatives Considered/);
@@ -1645,7 +1932,7 @@ test("requires semantic synthesis and a human-readable review before approval", 
   assert.match(context.stdout, /Current\/next:/);
   assert.match(context.stdout, /DNA blocks: _DNA-SAPP-00201\.01/);
   assert.match(context.stdout, /Implementation progress updates: track/);
-  assert.match(context.stdout, /Continue automatically: yes/);
+  assert.match(context.stdout, /Continue automatically across eligible slices and tracks/);
   assert.ok(context.stdout.length < 10000);
 });
 
@@ -2023,9 +2310,8 @@ test("imports legacy DNA delivery status once into the separate spine", (t) => {
   const { root } = createWorkspace(t, { expressed: true });
   assert.equal(runEngine(root, "run").status, 0);
   const documentPath = scaffoldedDocumentPath(root);
-  const legacy = fs
-    .readFileSync(documentPath, "utf8")
-    .replace("Documentation status: in_progress", "Status: complete")
+  const legacy = completeFixtureDocument(fs.readFileSync(documentPath, "utf8"))
+    .replace("Documentation status: complete", "Status: complete")
     .replace("Direction status: active", "Status: verified")
     .replace(
       "Supersedes: none",
@@ -2112,6 +2398,59 @@ test("requires the minimum DNA block contract before documentation review", (t) 
   assert.match(result.stderr, /contains no DNA blocks/);
 });
 
+test("completed active blocks reject empty and placeholder-only direction or verification", (t) => {
+  const { root } = createWorkspace(t, { expressed: true });
+  assert.equal(runEngine(root, "run").status, 0);
+  const documentPath = scaffoldedDocumentPath(root);
+  const scaffold = fs.readFileSync(documentPath, "utf8");
+  const complete = completeFixtureDocument(scaffold);
+  const placeholders = ["", "<!-- decision pending -->", "TODO: choose behaviour", "- [ ] **TBD**", "> TBD", "| TBD | TBD |\n| --- | --- |", "<insert content here>", "##### Empty subsection", "```text\nTODO\n```"];
+  for (const [heading, authored] of [["Direction", FIXTURE_DIRECTION], ["Verification", FIXTURE_VERIFICATION]]) {
+    for (const placeholder of placeholders) {
+      fs.writeFileSync(documentPath, complete.replace(authored, placeholder));
+      const result = runEngine(root, "transition", "reviewing_brainwave_documentation");
+      assert.equal(result.status, 1, `${heading}: ${JSON.stringify(placeholder)}`);
+      assert.match(result.stderr, new RegExp(`authored ${heading} content`));
+    }
+  }
+  // Scaffolds remain legitimate work in progress; the new guard applies at completion.
+  fs.writeFileSync(documentPath, scaffold);
+  const refreshed = runEngine(root, "refresh");
+  assert.equal(refreshed.status, 0, refreshed.stderr);
+  const manifest = JSON.parse(fs.readFileSync(path.join(root, "_manifest.yaml"), "utf8"));
+  assert.deepEqual(manifest.direction.blocks[0].contract_errors, []);
+});
+
+test("completed DNA preserves domain-specific subsections and superseded or inapplicable blocks", (t) => {
+  const { root } = createWorkspace(t, { expressed: true });
+  assert.equal(runEngine(root, "run").status, 0);
+  const documentPath = scaffoldedDocumentPath(root);
+  const complete = completeFixtureDocument(fs.readFileSync(documentPath, "utf8"))
+    .replace("### _DNA-SAPP-00201.01 - Initial Direction", [
+      "### _DNA-SAPP-00201.01 - Former boundary", "",
+      "Direction status: superseded", "Superseded by: _DNA-SAPP-00201.02",
+      "Former direction: External systems wrote application data directly.", "",
+      "### _DNA-SAPP-00201.02 - Current boundary"
+    ].join("\n"))
+    .replace("Supersedes: none", "Supersedes: _DNA-SAPP-00201.01")
+    .replace(FIXTURE_DIRECTION, "##### Access boundary\n\nPending — require approval before activation.")
+    .replace(FIXTURE_VERIFICATION, "##### Boundary check\n\n| Scenario | Expected result |\n| --- | --- |\n| Direct external write | Rejected |\n");
+  fs.writeFileSync(documentPath, complete);
+  const result = runEngine(root, "transition", "reviewing_brainwave_documentation");
+  assert.equal(result.status, 0, result.stderr);
+  const manifest = JSON.parse(fs.readFileSync(path.join(root, "_manifest.yaml"), "utf8"));
+  assert.match(manifest.direction.blocks[1].details.direction, /Access boundary/);
+  assert.match(manifest.direction.blocks[1].details.verification, /Direct external write/);
+
+  const inapplicable = complete
+    .replace("Direction status: active", "Direction status: not_applicable")
+    .replace("##### Access boundary\n\nPending — require approval before activation.", "Not applicable — this project exposes no external write boundary.")
+    .replace("##### Boundary check\n\n| Scenario | Expected result |\n| --- | --- |\n| Direct external write | Rejected |", "");
+  fs.writeFileSync(documentPath, inapplicable);
+  const acceptance = runEngine(root, "transition", "brainwave_documentation_complete");
+  assert.equal(acceptance.status, 0, acceptance.stderr);
+});
+
 test("allows review when every complete document follows the DNA block contract", (t) => {
   const { root } = createWorkspace(t, { expressed: true });
   const documentPath = path.join(
@@ -2123,9 +2462,7 @@ test("allows review when every complete document follows the DNA block contract"
   );
 
   assert.equal(runEngine(root, "run").status, 0);
-  const complete = fs
-    .readFileSync(documentPath, "utf8")
-    .replace("Documentation status: in_progress", "Documentation status: complete");
+  const complete = completeFixtureDocument(fs.readFileSync(documentPath, "utf8"));
   fs.writeFileSync(documentPath, complete, "utf8");
 
   const result = runEngine(root, "transition", "reviewing_brainwave_documentation");

@@ -39,8 +39,20 @@ test("ships a clean framework release template", () => {
   const sourceSettings = JSON.parse(
     fs.readFileSync(path.join(SOURCE_ROOT, "_settings.yaml"), "utf8")
   );
-  assert.equal(sourceSettings.schema_version, "1.6.0");
+  assert.equal(sourceSettings.schema_version, "1.7.0");
   assert.equal(sourceSettings.guidance_mode, null);
+  assert.equal(sourceSettings.shaping_mode, "thought_partner");
+  assert.equal(sourceSettings.documentation_mode, null);
+  assert.equal(sourceSettings.implementation_mode, null);
+  assert.equal(Object.hasOwn(sourceSettings, "ideation_mode"), false);
+  assert.equal(Object.hasOwn(sourceSettings.allowed_values, "ideation_mode"), false);
+  for (const setting of ["shaping_mode", "documentation_mode", "implementation_mode"]) {
+    assert.deepEqual(sourceSettings.allowed_values[setting], [
+      "thought_partner",
+      "fast_execution",
+      "autonomous"
+    ]);
+  }
   assert.equal(sourceSettings.build_outcome, null);
   assert.equal(sourceSettings.build_outcome_confirmed_at, null);
   assert.equal(sourceSettings.implementation_progress_updates, "track");
@@ -64,8 +76,14 @@ test("ships a clean framework release template", () => {
   assert.equal(sourceSettings.assurance_tooling.browser_journey.decision, "not_reviewed");
   assert.equal(fs.existsSync(path.join(SOURCE_ROOT, "_engine", "assurance.js")), true);
   assert.equal(fs.existsSync(path.join(SOURCE_ROOT, "_engine", "reference_library.js")), true);
+  assert.equal(fs.existsSync(path.join(SOURCE_ROOT, "_engine", "working_modes.js")), true);
   assert.equal(fs.existsSync(path.join(SOURCE_ROOT, "_reference_library_guide.md")), true);
   assert.match(sourceSettings.onboarding_questions[0], /first time using _brainwave/);
+  assert.ok(sourceSettings.onboarding_questions.some((question) => /shap/i.test(question)));
+  assert.equal(
+    sourceSettings.onboarding_questions.some((question) => /documentation_mode|implementation_mode/.test(question)),
+    false
+  );
   assert.equal(
     sourceSettings.onboarding_questions.some((question) => /build outcome/i.test(question)),
     false

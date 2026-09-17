@@ -26,7 +26,6 @@ function implementationProgressPolicy(settings = {}) {
     scope: "implementation_only",
     mode,
     update_boundary: UPDATE_BOUNDARIES[mode],
-    continue_automatically: true,
     required_updates: [
       "stale_or_invalid_implementation_authority",
       "required_safety_authorization",
@@ -41,8 +40,7 @@ function formatImplementationProgressPolicy(policy) {
   return [
     `Implementation progress updates: ${policy.mode}.`,
     policy.update_boundary,
-    "Progress updates are informational: continue automatically across eligible slices and tracks without asking for permission.",
-    "Pause when implementation authority is stale or invalid, for required safety authorization, or when required user input, approval, access, an unresolved blocker, or an external gate leaves no other safe eligible work; report again when the approved implementation plan is complete."
+    "Progress updates are informational; decision authority and continuation follow implementation_mode. Report blockers and plan completion regardless of update frequency."
   ].join(" ");
 }
 

@@ -537,12 +537,70 @@ function searchableText(record) {
     .trim();
 }
 
+const REFERENCE_CONTEXT_MAX_BYTES = 32768;
+const REFERENCE_PREVIEW_CHARS = 600;
+const REFERENCE_ARRAY_LIMITS = { tags: 50, links: 50, members: 50, dna_links: 50, key_moments: 20 };
+const EXACT_REFERENCE_FIELDS = new Set(["id", "ref", "block_id", "collection", "source_file", "source", "representation"]);
+const REFERENCE_RECOVERY = "Read source_file for full metadata. Generated relations are in _references/_index.json; regenerate it with references-index if needed.";
+
+// Include pretty-print whitespace and the CLI's final newline in every byte budget.
+function referenceJsonBytes(value) {
+  return Buffer.byteLength(JSON.stringify(value, null, 2) || "null", "utf8") + 1;
+}
+
+function referenceOffset(value = 0) {
+  const offset = Number(value);
+  if (!Number.isSafeInteger(offset) || offset < 0) throw new Error("Reference offset must be a non-negative safe integer.");
+  return offset;
+}
+
+function referencePointer(record) {
+  const pointer = {};
+  const omitted = [];
+  for (const field of ["id", "type", "source_file"]) {
+    const value = record[field] ?? null;
+    if (referenceJsonBytes(value) <= 2048) pointer[field] = value;
+    else omitted.push(field);
+  }
+  pointer.preview = {
+    truncated: true,
+    notice: "Metadata exceeds the preview budget; only recovery fields are shown. No locator has been shortened.",
+    omitted_fields: omitted,
+    recovery: REFERENCE_RECOVERY
+  };
+  return pointer;
+}
+
+function referencePreview(record) {
+  if (!record) return null;
+  const result = { ...record };
+  const changes = [];
+  for (const [field, value] of Object.entries(record)) {
+    let change = null;
+    if (typeof value === "string" && !EXACT_REFERENCE_FIELDS.has(field) && value.length > REFERENCE_PREVIEW_CHARS) {
+      result[field] = `${value.slice(0, REFERENCE_PREVIEW_CHARS)}…`;
+      change = { field, reason: "text_preview", total: value.length, returned: REFERENCE_PREVIEW_CHARS };
+    } else if (Array.isArray(value) && value.length > (REFERENCE_ARRAY_LIMITS[field] || 50)) {
+      result[field] = value.slice(0, REFERENCE_ARRAY_LIMITS[field] || 50);
+      change = { field, reason: "array_limit", total: value.length, returned: result[field].length };
+    }
+    // Nested metadata and exact locators are retained whole or explicitly omitted.
+    if (referenceJsonBytes(result[field]) > 4096) {
+      result[field] = Array.isArray(value) ? [] : null;
+      change = { field, reason: "field_byte_limit", ...(Array.isArray(value) ? { total: value.length, returned: 0 } : {}) };
+    }
+    if (change) changes.push(change);
+  }
+  if (changes.length) result.preview = { truncated: true, changes, recovery: REFERENCE_RECOVERY };
+  return referenceJsonBytes(result) <= 8192 ? result : referencePointer(record);
+}
+
 function searchReferenceLibrary(index, query, options = {}) {
   const normalized = String(query || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
   if (!normalized) return [];
   const terms = normalized.split(/\s+/);
   const records = [...(index.items || []), ...(index.collections || []), ...(index.boards || [])];
-  return records.map((record) => {
+  const matches = records.map((record) => {
     const title = String(record.title || "").toLowerCase();
     const id = String(record.id || "").toLowerCase();
     const text = searchableText(record);
@@ -563,16 +621,29 @@ function searchReferenceLibrary(index, query, options = {}) {
       score
     };
   }).filter(Boolean)
-    .sort((left, right) => right.score - left.score || left.id.localeCompare(right.id))
-    .slice(0, Math.max(1, Math.min(Number(options.limit) || 8, 50)));
+    .sort((left, right) => right.score - left.score || String(left.id).localeCompare(String(right.id)));
+  const offset = referenceOffset(options.offset);
+  const limit = Math.max(1, Math.min(Number(options.limit) || 8, 50));
+  const results = matches.slice(offset, offset + limit).map(referencePreview);
+  // Leave room for the CLI's bounded query, pagination, and recovery notice.
+  while (referenceJsonBytes(results) > REFERENCE_CONTEXT_MAX_BYTES - 4096) results.pop();
+  Object.defineProperty(results, "page", { value: {
+    offset, total: matches.length, returned: results.length,
+    next_offset: offset + results.length < matches.length ? offset + results.length : null,
+    omitted: matches.length - results.length,
+    max_json_bytes: REFERENCE_CONTEXT_MAX_BYTES,
+    recovery: REFERENCE_RECOVERY
+  } });
+  return results;
 }
 
-function referenceContext(index, id) {
+function referenceContext(index, id, options = {}) {
+  const offset = referenceOffset(options.offset);
   const nodes = [...(index.items || []), ...(index.collections || []), ...(index.boards || [])];
   const nodeById = new Map(nodes.map((node) => [node.id, node]));
   const target = nodeById.get(id);
   if (!target) return null;
-  const compact = (record) => record ? {
+  const compact = (record) => record ? referencePreview({
     id: record.id,
     type: record.type,
     kind: record.kind || null,
@@ -596,15 +667,7 @@ function referenceContext(index, id) {
       transcript_path: record.representation.transcript_path || null
     } : null,
     source_file: record.source_file || null
-  } : null;
-  const boundedTarget = {
-    ...target,
-    tags: (target.tags || []).slice(0, 50),
-    links: (target.links || []).slice(0, 50),
-    members: (target.members || []).slice(0, 50),
-    dna_links: (target.dna_links || []).slice(0, 50),
-    key_moments: Array.isArray(target.key_moments) ? target.key_moments.slice(0, 20) : target.key_moments
-  };
+  }) : null;
   const boards = (index.boards || []).filter((board) =>
     (board.members || []).some((member) => member.ref === id || member.ref === target.collection)
   );
@@ -618,17 +681,47 @@ function referenceContext(index, id) {
     : target.type === "board"
       ? (target.members || []).map((member) => member.ref)
       : [];
-  return {
+  const related = [...relatedIds].map((relatedId) => nodeById.get(relatedId)).filter(Boolean);
+  const contained = containedIds.map((containedId) => nodeById.get(containedId)).filter(Boolean);
+  const context = {
     schema_version: REFERENCE_SCHEMA_VERSION,
-    target: boundedTarget,
+    target: referencePreview({
+      ...target,
+      tags: target.tags || [], links: target.links || [], members: target.members || [],
+      dna_links: target.dna_links || [], key_moments: target.key_moments
+    }),
     collection: compact(collection),
     boards: boards.slice(0, 12).map(compact),
-    contained: containedIds.slice(0, 50).map((containedId) => compact(nodeById.get(containedId))).filter(Boolean),
-    related: [...relatedIds].slice(0, 20).map((relatedId) => compact(nodeById.get(relatedId))).filter(Boolean),
-    dna_links: (target.dna_links || []).slice(0, 50),
-    bounds: { boards: 12, contained: 50, related: 20, dna_links: 50 },
+    contained: contained.slice(offset, offset + 50).map(compact),
+    related: related.slice(0, 20).map(compact),
+    dna_links: referencePreview({ dna_links: target.dna_links || [] }).dna_links || [],
+    bounds: { boards: 12, contained: 50, related: 20, dna_links: 50, max_json_bytes: REFERENCE_CONTEXT_MAX_BYTES },
+    totals: { boards: boards.length, contained: contained.length, related: related.length, dna_links: (target.dna_links || []).length },
+    pagination: { offset, returned: 0, total: contained.length, next_offset: null },
+    omitted: {},
+    recovery: REFERENCE_RECOVERY,
     guidance: "Read textual metadata first. Inspect only the media or source needed for the current decision. A reference is contextual input, not accepted direction."
   };
+  const updateCounts = () => {
+    for (const field of Object.keys(context.totals)) context.omitted[field] = context.totals[field] - context[field].length;
+    context.pagination.returned = context.contained.length;
+    context.pagination.next_offset = offset + context.contained.length < contained.length ? offset + context.contained.length : null;
+  };
+  updateCounts();
+  for (const field of ["related", "boards", "dna_links", "contained"]) {
+    while (context[field].length && referenceJsonBytes(context) > REFERENCE_CONTEXT_MAX_BYTES) {
+      context[field].pop();
+      updateCounts();
+    }
+  }
+  // A pathological record still yields a bounded recovery packet, never an oversized dump.
+  if (referenceJsonBytes(context) > REFERENCE_CONTEXT_MAX_BYTES || (!context.contained.length && offset < contained.length)) {
+    context.target = referencePointer(target);
+    context.collection = collection ? referencePointer(collection) : null;
+    context.contained = offset < contained.length ? [referencePointer(contained[offset])] : [];
+    updateCounts();
+  }
+  return context;
 }
 
 module.exports = {
@@ -637,6 +730,7 @@ module.exports = {
   REFERENCE_ROLES,
   REFERENCE_DESIGN_STATUSES,
   REFERENCE_RELATIONSHIPS,
+  REFERENCE_CONTEXT_MAX_BYTES,
   scanReferenceLibrary,
   searchReferenceLibrary,
   referenceContext

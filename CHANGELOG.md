@@ -4,6 +4,8 @@ Notable changes will be recorded here.
 
 ## 0.1.0 — Unreleased
 
+- Split collaboration into just-in-time shaping, documentation, and implementation modes, each supporting thought partner, fast execution, and explicitly delegated autonomy. Kept progress cadence independent, preserved human Seed/build-outcome and exact implementation-plan approval, and retained review, specialist, safety, and scope boundaries with truthful delegated-acceptance provenance and bounded legacy compatibility.
+- Clarified source-grounded DNA authoring, working-mode and delegation boundaries, and per-slice review and resumption through existing document questions; completed active blocks reject empty or placeholder-only direction and verification. Reference retrieval now provides bounded previews, explicit omissions, and continuation through large libraries.
 - Clean `awaiting_seed` project template.
 - Software Application, Brand Identity, Product Strategy and Evidence, Product Design and Experience, Commercial and Economics, Market Presence and Growth, Legal, Policy and Market Access, and Service Operations and Support DNA modules.
 - Canonical module, document-group, document, and DNA-block identities.

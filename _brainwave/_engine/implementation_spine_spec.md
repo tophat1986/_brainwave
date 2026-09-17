@@ -8,6 +8,10 @@ DNA documents own accepted product direction. DNA blocks are the atomic traceabi
 
 The dashboard presents the spine as the eighth user-facing journey step, **Deliver the implementation**. This is a derived delivery view, not another `_brainwave_state.yaml` lifecycle value. It exposes the proposed or approved tracks and slices, outcomes, dependencies, gates, acceptance checks, context measures, validation notices, and progressively disclosed DNA mappings without owning or mutating them.
 
+`_settings.yaml` `implementation_mode` governs collaboration during task-authorized planning and delivery: `thought_partner` discusses material choices, `fast_execution` advances reversible in-scope assumptions and groups decisions requiring input, and explicitly selected `autonomous` delegates supported choices within accepted DNA and the approved plan. It never grants product-development authority from documentation acceptance alone. Already authorized end-to-end work continues without a new phase-entry approval; an unset implementation mode is selected when needed. Legacy implementation retains its existing policy without new delegation from `ideation_mode`.
+
+Every implementation mode retains explicit human approval of the exact reviewed plan, unchanged assurance and specialist gates, and user agreement for accepted-direction or scope changes. Mode controls decision policy; independent `implementation_progress_updates` controls reporting cadence. Neither a progress update nor a slice boundary pauses other authorized eligible work.
+
 ## Planning flow
 
 1. `implementation-compile [--existing-build]` inventories every applicable current DNA block. It creates no tracks or slices and writes a proposal template.
@@ -16,7 +20,7 @@ The dashboard presents the spine as the eighth user-facing journey step, **Deliv
 4. The agent writes only `_implementation_proposal.yaml`.
 5. `implementation-synthesize <authored-by> [proposal-path]` imports allowed structural fields, supplies command-owned delivery defaults, measures every effective execution context, validates the complete proposal, and records a proposal fingerprint.
 6. `implementation-review` writes the human-readable review and records its proposal fingerprint.
-7. The agent presents that review. The user may request another proposal/synthesis/review pass or explicitly approve it.
+7. The agent presents that review. In every implementation mode, including autonomous, the user may request another proposal/synthesis/review pass or explicitly approve the exact plan. This is the human authority handoff for delivery.
 8. `implementation-approve <approved-by>` succeeds only when the current proposal exactly matches the reviewed fingerprint.
 9. Delivery proceeds through guarded start, work-item evidence, hold, assurance prepare/submit/remediate/approve, check, and close commands.
 
