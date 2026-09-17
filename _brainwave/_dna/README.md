@@ -41,13 +41,13 @@ Every `module_contract` has:
 - `live_verification` — topics where current authoritative evidence must replace stale model memory when material
 - `timing` — when the domain should be considered, when it may be deliberately deferred, and the conditions that make deferral unsafe
 
-Module contracts prevent a broad module from quietly absorbing a shallow version of every discipline. The agent reads all relevant contracts, selects modules semantically, and explains material omissions before the user agrees. Coordination does not create shared ownership: one module remains authoritative and the other translates or implements its direction.
+Module contracts prevent a broad module from quietly absorbing a shallow version of every discipline. The agent reads all relevant contracts, selects modules semantically, and explains material omissions before selection is accepted by the user or under delegated shaping authority within the supplied brief. Specialist-coverage limitations retain their user-agreement gate. Coordination does not create shared ownership: one module remains authoritative and the other translates or implements its direction.
 
 The installed base assurance profiles are `product_direction`, `experience`, `brand`, `software_quality`, `commercial_validity`, `growth_integrity`, `legal_review`, and `service_operations`; there is no generic catch-all profile. A DNA document group or document may add a narrower profile through `assurance_profiles_add`, such as `data`, `security`, `reliability`, `performance`, or `accessibility`. Consequential nodes may set `assurance_levels_min` for an inherited profile, for example `{"experience": "journey"}`. Parent and child minima resolve to the strongest registered level, flow into implementation work items, and cannot be weakened by slice synthesis. Profiles route proportionate downstream assurance. They do not contain test plans, transfer domain ownership, or require every possible check on every implementation slice.
 
 Every node has a module-local five-digit `id`, `type`, module-relative `path`, `title`, `parent_id`, and `baseline` boolean. A DNA document group explains `when_relevant`; a DNA document explains its `intent`.
 
-`baseline: true` means the agent should normally recommend the node when its module, or its parent DNA document group, is relevant. `baseline: false` means the node should be recommended only when its specific intent is material. Baseline is proportionate scoping guidance, not engine-forced expression: explicit user-approved scope remains authoritative.
+`baseline: true` means the agent should normally recommend the node when its module, or its parent DNA document group, is relevant. `baseline: false` means the node should be recommended only when its specific intent is material. Baseline is proportionate scoping guidance, not engine-forced expression: scope accepted by the user or under delegated shaping authority remains authoritative. Expanding accepted scope requires user agreement.
 
 Cross-cutting concerns such as accessibility, internationalisation, privacy, mobile use, product copy, AI behaviour, and distribution may affect several modules. Do not duplicate the decision in each domain. Keep intent with the owning module, translate it into domain-specific consequences in coordinating modules, and verify the complete thread during review.
 
@@ -55,7 +55,7 @@ Cross-cutting concerns such as accessibility, internationalisation, privacy, mob
 
 A DNA block is one coherent direction, obligation, or verifiable rule inside a document. Blocks are the smallest traceable units; there is no separate implementation-ID system or implementation log.
 
-Document maturity is recorded once in the document header as `Documentation status: not_started`, `in_progress`, or `complete`. That field describes whether the specification is unwritten, being written, or authoring-complete and ready for foundation review; it never describes downstream implementation. Only the lifecycle state `brainwave_documentation_complete` means the reviewed foundation has been explicitly accepted.
+Document maturity is recorded once in the document header as `Documentation status: not_started`, `in_progress`, or `complete`. That field describes whether the specification is unwritten, being written, or authoring-complete and ready for foundation review; it never describes downstream implementation. Only the lifecycle state `brainwave_documentation_complete` means the required review has passed and the foundation has been accepted by the user or an agent under delegated documentation authority. Record the actual actor and authority; acceptance does not authorize product development or replace specialist or safety gates.
 
 An active block uses:
 
@@ -75,7 +75,9 @@ Supersedes: none
 #### Verification
 ```
 
-`Reference Basis` is optional. When present, each entry must use the typed-link syntax in `_reference_library_guide.md`; the engine validates its reference ID and relationship and derives reverse links for traversal. Omit the section when no saved reference materially supports or influences the block. The other headings prompt deliberate thinking without prescribing domain-specific answers. Write `Not applicable — <reason>` where a consideration genuinely does not apply; do not add filler.
+Include `Reference Basis` when a saved reference materially supports or influences the block; omit it otherwise. Each entry uses the typed-link syntax in `_reference_library_guide.md`; the engine validates its reference ID and relationship and derives reverse links for traversal. The other headings prompt deliberate thinking without prescribing domain-specific answers. Write `Not applicable — <reason>` where a consideration genuinely does not apply; do not add filler.
+
+Use domain-specific subsections, tables, or diagrams where useful. Keep governing rules under `Direction` and acceptance criteria under `Verification`, or explicitly reference their owning blocks, so downstream retrieval preserves them. Completed documents require authored content in both sections of each active block; empty or placeholder-only sections fail structural validation. Semantic readiness still requires review.
 
 Direction status is one of:
 

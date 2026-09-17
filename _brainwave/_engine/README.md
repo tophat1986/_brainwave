@@ -12,7 +12,7 @@ Tool-neutral session policy lives in `runtime/`. Thin adapters in `adapters/` tr
 
 - Validate the fixed _brainwave lifecycle.
 - Lock and verify the immutable _brainwave Seed.
-- Require an explicitly agreed North Star before DNA module selection.
+- Require an explicitly agreed North Star before DNA module selection, accepted by the user or under delegated shaping authority within the supplied brief.
 - Validate the dashboard introduction and project-basics experience checkpoints for settings schema 1.3 or newer.
 - Discover and validate versioned, data-only modules and their explicit ownership and inherited assurance contracts in `_dna/`.
 - Validate project-owned module selection and expressed entries.
@@ -33,6 +33,12 @@ Tool-neutral session policy lives in `runtime/`. Thin adapters in `adapters/` tr
 - Install or remove minimal, idempotent project-root bridges and session registrations without touching project-owned _brainwave artifacts.
 
 The engine does not interpret the seed or North Star, call an AI model, or decide which DNA modules or entries are relevant.
+
+## Phase policy
+
+`working_modes.js` resolves and formats the active phase policy for the CLI and session runtime. `shaping_mode`, `documentation_mode`, and `implementation_mode` independently select `thought_partner`, `fast_execution`, or `autonomous` when their phase begins. The handbook defines the decision boundaries; modes do not expand task authorization or bypass existing readiness and approval gates. Lifecycle events record the effective phase, mode, and authority source.
+
+Compatibility is read-only: pre-1.7 settings may supply absent shaping/documentation fields from valid legacy `ideation_mode`; implementation preserves its existing continuation policy without inferred autonomy. Explicit null is unselected and invalid values require correction. Preserve missing schema and phase keys when merging defaults. `implementation_progress_updates` controls reporting cadence only.
 
 ## Dashboard source
 

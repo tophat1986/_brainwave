@@ -49,9 +49,13 @@ const {
   REFERENCE_RELATIONSHIPS,
   scanReferenceLibrary,
   searchReferenceLibrary,
-  referenceContext
+  referenceContext,
+  REFERENCE_CONTEXT_MAX_BYTES
 } = require("./reference_library");
 const { writeDashboard } = require("./dashboard_renderer");
+const {
+  WORKING_MODES, PHASE_SETTINGS, phaseForStage, resolveWorkingMode, implementationExecutionPolicy
+} = require("./working_modes");
 
 const ROOT = path.resolve(__dirname, "..");
 const PATHS = Object.freeze({
@@ -418,12 +422,14 @@ function evidenceIsRecorded(value) {
 
 function defaultSettings() {
   return {
-    schema_version: "1.6.0",
+    schema_version: "1.7.0",
     configured: false,
     onboarding_status: "pending",
     guidance_mode: null,
     technical_proficiency: null,
-    ideation_mode: "thought_partner",
+    shaping_mode: "thought_partner",
+    documentation_mode: null,
+    implementation_mode: null,
     verbosity_budget: "standard",
     build_outcome: null,
     build_outcome_confirmed_at: null,
@@ -461,13 +467,15 @@ function defaultSettings() {
     onboarding_questions: [
       "Is this your first time using _brainwave? (yes — guide me / no — keep it concise)",
       "What is your technical proficiency? (beginner/intermediate/architect)",
-      "How should I operate? (thought_partner/fast_execution)",
+      "How should I help shape the direction and scope? (thought_partner/fast_execution/autonomous)",
       "How much documentation detail do you prefer? (lean — minimum sufficient / standard — concise and complete / exhaustive — deep treatment within agreed scope)"
     ],
     allowed_values: {
       guidance_mode: ["guided", "concise"],
       technical_proficiency: ["beginner", "intermediate", "architect"],
-      ideation_mode: ["thought_partner", "fast_execution"],
+      shaping_mode: [...WORKING_MODES],
+      documentation_mode: [...WORKING_MODES],
+      implementation_mode: [...WORKING_MODES],
       verbosity_budget: ["lean", "standard", "exhaustive"],
       build_outcome: ["demonstration", "usable_first_version", "complete_product", "custom"],
       implementation_progress_updates: [...IMPLEMENTATION_PROGRESS_UPDATE_MODES],
@@ -587,7 +595,10 @@ function defaultManifestSkeleton() {
       onboarding_status: "pending",
       guidance_mode: null,
       technical_proficiency: null,
-      ideation_mode: null,
+      shaping_mode: null,
+      documentation_mode: null,
+      implementation_mode: null,
+      working_modes: {},
       verbosity_budget: null,
       build_outcome: null,
       build_outcome_confirmed_at: null,
@@ -1134,7 +1145,13 @@ function validateState(state, modules, options = {}) {
 
 function loadWorkspace(options = {}) {
   ensureCoreFiles();
-  const settings = { ...defaultSettings(), ...readJsonYaml(PATHS.settings, defaultSettings()) };
+  const savedSettings = readJsonYaml(PATHS.settings, defaultSettings());
+  const defaults = defaultSettings();
+  // Preserve legacy schema and absent phase keys without introducing delegation.
+  for (const key of ["schema_version", ...Object.values(PHASE_SETTINGS)]) {
+    if (!Object.prototype.hasOwnProperty.call(savedSettings, key)) delete defaults[key];
+  }
+  const settings = { ...defaults, ...savedSettings };
   const modules = loadDnaModules();
   const state = readJsonYaml(PATHS.state, defaultState());
   validateState(state, modules, options);
@@ -1347,6 +1364,7 @@ function buildScaffoldContent(module, fileNode) {
     "",
     "## Directional Context",
     "- North Star: `_my_brainwave_north_star.md`",
+    "- Concept detail: relevant passages in `_my_brainwave_seed.md`",
     "- Steering decisions: `_decisions_log.md`",
     "",
     "## DNA Blocks",
@@ -1399,8 +1417,26 @@ function parseReferenceBasis(section, blockId, knownReferenceIds, errors) {
   return links;
 }
 
+function hasAuthoredBlockContent(body) {
+  return body.replace(/<!--[\s\S]*?-->/g, "").split(/\r?\n/).some((rawLine) => {
+    const line = rawLine.trim().replace(/^(?:>\s*)+/, "");
+    if (!line || /^#{1,6}\s/.test(line) || /^(?:`{3,}|~{3,})/.test(line) || /^[-*_]{3,}$/.test(line)) {
+      return false;
+    }
+    return line.split("|").some((cell) => {
+      const text = cell.trim()
+        .replace(/^(?:[-*+]\s+(?:\[[ x]\]\s*)?|\d+[.)]\s+)/i, "")
+        .replace(/^[*_`]+|[*_`]+$/g, "")
+        .trim();
+      if (!text || /^:?-{3,}:?$/.test(text)) return false;
+      return !/^(?:\[?(?:TODO|TBD|TBC|WIP)(?:\s*[:\u2014-].*)?\]?|pending|to be (?:decided|defined|determined|written)|\.{3}|\u2026|<(?:insert|write|add|describe)\b[^>]*>)\.?$/i.test(text);
+    });
+  });
+}
+
 function parseDnaBlocks(module, fileNode, content, options = {}) {
   const documentId = qualifiedNodeId(module, fileNode.id);
+  const documentComplete = fileStatusFromContent(content) === "complete";
   const headingPattern =
     /^###\s+`?(_DNA-[A-Z]{4}-\d{5}\.\d{2})`?\s+(?:-|—)\s+(.+?)\s*$/gm;
   const matches = [...content.matchAll(headingPattern)];
@@ -1467,6 +1503,13 @@ function parseDnaBlocks(module, fileNode, content, options = {}) {
       ]) {
         const pattern = new RegExp(`^####\\s+${heading}\\s*$`, "im");
         if (!pattern.test(section)) addBlockError(`${id} is missing ${heading}.`);
+      }
+      if (documentComplete && directionStatus === "active") {
+        for (const heading of ["Direction", "Verification"]) {
+          if (!hasAuthoredBlockContent(blockSectionMarkdown(section, heading))) {
+            addBlockError(`${id} must have authored ${heading} content before documentation is complete (empty or placeholder-only section).`);
+          }
+        }
       }
     }
 
@@ -1660,7 +1703,11 @@ function buildManifest(workspace, command, taskPlan = [], prior = null) {
   manifest.settings.onboarding_status = workspace.settings.onboarding_status ?? null;
   manifest.settings.guidance_mode = workspace.settings.guidance_mode ?? null;
   manifest.settings.technical_proficiency = workspace.settings.technical_proficiency ?? null;
-  manifest.settings.ideation_mode = workspace.settings.ideation_mode ?? null;
+  for (const [phase, key] of Object.entries(PHASE_SETTINGS)) {
+    const policy = resolveWorkingMode(workspace.settings, phase);
+    manifest.settings[key] = policy.mode;
+    manifest.settings.working_modes[phase] = policy;
+  }
   manifest.settings.verbosity_budget = workspace.settings.verbosity_budget ?? null;
   manifest.settings.build_outcome = workspace.settings.build_outcome ?? null;
   manifest.settings.build_outcome_confirmed_at =
@@ -2054,9 +2101,16 @@ function isSettingsConfigured(settings) {
       (!settingsRequireGuidanceMode(settings) ||
         hasAllowedSetting(settings, "guidance_mode")) &&
       hasAllowedSetting(settings, "technical_proficiency") &&
-      hasAllowedSetting(settings, "ideation_mode") &&
       hasAllowedSetting(settings, "verbosity_budget")
   );
+}
+
+function assertPhaseModeReady(settings, phase) {
+  const policy = resolveWorkingMode(settings, phase);
+  if (policy.requires_selection) {
+    throw new Error(policy.error || `Choose ${policy.setting} before ${phase} work: thought_partner, fast_execution, or autonomous.`);
+  }
+  return policy;
 }
 
 function assertSettingsReady(settings) {
@@ -2198,6 +2252,7 @@ function persistWorkspaceManifest(workspace, command, prior = null) {
 
 function assertReconciliationReady(workspace) {
   assertSeedIntegrity(workspace.state, workspace.seedText);
+  assertPhaseModeReady(workspace.settings, "documentation");
   assertSettingsReady(workspace.settings);
   assertBuildOutcomeReady(workspace.settings);
   assertNorthStarAgreed(workspace.northStarText);
@@ -2265,6 +2320,7 @@ function listDnaModules() {
 
 function selectDnaModules(moduleRefs) {
   const workspace = loadWorkspace({ allowVersionMismatch: true });
+  const mode = assertPhaseModeReady(workspace.settings, "shaping");
   assertSeedIntegrity(workspace.state, workspace.seedText);
   assertSettingsReady(workspace.settings);
   assertBuildOutcomeReady(workspace.settings);
@@ -2296,7 +2352,7 @@ function selectDnaModules(moduleRefs) {
   workspace.state.selected_dna = selected;
   writeJsonYaml(PATHS.state, workspace.state);
   const manifest = buildWorkspaceManifest(workspace, "select-dna");
-  addEvent(manifest, "dna_selection", "DNA modules selected after user agreement.", {
+  addEvent(manifest, "dna_selection", mode.delegated ? "DNA modules selected under delegated shaping authority." : "DNA modules selected under existing authority.", {
     selected_dna: uniqueIds.map((dnaId) => ({
       module_id: dnaId,
       version: workspace.modules[dnaId].dna_version
@@ -2313,6 +2369,7 @@ function selectDnaModules(moduleRefs) {
 
 function mutateExpression(nodeRefs, expressedValue) {
   const workspace = loadWorkspace();
+  const mode = assertPhaseModeReady(workspace.settings, "shaping");
   assertSeedIntegrity(workspace.state, workspace.seedText);
   assertSettingsReady(workspace.settings);
   assertBuildOutcomeReady(workspace.settings);
@@ -2370,8 +2427,8 @@ function mutateExpression(nodeRefs, expressedValue) {
     manifest,
     "scope",
     expressedValue
-      ? "DNA documents added to scope after user approval."
-      : "DNA documents removed from scope after user approval.",
+      ? `DNA documents added to scope ${mode.delegated ? "under delegated shaping authority" : "under existing authority"}.`
+      : `DNA documents removed from scope ${mode.delegated ? "under delegated shaping authority" : "under existing authority"}.`,
     { node_refs: [...new Set(changed)].sort() }
   );
   writeJsonYaml(PATHS.manifest, manifest);
@@ -2394,6 +2451,10 @@ function transitionStage(targetStage) {
   if (!(ALLOWED_STAGE_TRANSITIONS[currentStage] || []).includes(targetStage)) {
     throw new Error(`Invalid stage transition: ${currentStage} -> ${targetStage}.`);
   }
+
+  const transitionPhase = targetStage === "brainwave_documentation_complete"
+    ? "documentation" : phaseForStage(targetStage);
+  const workingMode = assertPhaseModeReady(workspace.settings, transitionPhase);
 
   if (currentStage === "awaiting_seed" && targetStage === "shaping_north_star") {
     if (settingsRequireExperienceProtocol(workspace.settings)) {
@@ -2471,7 +2532,10 @@ function transitionStage(targetStage) {
   workspace.state.stage_updated_at = nowIso();
   writeJsonYaml(PATHS.state, workspace.state);
   const manifest = buildWorkspaceManifest(workspace, "transition");
-  addEvent(manifest, "lifecycle", `_brainwave stage changed from ${currentStage} to ${targetStage}.`);
+  addEvent(manifest, "lifecycle", `_brainwave stage changed from ${currentStage} to ${targetStage}.`, {
+    working_phase: workingMode.phase, working_mode: workingMode.mode, mode_source: workingMode.source,
+    authority: workingMode.delegated ? "delegated_phase_authority" : "existing_approval_requirements"
+  });
   writeJsonYaml(PATHS.manifest, manifest);
   injectManifestIntoDashboard(manifest);
   console.log(`${CONSOLE_PREFIX} stage: ${currentStage} -> ${targetStage}`);
@@ -2522,6 +2586,7 @@ function recordRejectedImplementationMutation(context) {
 function runImplementationMutation(command, mutator) {
   const context = implementationCommandContext();
   try {
+    assertPhaseModeReady(context.workspace.settings, "implementation");
     const validation = validateImplementationSpine(context.workspace.implementationSpine, {
       source: context.source,
       applicableBlockIds: context.applicableBlockIds
@@ -2757,6 +2822,10 @@ function printImplementationContext(args) {
     applicableBlockIds: context.applicableBlockIds
   });
   payload.progress_updates = implementationProgressPolicy(context.workspace.settings);
+  payload.execution_policy = implementationExecutionPolicy(context.workspace.settings);
+  if (payload.execution_policy.requires_selection) {
+    payload.exact_next_command = `Choose ${payload.execution_policy.setting} before implementation work.`;
+  }
   if (args.includes("--json")) {
     const output = JSON.stringify(payload, null, 2);
     if (
@@ -3046,6 +3115,10 @@ function printStatus() {
     `${CONSOLE_PREFIX} references: ${manifest.references.totals.items} items, ${manifest.references.totals.collections} collections, ${manifest.references.totals.boards} boards`
   );
   console.log(`${CONSOLE_PREFIX} implementation_spine: ${manifest.implementation.mode}`);
+  for (const [phase, key] of Object.entries(PHASE_SETTINGS)) {
+    const policy = manifest.settings.working_modes[phase];
+    console.log(`${CONSOLE_PREFIX} ${key}: ${policy.mode || (policy.source === "legacy" ? "legacy continuation" : "not selected")}`);
+  }
   console.log(
     `${CONSOLE_PREFIX} implementation_progress_updates: ${manifest.settings.implementation_progress_updates}`
   );
@@ -3102,20 +3175,33 @@ function findReferences(args) {
     limit = Number(args[limitIndex + 1]) || 8;
     queryParts.splice(limitIndex, 2);
   }
+  const offsetIndex = queryParts.indexOf("--offset");
+  const offset = offsetIndex >= 0 ? Number(queryParts[offsetIndex + 1]) : 0;
+  if (offsetIndex >= 0) queryParts.splice(offsetIndex, 2);
   const query = queryParts.join(" ").trim();
   if (!query) throw new Error("Provide text to search for in the Reference Library.");
   const workspace = loadWorkspace();
   const manifest = buildWorkspaceManifest(workspace, "references-find");
-  const results = searchReferenceLibrary(manifest.references, query, { limit });
-  console.log(JSON.stringify({ query, count: results.length, results }, null, 2));
+  const results = searchReferenceLibrary(manifest.references, query, { limit, offset });
+  const output = { query: query.slice(0, 600), count: results.length, results, pagination: { ...results.page } };
+  if (query.length > 600) output.query_truncated = true;
+  while (results.length && Buffer.byteLength(`${JSON.stringify(output, null, 2)}\n`, "utf8") > REFERENCE_CONTEXT_MAX_BYTES) {
+    results.pop();
+    output.count = output.pagination.returned = results.length;
+    output.pagination.omitted = output.pagination.total - results.length;
+    output.pagination.next_offset = offset + results.length;
+  }
+  console.log(JSON.stringify(output, null, 2));
 }
 
 function printReferenceContext(args, boardOnly = false) {
   const id = String(args[0] || "").trim();
   if (!id) throw new Error(`Provide a Reference Library ${boardOnly ? "board" : "item, collection, or board"} ID.`);
+  const offsetIndex = args.indexOf("--offset");
+  const offset = offsetIndex >= 0 ? Number(args[offsetIndex + 1]) : 0;
   const workspace = loadWorkspace();
   const manifest = buildWorkspaceManifest(workspace, boardOnly ? "references-board" : "references-context");
-  const context = referenceContext(manifest.references, id);
+  const context = referenceContext(manifest.references, id, { offset });
   if (!context || (boardOnly && context.target.type !== "board")) {
     throw new Error(`Reference Library ${boardOnly ? "board " : ""}\`${id}\` was not found.`);
   }
@@ -3214,9 +3300,9 @@ function printHelp() {
   console.log("  node _brainwave/_engine/brainwave_runner.js refresh");
   console.log("  node _brainwave/_engine/brainwave_runner.js references-index");
   console.log("  node _brainwave/_engine/brainwave_runner.js references-validate");
-  console.log("  node _brainwave/_engine/brainwave_runner.js references-find <query> [--limit <count>]");
-  console.log("  node _brainwave/_engine/brainwave_runner.js references-context <item|collection|board-id>");
-  console.log("  node _brainwave/_engine/brainwave_runner.js references-board <board-id>");
+  console.log("  node _brainwave/_engine/brainwave_runner.js references-find <query> [--limit <count>] [--offset <count>]");
+  console.log("  node _brainwave/_engine/brainwave_runner.js references-context <item|collection|board-id> [--offset <count>]");
+  console.log("  node _brainwave/_engine/brainwave_runner.js references-board <board-id> [--offset <count>]");
   console.log("  node _brainwave/_engine/brainwave_runner.js implementation-compile [--existing-build]");
   console.log("  node _brainwave/_engine/brainwave_runner.js implementation-synthesize <authored-by> [proposal-path]");
   console.log("  node _brainwave/_engine/brainwave_runner.js implementation-review");

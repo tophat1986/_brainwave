@@ -5,6 +5,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
+const vm = require("node:vm");
 
 const {
   renderDashboard,
@@ -63,6 +64,84 @@ function stateBlocks(html) {
     /<script id="brainwave-state" type="application\/json">([\s\S]*?)<\/script>/g
   )];
 }
+
+function setupFields(settings) {
+  const helpers = fs.readFileSync(
+    path.join(__dirname, "dashboard", "scripts", "10-helpers-and-model.js"), "utf8"
+  );
+  return JSON.parse(vm.runInNewContext(
+    `${helpers}\nJSON.stringify(Object.fromEntries(setupFieldDefinitions.map((definition) => [definition.label, friendlySetting(definition)])));`,
+    { settings, state: {}, stageDefinitions: [] }
+  ));
+}
+
+test("presents separate working modes for shaping, documentation, and implementation", () => {
+  const settings = {
+    configured: true,
+    shaping_mode: "thought_partner",
+    documentation_mode: "fast_execution",
+    implementation_mode: "autonomous"
+  };
+  const fields = setupFields(settings);
+
+  assert.equal(fields["Shaping mode"], "Thought partner");
+  assert.equal(fields["Documentation mode"], "Fast execution");
+  assert.equal(fields["Implementation mode"], "Autonomous");
+  assert.equal(Object.hasOwn(fields, "Working together"), false);
+  assert.doesNotMatch(renderDashboard({ settings }), /Working together/);
+});
+
+test("shows unselected phase modes without inheriting another phase's autonomy", () => {
+  const fields = setupFields({
+    configured: true,
+    shaping_mode: "autonomous",
+    documentation_mode: null,
+    implementation_mode: null,
+    ideation_mode: "fast_execution"
+  });
+
+  assert.equal(fields["Shaping mode"], "Autonomous");
+  assert.equal(fields["Documentation mode"], "Not chosen yet");
+  assert.equal(fields["Implementation mode"], "Not chosen yet");
+  const pending = setupFields({ configured: false, shaping_mode: "thought_partner" });
+  assert.equal(pending["Shaping mode"], "Not chosen yet");
+});
+
+test("presents legacy implementation continuation without an autonomous mode", () => {
+  const fields = setupFields({
+    configured: true,
+    shaping_mode: "fast_execution",
+    documentation_mode: "fast_execution",
+    implementation_mode: null,
+    working_modes: {
+      shaping: { source: "legacy", mode: "fast_execution", requires_selection: false },
+      documentation: { source: "legacy", mode: "fast_execution", requires_selection: false },
+      implementation: { source: "legacy", mode: null, delegated: false, requires_selection: false }
+    }
+  });
+
+  assert.equal(fields["Shaping mode"], "Fast execution");
+  assert.equal(fields["Documentation mode"], "Fast execution");
+  assert.equal(fields["Implementation mode"], "Existing continuation policy");
+  assert.doesNotMatch(fields["Implementation mode"], /autonomous/i);
+});
+
+test("invalid phase settings remain unselected in the dashboard", () => {
+  const fields = setupFields({
+    configured: true,
+    shaping_mode: "constructor",
+    documentation_mode: "autonomous",
+    implementation_mode: null,
+    working_modes: {
+      documentation: { source: "invalid", mode: null, requires_selection: true },
+      implementation: { source: "unselected", mode: null, requires_selection: true }
+    }
+  });
+
+  for (const label of ["Shaping mode", "Documentation mode", "Implementation mode"]) {
+    assert.equal(fields[label], "Not chosen yet");
+  }
+});
 
 test("renders deterministically with fragments in lexical order", (t) => {
   const sourceRoot = path.join(temporaryDirectory(t), "source");

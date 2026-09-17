@@ -1,6 +1,7 @@
 "use strict";
 
 const crypto = require("node:crypto");
+const { formatImplementationExecutionPolicy } = require("./working_modes");
 const {
   ASSURANCE_PROFILE_CATALOG,
   ASSURANCE_PROFILE_LEVEL_CONTRACTS,
@@ -1408,9 +1409,10 @@ function formatImplementationContext(payload) {
       `Separate gates: technical health ${payload.readiness.technical_health}; product coverage ${payload.readiness.product_coverage}; external gates ${payload.readiness.external_gates}; release readiness ${payload.readiness.release_readiness}.`
     );
   }
+  if (payload.execution_policy) lines.push(formatImplementationExecutionPolicy(payload.execution_policy));
   if (payload.progress_updates) {
     lines.push(
-      `Implementation progress updates: ${payload.progress_updates.mode}; ${payload.progress_updates.update_boundary} Continue automatically: ${payload.progress_updates.continue_automatically ? "yes" : "no"}.`
+      `Implementation progress updates: ${payload.progress_updates.mode}; ${payload.progress_updates.update_boundary}`
     );
   }
   if (payload.source_stale) lines.push("STOP: the spine is stale against the accepted North Star or DNA scope.");

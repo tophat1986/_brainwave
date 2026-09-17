@@ -9,11 +9,19 @@
         .replaceAll("_", " ")
         .replace(/\b\w/g, (character) => character.toUpperCase());
 
+      const workingModeLabels = Object.freeze({
+        thought_partner: "Thought partner",
+        fast_execution: "Fast execution",
+        autonomous: "Autonomous"
+      });
+
       const setupFieldDefinitions = Object.freeze([
         { key: "onboarding_status", label: "Setup", values: { complete: "Complete", pending: "In progress" } },
         { key: "guidance_mode", label: "Level of guidance", values: { guided: "Guide me", concise: "Keep it concise" } },
         { key: "technical_proficiency", label: "Technical comfort", values: { beginner: "Beginner-friendly", intermediate: "Comfortable", architect: "Architect-level" } },
-        { key: "ideation_mode", label: "Working together", values: { thought_partner: "Thought partner", fast_execution: "Fast execution" } },
+        { key: "shaping_mode", phase: "shaping", label: "Shaping mode", values: workingModeLabels },
+        { key: "documentation_mode", phase: "documentation", label: "Documentation mode", values: workingModeLabels },
+        { key: "implementation_mode", phase: "implementation", label: "Implementation mode", values: workingModeLabels },
         { key: "verbosity_budget", label: "Documentation detail", values: { lean: "Lean — minimum sufficient", standard: "Standard — concise and complete", exhaustive: "Exhaustive — deep within scope" } },
         { key: "build_outcome", label: "Build goal", values: { demonstration: "Show me the idea", usable_first_version: "Build a usable first version", complete_product: "Build the complete product", custom: "Custom outcome" } },
         { key: "implementation_progress_updates", label: "Implementation updates", values: { silent: "Silent", track: "By goal (track)", slice: "After each slice" } }
@@ -31,6 +39,14 @@
         const value = settings[definition.key];
         if (!["onboarding_status", "implementation_progress_updates"].includes(definition.key) && settings.configured !== true) {
           return "Not chosen yet";
+        }
+        if (definition.phase) {
+          const policy = settings.working_modes?.[definition.phase];
+          if (policy?.requires_selection || policy?.source === "invalid") return "Not chosen yet";
+          if (definition.phase === "implementation" && policy?.source === "legacy") {
+            return "Existing continuation policy";
+          }
+          return Object.hasOwn(definition.values, value) ? definition.values[value] : "Not chosen yet";
         }
         return definition.values?.[value] || (value ? titleCase(value) : "Not chosen yet");
       }

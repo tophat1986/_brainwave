@@ -160,8 +160,8 @@ the item is useful in that context, not that its contents are approved.
 
 ## DNA Links
 
-When a reference materially supports or influences an accepted DNA block, add an optional
-section using the exact format below:
+When a reference materially supports or influences a DNA block, include the section
+below; omit it when no saved reference informs the block. Use this exact format:
 
 ```markdown
 #### Reference Basis
@@ -170,8 +170,18 @@ section using the exact format below:
 - `ref-interaction-example` — informs — Interaction precedent; visual styling is excluded.
 ```
 
-The relationship must use one of the fixed link values. Link only the references that matter
-to that block; do not attach an entire library by default.
+The relationship must use one of the fixed link values. Identify the relevant source
+passage and its implication in the note, using the item's locator where sufficient.
+Link only the references that matter to that block; do not attach an entire library by default.
+
+During authoring, search existing metadata before starting new research. A search miss
+is not proof of absence: broaden the terms or inspect relevant collections. Read the
+shortlisted source passages, including the relevant sheet/range or transcript segment,
+before relying on a summary. Reuse findings whose scope and freshness fit the decision;
+research only the remaining material gap. Keep evidence, inference, assumptions, and
+recommendations distinct. Capture material new findings as reference notes with source
+locators and limitations, then link their use in the owning DNA block. Product Design
+and Experience interprets design references; other evidence follows its owning domain.
 
 ## Agent Workflow
 
@@ -184,7 +194,21 @@ to that block; do not attach an entire library by default.
 ```text
 node _brainwave/_engine/brainwave_runner.js references-validate
 node _brainwave/_engine/brainwave_runner.js references-index
-node _brainwave/_engine/brainwave_runner.js references-find <query> [--limit <count>]
-node _brainwave/_engine/brainwave_runner.js references-context <item|collection|board-id>
-node _brainwave/_engine/brainwave_runner.js references-board <board-id>
+node _brainwave/_engine/brainwave_runner.js references-find <query> [--limit <count>] [--offset <count>]
+node _brainwave/_engine/brainwave_runner.js references-context <item|collection|board-id> [--offset <count>]
+node _brainwave/_engine/brainwave_runner.js references-board <board-id> [--offset <count>]
 ```
+
+Retrieval returns previews capped at 32 KiB of pretty-printed JSON. Long descriptions are
+shortened with explicit `preview` notices; locators remain exact or are explicitly omitted.
+Read `source_file` for the complete record before relying on a shortened claim or quote.
+Collection and board children, and search results, report totals and `pagination.next_offset`;
+repeat the same command with `--offset <next_offset>` until it is `null`. Page sizes may shrink
+to fit the byte limit. Other omitted relations report counts; inspect `_references/_index.json`
+(regenerate with `references-index` if needed) for those links, then request the relevant IDs.
+An oversized record falls back to recovery fields and an explicit notice. Retrieval never
+changes the stored reference material.
+
+`omitted` counts everything outside the current packet, including earlier pages. For paged
+results, `offset` identifies the skipped entries and `total - offset - returned` gives the
+remaining entries (zero when the offset is beyond the end).

@@ -11,6 +11,11 @@ const {
   formatImplementationProgressPolicy
 } = require("../implementation_progress");
 
+const {
+  phaseForStage, resolveWorkingMode, formatWorkingMode,
+  implementationExecutionPolicy, formatImplementationExecutionPolicy
+} = require("../working_modes");
+
 const COMPLETE_STAGE = "brainwave_documentation_complete";
 const FRESH_ALIGNMENT_REVIEW_PROMPT = [
   "Run a fresh-context `_brainwave` implementation alignment review for this repository.",
@@ -137,7 +142,6 @@ function settingsAreConfigured(settings) {
       (!settingsRequireGuidanceMode(settings) ||
         hasAllowedValue(settings, "guidance_mode")) &&
       hasAllowedValue(settings, "technical_proficiency") &&
-      hasAllowedValue(settings, "ideation_mode") &&
       hasAllowedValue(settings, "verbosity_budget")
   );
 }
@@ -179,6 +183,13 @@ function buildSessionContext(runtime) {
       `_brainwave has accepted its foundation; the eighth user-facing step, Deliver the implementation, and ambient delivery alignment are active. Do not announce or restart the seven-stage foundation workflow during ordinary development. DNA documents in ${at("_documentation/")} are the authority for direction; ${at("_implementation.yaml")} is the sole authority for delivery state and evidence.`,
       `Read ${at("_my_brainwave_north_star.md")} before project work. Do not read the full DNA corpus. Use \`node _brainwave/_engine/brainwave_runner.js implementation-context\` to retrieve the current slice and only its owning DNA passages.`
     ];
+    const executionPolicy = implementationExecutionPolicy(runtime.settings);
+    lines.push(formatImplementationExecutionPolicy(executionPolicy));
+    lines.push("Foundation acceptance alone does not authorize product work. Begin implementation only when requested; an existing end-to-end request need not be approved again.");
+    if (executionPolicy.requires_selection) {
+      lines.push(formatImplementationProgressPolicy(implementationProgressPolicy(runtime.settings)));
+      return lines.join(" ");
+    }
     const spine = runtime.implementationSpine;
     if (!spine?.schema_version) {
       lines.push(
@@ -231,9 +242,8 @@ function buildSessionContext(runtime) {
   const guidanceMode = hasAllowedValue(runtime.settings, "guidance_mode")
     ? runtime.settings.guidance_mode
     : "concise";
-  const ideationMode = hasAllowedValue(runtime.settings, "ideation_mode")
-    ? runtime.settings.ideation_mode
-    : null;
+  const workingMode = resolveWorkingMode(runtime.settings, phaseForStage(stage));
+  const shapingMode = workingMode.phase === "shaping" ? workingMode.mode : null;
   const displayStage = STAGE_DISPLAY_LABELS[stage] || stage;
   const experienceRequired = settingsRequireExperienceProtocol(runtime.settings);
   const dashboardIntroduced = Boolean(
@@ -255,7 +265,7 @@ function buildSessionContext(runtime) {
 
   if (!settingsConfigured) {
     lines.push(
-      `The profile is incomplete. Ask whether this is the user's first time with _brainwave before the other three concise profile questions. Map "Yes — guide me" to \`guided\` and "No — keep it concise" to \`concise\`, prefer the host's native structured-choice UI when available, and update ${at("_settings.yaml")} after the user answers. When asking documentation detail, describe \`lean\` as minimum sufficient, \`standard\` as concise and complete rather than near-exhaustive, and \`exhaustive\` as deep treatment within agreed scope. Immediately after that first answer, give the friendly dashboard introduction below before asking the other profile questions. Apply the selected working mode immediately and apply the selected documentation detail immediately. Do not infer profile values from keywords or model capability.`
+      `The profile is incomplete. Ask whether this is the user's first time with _brainwave before the other three concise profile questions. Map "Yes — guide me" to \`guided\` and "No — keep it concise" to \`concise\`, prefer the host's native structured-choice UI when available, and update ${at("_settings.yaml")} after the user answers. When asking documentation detail, describe \`lean\` as minimum sufficient, \`standard\` as concise and complete rather than near-exhaustive, and \`exhaustive\` as deep treatment within agreed scope. Immediately after that first answer, give the friendly dashboard introduction below before asking the other profile questions. Choose shaping_mode (thought_partner, fast_execution, or autonomous) during onboarding; choose documentation_mode and implementation_mode only when entering those phases. Apply the selected shaping mode immediately and apply the selected documentation detail immediately. Do not infer profile values from keywords or model capability.`
     );
   } else if (guidanceMode === "guided") {
     lines.push(
@@ -269,6 +279,8 @@ function buildSessionContext(runtime) {
 
   if (settingsConfigured) {
     lines.push(documentationDetailInstruction(runtime.settings));
+    lines.push(formatWorkingMode(workingMode));
+    if (workingMode.requires_selection) return lines.join(" ");
   }
 
   if (experienceRequired && !dashboardIntroduced) {
@@ -312,16 +324,15 @@ function buildSessionContext(runtime) {
       );
     }
     lines.push(
-      `The North Star status is \`${northStarStatus(runtime.northStar)}\`. Read ${at("_my_brainwave_north_star.md")} first, use the seed only for provenance, and treat discovery as an adaptive conversation rather than a questionnaire. Interpret existing answers before asking one to three high-leverage questions, route follow-ups only where material, and give compact progress reflections at natural checkpoints. At the appropriate moment, resolve the smallest consequential branch across funding and economic sustainability, discovery and adoption, legal or policy exposure from users/data/claims/money/markets/distribution, and human service or support dependencies. Risk overrides an early project phase; record the reason and re-entry trigger for any material deferral. Proportional scope changes breadth, not the quality floor.`
+      `The North Star status is \`${northStarStatus(runtime.northStar)}\`. Read ${at("_my_brainwave_north_star.md")} for current direction and ${at("_my_brainwave_seed.md")} for detailed intent; omission from the North Star does not discard concept detail, and explicit later decisions govern conflicts. Treat discovery as an adaptive conversation rather than a questionnaire, following shaping_mode. Interpret existing answers before asking one to three high-leverage questions when the mode requires input; route follow-ups only where material, and give compact progress reflections at natural checkpoints. At the appropriate moment, resolve the smallest consequential branch across funding and economic sustainability, discovery and adoption, legal or policy exposure from users/data/claims/money/markets/distribution, and human service or support dependencies. Risk overrides an early project phase; record the reason and re-entry trigger for any material deferral. Proportional scope changes breadth, not the quality floor.`
     );
-    if (settingsConfigured && ideationMode === "thought_partner") {
+    if (settingsConfigured && shapingMode === "thought_partner") {
       lines.push(
-        "Working mode is `thought_partner`. Interpret, challenge, and recommend rather than only reflect. Once core value, interaction, and natural assets are clear, run one silent opportunity scan before North Star agreement. Test whether data, content, entities, transactions, signals, workflows, or relationships could create disproportionate user, discovery, retention, commercial, partner, or learning value, including a useful public or partner-facing surface. Surface at most two model-generated hypotheses only when they reuse core assets, have a clear causal loop, could change direction, and have a small reversible test. State the upside, assumptions, risks, and test; ask the user to adopt, defer, or reject each one. Do not manufacture novelty or expand direction or scope without approval."
+        "During shaping, interpret, challenge, and recommend rather than only reflect. Once core value, interaction, and natural assets are clear, run one silent opportunity scan before North Star agreement. Test whether data, content, entities, transactions, signals, workflows, or relationships could create disproportionate user, discovery, retention, commercial, partner, or learning value, including a useful public or partner-facing surface. Surface at most two model-generated hypotheses only when they reuse core assets, have a clear causal loop, could change direction, and have a small reversible test. State the upside, assumptions, risks, and test; ask the user to adopt, defer, or reject each one. Do not manufacture novelty or expand direction or scope without approval."
       );
-    } else if (settingsConfigured && ideationMode === "fast_execution") {
-      lines.push(
-        "Working mode is `fast_execution`. Propose the strongest supported direction directly, use labelled working assumptions for reversible gaps, and ask only when a decision is consequential, difficult to reverse, preference-dependent, or requires approval. Present alternatives only when their trade-off is material or the user asks."
-      );
+    }
+    if (settingsConfigured && workingMode.delegated) {
+      lines.push("After Seed and build-outcome confirmation, agree the supported North Star within the supplied brief under delegated shaping authority and continue authorized shaping work. Preserve unresolved facts and external gates; do not claim human agreement.");
     }
     if (settingsConfigured && !buildOutcomeIsReady(runtime.settings)) {
       lines.push(
@@ -330,18 +341,23 @@ function buildSessionContext(runtime) {
     }
   } else if (stage === "selecting_dna") {
     lines.push(
-      `Explain that DNA modules are curated catalogues of possible documentation for relevant domains. Silently review material coverage, read each module's complete \`module_contract\` including its assurance profiles, timing, and live-verification rules, and recommend modules from ${at("_dna/")} using semantic judgment rather than keywords. Explain material selections, omissions, and deferrals with re-entry triggers. Legal, policy, and service consequences can require early attention even for a small build. If a material concern requires specialist coverage not provided by the installed DNA—such as trust and safety, marketplace or network integrity, AI product assurance, or regulated-sector practice—state that coverage gap rather than distributing it across adjacent modules, then obtain agreement to add the specialist module or accept the explicit limitation. Obtain explicit agreement before recording selection.`
+      `Explain that DNA modules are curated catalogues of possible documentation for relevant domains. Silently review material coverage, read each module's complete \`module_contract\` including its assurance profiles, timing, and live-verification rules, and recommend modules from ${at("_dna/")} using semantic judgment rather than keywords. Explain material selections, omissions, and deferrals with re-entry triggers. Legal, policy, and service consequences can require early attention even for a small build. If a material concern requires specialist coverage not provided by the installed DNA—such as trust and safety, marketplace or network integrity, AI product assurance, or regulated-sector practice—state that coverage gap rather than distributing it across adjacent modules, then obtain agreement to add the specialist module or accept the explicit limitation. ${settingsConfigured && workingMode.delegated ? "Record supported module selection within the confirmed brief without repeated approval." : "Obtain explicit agreement before recording selection unless that choice is separately delegated."}`
     );
   } else if (stage === "scoping_brainwave_documentation") {
     lines.push(
-      `Propose only proportionate DNA documents from the selected DNA modules, grouping obvious related documents into concise approval slices so scoping does not become a long form. Obtain explicit agreement before recording DNA document scope in ${at("_brainwave_state.yaml")}.`
+      `Choose proportionate DNA documents from the selected modules within the confirmed brief. ${settingsConfigured && workingMode.delegated ? "Record the supported scope and rationale under delegated shaping authority without repeated approval." : "Group related recommendations into concise approval slices and obtain explicit agreement before recording scope unless separately delegated."} Use ${at("_brainwave_state.yaml")} for scope. Select documentation_mode independently before authoring.`
     );
   } else if (stage === "building_brainwave_documentation") {
     lines.push(
-      "Build only the scoped DNA documentation and its traceable DNA blocks in coherent, dependency-aware slices using the North Star as direction. Preserve supplied references as inputs until Product Design and Experience documentation classifies their intended use. For user-facing output, require real-user copy, strong visual hierarchy, distinctive agreed direction, and rendered-experience verification; never permit development narration or generic agent defaults to leak into the product. In Legal, Policy and Market Access documentation, completion means the source-linked consequence screen and review route are documented, never legal approval or compliance; preserve jurisdiction, source dates, uncertainty, and qualified-review gates for every material issue."
+      "At each authoring slice start, resume or compaction, reload current direction, document status and relevant Document Open Questions. Choose one coherent decision or tightly coupled set; inspect concept headings and reference-collection metadata, then read only needed source passages and DNA dependencies. Split oversized work. Check source fidelity, consistency and implementability before moving on; continue other eligible work while awaiting input.",
+      "Build only the scoped DNA documentation and its traceable DNA blocks in coherent, dependency-aware slices. Use the North Star as current direction and relevant Seed passages as detailed intent unless explicitly superseded. Inspect relevant reference sources and existing DNA before developing new answers; reuse applicable research. Distinguish evidence, implications, assumptions, proposals and accepted decisions; resolve material constraints, failures and dependencies. Cite material reference use in Reference Basis. Product Design and Experience interprets design references; other evidence follows its owning domain. Before pausing, preserve the pending decision, recommendation, source/dependency links, next action and whether an answer is awaited in Document Open Questions. Before completion, check that the relevant blocks and dependencies support implementation without inventing material product decisions. For user-facing output, require real-user copy, strong visual hierarchy, distinctive agreed direction, and rendered-experience verification; never permit development narration or generic agent defaults to leak into the product. In Legal, Policy and Market Access documentation, completion means the source-linked consequence screen and review route are documented, never legal approval or compliance; preserve jurisdiction, source dates, uncertainty, and qualified-review gates for every material issue."
     );
   } else if (stage === "reviewing_brainwave_documentation") {
     lines.push(
+      settingsConfigured && workingMode.delegated
+        ? "After the required readiness review passes, accept the foundation under delegated documentation authority and record that basis honestly. This does not authorize starting implementation."
+        : "After readiness review, obtain explicit user acceptance before completing the foundation unless separate explicit delegation authorizes acceptance.",
+      "Check relevant concept intent and cited reference implications against the authored decisions. Distinguish evidence from assumptions and proposals from accepted or explicitly delegated decisions. Resolve blocking choices; preserve non-blocking unknowns and deliberate implementation discretion. Confirm an implementer can act from the relevant blocks and dependencies without inventing material product decisions.",
       "Review every expressed document for gaps, contradictions, cross-module consistency, and downstream readiness. For software products, silently scan each included capability for its implied setup, everyday use, management, recovery, and exit or closure behaviour; require material gaps to be included, deliberately excluded, not applicable, or unresolved in the owning Software Application or Product Design and Experience document without adding features merely because they are conventional. Verify that product-facing criteria prevent verbose developer-facing copy, weak hierarchy, generic visual defaults, and untested claims of experience quality. When Legal, Policy and Market Access DNA is selected, reject claims of legal advice, approval, certification, or compliance; material obligations without jurisdiction and current authoritative sources and dates; hidden uncertainty; fabricated qualified-review outcomes; and launch-readiness claims while required review gates remain unresolved."
     );
   }

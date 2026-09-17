@@ -271,7 +271,7 @@ node _brainwave/_engine/brainwave_runner.js run
 node _brainwave/_engine/brainwave_runner.js watch
 ```
 
-The engine never interprets the concept or chooses documentation. Those decisions remain conversational and require explicit user agreement.
+The engine never interprets the concept or chooses documentation. The agent makes those judgments with user agreement or delegated shaping authority within the supplied brief.
 
 ## Development
 
