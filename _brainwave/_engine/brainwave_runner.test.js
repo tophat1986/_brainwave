@@ -143,6 +143,8 @@ function createWorkspace(t, options = {}) {
     path.join(root, "_engine", "implementation_spine.js")
   );
   fs.copyFileSync(SOURCE_ASSURANCE, path.join(root, "_engine", "assurance.js"));
+  fs.copyFileSync(path.join(__dirname, "principles.js"), path.join(root, "_engine", "principles.js"));
+  fs.writeFileSync(path.join(root, "_principles.md"), "# Principles\n", "utf8");
   fs.copyFileSync(SOURCE_WORKING_MODES, path.join(root, "_engine", "working_modes.js"));
   fs.copyFileSync(
     SOURCE_IMPLEMENTATION_PROGRESS,
@@ -390,6 +392,86 @@ function verifySingleSlice(root) {
   assert.equal(runEngine(root, "implementation-close", slice.id).status, 0);
   return { sliceId: slice.id, blockId };
 }
+
+test("principles validation blocks authoring and invalid refreshes without overwriting the last snapshot", (t) => {
+  const { root } = createWorkspace(t, { expressed: true });
+  const file = path.join(root, "_principles.md");
+  fs.writeFileSync(file, "");
+  const pending = runEngine(root, "run");
+  assert.notEqual(pending.status, 0);
+  assert.match(pending.stderr, /Before authoring DNA/);
+  assert.equal(fs.existsSync(scaffoldedDocumentPath(root)), false);
+  fs.writeFileSync(file, "# Principles\n");
+  assert.equal(runEngine(root, "principles-validate").status, 0);
+  assert.equal(runEngine(root, "run").status, 0);
+  const snapshot = fs.readFileSync(path.join(root, "_manifest.yaml"), "utf8");
+  fs.writeFileSync(file, `# Principles\n- ${"x".repeat(161)}\n  Source: _my_brainwave_seed.md#intent\n`);
+  const invalid = runEngine(root, "refresh");
+  assert.notEqual(invalid.status, 0);
+  assert.match(invalid.stderr, /Principle 1 contains 161 characters/);
+  assert.equal(fs.readFileSync(path.join(root, "_manifest.yaml"), "utf8"), snapshot);
+});
+
+test("principles reach authoring, CLI, all session adapters and assurance without provenance clutter", (t) => {
+  const { root } = createWorkspace(t, { expressed: true, copyHooks: true });
+  const file = path.join(root, "_principles.md");
+  const phrase = "Protect the project's distinctive priority.";
+  fs.writeFileSync(file, `# Principles\n- ${phrase}\n  Source: _my_brainwave_seed.md#intent\n`);
+  const runHook = (adapter) => {
+    const result = spawnSync(process.execPath, [path.join(root, "_engine", "adapters", `${adapter}.js`), "session-start"], {
+      cwd: root, encoding: "utf8", input: JSON.stringify({ cwd: root })
+    });
+    assert.equal(result.status, 0, result.stderr);
+    const response = JSON.parse(result.stdout);
+    return response.additional_context || response.hookSpecificOutput.additionalContext;
+  };
+  assert.match(runHook("cursor"), /At each DNA slice, apply relevant principles/);
+  for (const adapter of ["cursor", "claude", "codex"]) {
+    const context = runHook(adapter);
+    assert.equal(context.split(phrase).length - 1, 1);
+    assert.doesNotMatch(context, /Source:|seed\.md#intent/);
+  }
+  acceptFoundation(root);
+  assert.equal(runHook("codex").split(phrase).length - 1, 1);
+  const spine = compileAndApproveSpine(root);
+  const cli = runEngine(root, "implementation-context");
+  assert.equal(cli.status, 0, cli.stderr);
+  assert.equal(cli.stdout.split(phrase).length - 1, 1);
+  assert.doesNotMatch(cli.stdout, /Source:|seed\.md#intent/);
+  const payload = JSON.parse(runEngine(root, "implementation-context", "--json").stdout);
+  assert.deepEqual(payload.principles, [phrase]);
+  for (const adapter of ["cursor", "claude", "codex"]) {
+    const context = runHook(adapter);
+    // The required CLI refresh, not the startup snapshot, supplies the delivery copy.
+    assert.equal(context.split(phrase).length - 1, 0);
+    assert.match(context, /implementation-context/);
+    assert.equal(`${context}\n${cli.stdout}`.split(phrase).length - 1, 1);
+    assert.doesNotMatch(context, /Source:|seed\.md#intent/);
+  }
+  const manifest = JSON.parse(fs.readFileSync(path.join(root, "_manifest.yaml"), "utf8"));
+  assert.equal(manifest.principles.entries[0].source, "_my_brainwave_seed.md#intent");
+  assert.equal(runEngine(root, "implementation-start", spine.slices[0].id).status, 0);
+  const id = Object.keys(spine.work_items)[0];
+  assert.equal(runEngine(root, "implementation-record", id, "implemented", "code", "src/system.js", "The boundary is implemented.").status, 0);
+  assert.equal(runEngine(root, "implementation-assurance-prepare", spine.slices[0].id).status, 0);
+  const packet = JSON.parse(fs.readFileSync(path.join(root, "_working", "assurance", "packet.json"), "utf8"));
+  assert.deepEqual(packet.principles, [phrase]);
+  assert.match(packet.review_protocol.conformance, /do not replace DNA coverage/);
+  // A changed source must stop delivery even before refresh updates the manifest.
+  fs.writeFileSync(file, `# Principles\n- A newly accepted priority.\n  Source: _my_brainwave_seed.md#intent\n`);
+  assert.match(runHook("codex"), /STOP: the spine is stale/);
+  assert.match(runEngine(root, "implementation-context").stdout, /STOP: the spine is stale/);
+  const stale = runEngine(root, "implementation-record", id, "implemented", "code", "src/system.js", "A change.");
+  assert.notEqual(stale.status, 0);
+  assert.match(stale.stderr, /spine is stale/);
+  fs.writeFileSync(file, `# Principles\n- ${"x".repeat(161)}\n  Source: _my_brainwave_seed.md#intent\n`);
+  for (const adapter of ["cursor", "claude", "codex"]) {
+    const context = runHook(adapter);
+    assert.match(context, /^STOP: Principles validation failed/);
+    assert.doesNotMatch(context, /x{161}/);
+    assert.ok(context.length < 700);
+  }
+});
 
 test("uses canonical _brainwave terminology in source and console output", (t) => {
   const { root } = createWorkspace(t, { expressed: true });
@@ -2991,6 +3073,8 @@ test("integrates a nested _brainwave without replacing existing project guidance
   });
   const projectRoot = path.dirname(root);
   const stateBefore = fs.readFileSync(path.join(root, "_brainwave_state.yaml"), "utf8");
+  const principlesBefore = "# Principles\n- An accepted project priority.\n  Source: _my_brainwave_seed.md#intent\n";
+  fs.writeFileSync(path.join(root, "_principles.md"), principlesBefore, "utf8");
   fs.writeFileSync(path.join(projectRoot, "AGENTS.md"), "# Existing project guidance\n", "utf8");
   fs.writeFileSync(path.join(projectRoot, "CLAUDE.md"), "# Existing Claude guidance\n", "utf8");
   writeJson(path.join(projectRoot, ".cursor", "hooks.json"), {
@@ -3083,6 +3167,9 @@ test("integrates a nested _brainwave without replacing existing project guidance
   const removeFirst = runEngineFrom(root, projectRoot, "unintegrate");
   const removeSecond = runEngineFrom(root, projectRoot, "unintegrate");
   const agentsAfter = fs.readFileSync(path.join(projectRoot, "AGENTS.md"), "utf8");
+  assert.equal(fs.readFileSync(path.join(root, "_principles.md"), "utf8"), principlesBefore);
+  assert.match(agents, /during approved delivery, get them from the required `implementation-context` call/);
+  assert.match(agents, /read `_brainwave\/_principles\.md` only when missing from context or changed/);
   const cursorAfter = JSON.parse(
     fs.readFileSync(path.join(projectRoot, ".cursor", "hooks.json"), "utf8")
   );

@@ -24,6 +24,7 @@ test("ships a clean framework release template", () => {
   });
   assert.deepEqual(sourceState.delivery_alignment, { last_review: null });
   assert.equal(fs.readFileSync(path.join(SOURCE_ROOT, "_my_brainwave_seed.md"), "utf8"), "");
+  assert.equal(fs.readFileSync(path.join(SOURCE_ROOT, "_principles.md"), "utf8"), "");
   assert.equal(
     fs.readFileSync(path.join(SOURCE_ROOT, "_my_brainwave_north_star.md"), "utf8"),
     ""

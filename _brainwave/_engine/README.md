@@ -8,6 +8,8 @@ The planning and authority contract is specified in `implementation_spine_spec.m
 
 Tool-neutral session policy lives in `runtime/`. Thin adapters in `adapters/` translate that policy into Cursor, Claude Code, and Codex hook output. Platform configuration remains at the host repository root.
 
+`principles.js` validates the project-owned `_principles.md`: at most ten single-line entries, 160 Unicode characters each, with bounded source locators. Blank/missing means unreviewed; a heading-only file is a valid empty set. Validation precedes DNA scaffolding, foundation acceptance and implementation commands. Runtime hooks return a compact stop for invalid content instead of injecting it. The engine never infers principles or proves their semantic admission; `_brainwave_handbook.md#principles` owns the admission and editing rules, signposted by `AGENTS.md`.
+
 ## Responsibilities
 
 - Validate the fixed _brainwave lifecycle.

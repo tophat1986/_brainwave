@@ -2,6 +2,7 @@
 
 const fs = require("fs");
 const path = require("path");
+const { readPrinciples, formatPrinciples, INITIAL_PRINCIPLES_INSTRUCTION } = require("../principles");
 const {
   implementationContextPayload,
   formatGuardedImplementationContext
@@ -163,9 +164,13 @@ function northStarStatus(content) {
 function loadRuntime(adapterDirectory, payload = {}) {
   const root = frameworkRootFromAdapter(adapterDirectory);
   const cwd = workingDirectory(payload);
+  let principles;
+  try { principles = readPrinciples(root); }
+  catch (error) { principles = { status: "invalid", error: error.message }; }
   return {
     root,
     cwd,
+    principles,
     state: readJson(path.join(root, "_brainwave_state.yaml")),
     settings: readJson(path.join(root, "_settings.yaml")),
     manifest: readJson(path.join(root, "_manifest.yaml")),
@@ -177,13 +182,22 @@ function loadRuntime(adapterDirectory, payload = {}) {
 
 function buildSessionContext(runtime) {
   const stage = runtime.state.stage || "awaiting_seed";
+  const principles = runtime.principles || { status: "ready", entries: [], sha256: null };
+  if (principles.error) return `STOP: ${principles.error} Run principles-validate after correcting _principles.md.`;
+  const principleTexts = principles.entries.map((entry) => entry.text);
+  const principleContext = formatPrinciples(principleTexts);
   if (stage === COMPLETE_STAGE) {
+    if (principles.status !== "ready") return `STOP: ${INITIAL_PRINCIPLES_INSTRUCTION} For an existing foundation, review accepted direction without rewriting it, then run principles-validate.`;
     const at = (artifact) => `\`${artifactPath(runtime.root, runtime.cwd, artifact)}\``;
     const lines = [
       `_brainwave has accepted its foundation; the eighth user-facing step, Deliver the implementation, and ambient delivery alignment are active. Do not announce or restart the seven-stage foundation workflow during ordinary development. DNA documents in ${at("_documentation/")} are the authority for direction; ${at("_implementation.yaml")} is the sole authority for delivery state and evidence.`,
       `Read ${at("_my_brainwave_north_star.md")} before project work. Do not read the full DNA corpus. Use \`node _brainwave/_engine/brainwave_runner.js implementation-context\` to retrieve the current slice and only its owning DNA passages.`
     ];
     const executionPolicy = implementationExecutionPolicy(runtime.settings);
+    if (principleContext && (executionPolicy.requires_selection ||
+        !["approved", "active", "complete"].includes(runtime.implementationSpine?.plan_status))) {
+      lines.unshift(principleContext);
+    }
     lines.push(formatImplementationExecutionPolicy(executionPolicy));
     lines.push("Foundation acceptance alone does not authorize product work. Begin implementation only when requested; an existing end-to-end request need not be approved again.");
     if (executionPolicy.requires_selection) {
@@ -206,7 +220,7 @@ function buildSessionContext(runtime) {
       } Do not begin product implementation yet.`);
     } else {
       const payload = implementationContextPayload(spine, {
-        source: spine.source,
+        source: { ...spine.source, principles_sha256: principles.sha256, principles: principleTexts },
         applicableBlockIds: Object.keys(spine.work_items || {})
       });
       if (runtime.manifest?.implementation?.source_stale) {
@@ -214,7 +228,9 @@ function buildSessionContext(runtime) {
         payload.exact_next_command =
           "Run implementation-compile, repeat synthesis and human review, and obtain approval before continuing.";
       }
-      lines.push(formatGuardedImplementationContext(payload));
+      // The required CLI context refresh supplies principles during approved delivery.
+      // Retain the full payload's freshness and budget checks without injecting the list twice.
+      lines.push(formatGuardedImplementationContext({ ...payload, principles: [] }));
       lines.push(
         payload.source_stale || payload.validation_errors?.length
           ? "Do not change product code until the implementation plan is current and structurally valid."
@@ -259,9 +275,10 @@ function buildSessionContext(runtime) {
     runtime.state.experience_checkpoints?.project_basics_checked_at
   );
   const lines = [
-    `_brainwave is active at stage \`${stage}\`. The exact user-facing label is "${displayStage}". Follow ${at("AGENTS.md")} and ${at("_brainwave_handbook.md")}.`,
+    `_brainwave is active at stage \`${stage}\`. The exact user-facing label is "${displayStage}". Follow ${at("AGENTS.md")}; consult relevant sections of ${at("_brainwave_handbook.md")} when needed.`,
     `Use "${displayStage}" when stating the current step in the first assistant reply; keep the lifecycle ID internal.`
   ];
+  if (principleContext) lines.unshift(principleContext);
 
   if (!settingsConfigured) {
     lines.push(
@@ -348,11 +365,14 @@ function buildSessionContext(runtime) {
       `Choose proportionate DNA documents from the selected modules within the confirmed brief. ${settingsConfigured && workingMode.delegated ? "Record the supported scope and rationale under delegated shaping authority without repeated approval." : "Group related recommendations into concise approval slices and obtain explicit agreement before recording scope unless separately delegated."} Use ${at("_brainwave_state.yaml")} for scope. Select documentation_mode independently before authoring.`
     );
   } else if (stage === "building_brainwave_documentation") {
+    lines.push(principles.status !== "ready" ? INITIAL_PRINCIPLES_INSTRUCTION :
+      "At each DNA slice, apply relevant principles quietly from current context; reread only if missing or changed. Consult _brainwave_handbook.md#principles before revising the set for new source intent.");
     lines.push(
       "At each authoring slice start, resume or compaction, reload current direction, document status and relevant Document Open Questions. Choose one coherent decision or tightly coupled set; inspect concept headings and reference-collection metadata, then read only needed source passages and DNA dependencies. Split oversized work. Check source fidelity, consistency and implementability before moving on; continue other eligible work while awaiting input.",
       "Build only the scoped DNA documentation and its traceable DNA blocks in coherent, dependency-aware slices. Use the North Star as current direction and relevant Seed passages as detailed intent unless explicitly superseded. Inspect relevant reference sources and existing DNA before developing new answers; reuse applicable research. Distinguish evidence, implications, assumptions, proposals and accepted decisions; resolve material constraints, failures and dependencies. Cite material reference use in Reference Basis. Product Design and Experience interprets design references; other evidence follows its owning domain. Before pausing, preserve the pending decision, recommendation, source/dependency links, next action and whether an answer is awaited in Document Open Questions. Before completion, check that the relevant blocks and dependencies support implementation without inventing material product decisions. For user-facing output, require real-user copy, strong visual hierarchy, distinctive agreed direction, and rendered-experience verification; never permit development narration or generic agent defaults to leak into the product. In Legal, Policy and Market Access documentation, completion means the source-linked consequence screen and review route are documented, never legal approval or compliance; preserve jurisdiction, source dates, uncertainty, and qualified-review gates for every material issue."
     );
   } else if (stage === "reviewing_brainwave_documentation") {
+    lines.push("Review principles for source fidelity, value across tasks, overlap and application in DNA. Follow _brainwave_handbook.md#principles for edits; run principles-validate before acceptance.");
     lines.push(
       settingsConfigured && workingMode.delegated
         ? "After the required readiness review passes, accept the foundation under delegated documentation authority and record that basis honestly. This does not authorize starting implementation."

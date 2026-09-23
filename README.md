@@ -121,7 +121,7 @@ Recommended when you have not created your project repository yet.
 
 6. Shape the North Star, explicitly agree how far the current idea should be taken, and then agree the resulting direction.
 7. Choose the relevant DNA modules and scope only the DNA documents the project needs.
-8. Let the engine scaffold the scoped DNA documents beneath `_brainwave/_documentation/_DNA-CODE/`, then build their content and traceable DNA blocks.
+8. Before authoring, identify the few project principles worth preserving in `_brainwave/_principles.md` (at most ten short sentences; zero is valid). Let the engine scaffold the scoped DNA documents beneath `_brainwave/_documentation/_DNA-CODE/`, then build their content and traceable DNA blocks.
 9. Review the foundation before accepting `brainwave_documentation_complete`.
 
 If you intentionally clone this repository instead, replace its `origin` with the new project's remote before beginning product work. A normal clone retains the upstream _brainwave remote.
@@ -255,6 +255,7 @@ node _brainwave/_engine/brainwave_runner.js implementation-synthesize <authored-
 node _brainwave/_engine/brainwave_runner.js implementation-review
 node _brainwave/_engine/brainwave_runner.js implementation-approve <approved-by>
 node _brainwave/_engine/brainwave_runner.js implementation-context [--json]
+node _brainwave/_engine/brainwave_runner.js principles-validate
 node _brainwave/_engine/brainwave_runner.js implementation-start <slice-id>
 node _brainwave/_engine/brainwave_runner.js implementation-record <block-id> <implemented|verified> <kind> <ref> <note>
 node _brainwave/_engine/brainwave_runner.js implementation-hold <block-id> <blocked|deferred> <owner> <reopen-when> <reason>

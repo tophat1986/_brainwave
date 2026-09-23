@@ -578,7 +578,7 @@ function assertActiveSlice(spine, sliceId) {
 
 function prepareAssuranceReview(
   spine,
-  { sliceId, revision, now, directionExcerpts = [], referenceRecords = [], tooling = null }
+  { sliceId, revision, now, directionExcerpts = [], referenceRecords = [], principles = [], tooling = null }
 ) {
   const slice = assertActiveSlice(spine, sliceId);
   if (!text(revision)) throw new Error("Assurance review must bind to a Git revision.");
@@ -633,12 +633,13 @@ function prepareAssuranceReview(
       current_revision: check.checked_revision || null
     })),
     direction_excerpts: clone(directionExcerpts),
+    principles: clone(principles),
     references: clone(referenceRecords),
     tooling: tooling === null ? null : clone(tooling),
     live_findings: sliceFindings(spine, sliceId).filter((finding) => finding.status !== "resolved"),
     review_protocol: {
       scope: "Challenge whether the sealed profiles, levels, methods, and references cover the implemented change; do not remove the sealed minimum.",
-      conformance: "Evaluate every sealed check against accepted direction and current evidence.",
+      conformance: "Evaluate every sealed check against accepted direction, relevant project principles and current evidence. Principles do not replace DNA coverage or weaken the sealed gate.",
       discovery: "Inspect the assembled outcome for credible defects or omissions the sealed checks did not anticipate."
     },
     result_contract: {

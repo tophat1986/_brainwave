@@ -43,7 +43,7 @@
       }
 
       function setView(view) {
-        const views = { journey: "journey-view", library: "library-view", references: "references-view" };
+        const views = { journey: "journey-view", principles: "principles-view", library: "library-view", references: "references-view" };
         if (!views[view]) return;
         Object.entries(views).forEach(([name, id]) => {
           document.getElementById(id).hidden = name !== view;

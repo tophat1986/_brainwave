@@ -1,0 +1,20 @@
+    #principles-view { max-width: 850px; margin-inline: auto; }
+    #principles-view .view-heading { margin-left: 0; }
+    .principles-list { list-style: none; padding: 0; margin: 0; }
+    .principle {
+      display: grid;
+      grid-template-columns: 2.5rem minmax(0, 1fr);
+      gap: 18px;
+      padding-block: 24px;
+      border-bottom: 1px solid var(--line);
+    }
+    .principle-number { padding-top: 4px; color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+    .principle-text { margin: 0; font-size: clamp(18px, 2.3vw, 23px); line-height: 1.5; font-weight: 550; overflow-wrap: anywhere; }
+    .principle-source { margin-top: 10px; color: var(--muted); font-size: 12px; }
+    .principle-source summary { width: fit-content; cursor: pointer; }
+    .principle-source button {
+      display: block; max-width: 100%; margin-top: 8px; padding: 0;
+      border: 0; background: transparent; color: var(--sky); font: inherit;
+      text-align: left; text-decoration: underline; overflow-wrap: anywhere; cursor: pointer;
+    }
+    .principles-empty { margin: 0; padding-block: 24px; color: var(--muted); }

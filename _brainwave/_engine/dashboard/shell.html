@@ -17,6 +17,7 @@
 
       <div class="view-switch" role="tablist" aria-label="Dashboard view">
         <button class="view-tab" type="button" role="tab" aria-selected="true" aria-controls="journey-view" data-view="journey">Your brainwave</button>
+        <button class="view-tab" type="button" role="tab" aria-selected="false" aria-controls="principles-view" data-view="principles" tabindex="-1">Principles</button>
         <button class="view-tab" type="button" role="tab" aria-selected="false" aria-controls="library-view" data-view="library" tabindex="-1">DNA Library</button>
         <button class="view-tab" type="button" role="tab" aria-selected="false" aria-controls="references-view" data-view="references" tabindex="-1">References</button>
       </div>
@@ -51,6 +52,17 @@
         </div>
         <section class="project-overview" id="project-overview" aria-label="Project overview"></section>
         <div class="journey" id="journey"></div>
+      </section>
+
+      <section id="principles-view" aria-labelledby="principles-title" hidden>
+        <div class="view-heading">
+          <div>
+            <h1 id="principles-title">Principles</h1>
+            <p>Keep defining intentions in view as tasks change.</p>
+          </div>
+          <div class="snapshot" id="principles-count"></div>
+        </div>
+        <div id="principles-list"></div>
       </section>
 
       <section id="library-view" aria-labelledby="library-title" hidden>

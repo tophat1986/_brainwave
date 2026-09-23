@@ -5,6 +5,7 @@
 
 This project includes `_brainwave/` as its idea-to-documentation foundation.
 
+- Reuse supplied project principles; during approved delivery, get them from the required `implementation-context` call. Otherwise read `_brainwave/_principles.md` only when missing from context or changed.
 - Read `_brainwave/_brainwave_state.yaml` before project work.
 - Apply `_settings.yaml` phase modes independently: `shaping_mode` for direction and scope, `documentation_mode` for DNA authoring and review, and `implementation_mode` for planning and delivery. Choose an unset phase mode when entering that phase; only explicit `autonomous` selection delegates its in-scope decisions. Modes never expand the task, transfer authority between phases, or waive quality gates. See `_brainwave/AGENTS.md` for legacy compatibility and approval boundaries.
 - Use `_brainwave/_my_brainwave_north_star.md` as current direction and the relevant files in `_brainwave/_documentation/` as detailed authority.

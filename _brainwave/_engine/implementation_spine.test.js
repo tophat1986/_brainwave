@@ -198,6 +198,24 @@ function assuranceResult(packet, {
   };
 }
 
+test("counts principles in effective execution budgets and preserves legacy empty-set compatibility", () => {
+  const blocks = [directionBlock(1)];
+  const plain = source();
+  const withPrinciples = source({ principles: ["x".repeat(160)], principles_sha256: "principles" });
+  const create = (basis) => finalizeImplementationSynthesis(
+    authoredProposal(buildImplementationSpine({ blocks, source: basis, now: "now" }), blocks),
+    { synthesizedBy: "Test agent", revision: "abc1234", now: "now", source: basis, applicableBlockIds: [blocks[0].id] }
+  );
+  const plainPlan = create(plain);
+  const steeredPlan = create(withPrinciples);
+  const metrics = (plan, basis) => validateImplementationSpine(plan, { source: basis, applicableBlockIds: [blocks[0].id] });
+  const baseline = metrics(plainPlan, plain);
+  const steered = metrics(steeredPlan, withPrinciples);
+  assert.ok(steered.slice_contexts[0].packet_chars > baseline.slice_contexts[0].packet_chars + 160);
+  assert.equal(metrics(plainPlan, source({ principles: [], principles_sha256: null })).stale, false);
+  assert.equal(metrics(plainPlan, withPrinciples).stale, true);
+});
+
 test("keeps implementation progress cadence separate from delivery state", () => {
   assert.deepEqual(
     ["silent", "track", "slice"].map((mode) => implementationProgressPolicy({

@@ -30,6 +30,7 @@ When the user explicitly asks to maintain, review, test, package, or release the
 
 - `_my_brainwave_seed.md` preserves the user's approved concept in its supplied wording and natural shape, then becomes immutable. Do not expand it for completeness, fit it to template headings, append working notes, or place decisions in it.
 - `_my_brainwave_north_star.md` is the living current direction. Read it before the seed in routine work.
+- `_principles.md` carries the project's short principles; see Project Principles below.
 - `_settings.yaml` owns the user profile, separate shaping, documentation, and implementation modes, the lightweight project profile, the explicitly confirmed build outcome, and the implementation-only progress-update preference. Treat the build outcome as a project decision, independently of profile onboarding.
 - `_assets/project_profile/`, when created, contains project-owned logos, concept images, and other supplied project-profile assets. Keep file references in `_settings.yaml`; never embed binary assets in YAML.
 - `_references/`, when created, is the project-owned multimodal Reference Library. Its items, collections, boards, adjacent material, and generated index preserve potentially influential context without making it accepted direction.
@@ -168,7 +169,7 @@ When the user says `build concept`:
    - why the idea should exist
    - who it is for
    - what it should enable
-   - guiding principles
+   - defining intentions that may need continued attention across tasks
    - boundaries and non-goals
    - what is being built now
    - what success means
@@ -185,7 +186,15 @@ When the user says `build concept`:
 12. Record the accepted selection with `select-dna`, log its rationale and actual decision authority, and transition to `scoping_brainwave_documentation`.
 13. Propose only relevant DNA documents within the selected modules. Use the confirmed build outcome as context, not as a substitute for an explicit scope decision. Use each DNA document group's `when_relevant` as the domain gate, treat `baseline: true` children as the normal recommendation once that group is relevant, and use each file's `intent` to decide whether optional children are material. Obtain user agreement in concise related groups unless autonomous shaping or separate delegation authorizes the initial in-brief scope. Existing accepted scope remains authoritative; expansion requires user agreement.
 14. Log the accepted DNA document scope, rationale, and decision authority, express entries using canonical references such as `_DNA-SAPP-00201`, and transition to `building_brainwave_documentation`.
-15. Load `documentation_mode`, asking for its selection only if unset, and run the engine to scaffold only the scoped DNA documents. Continue if documentation work is already task-authorized; shaping mode does not carry its authority into documentation.
+15. Load `documentation_mode`, asking for its selection only if unset, make the initial Project Principles pass below, and run the engine to scaffold only the scoped DNA documents. Continue if documentation work is already task-authorized; shaping mode does not carry its authority into documentation.
+
+## Project Principles
+
+Principles keep a few defining project intentions present across tasks, so local decisions stay faithful to the whole.
+
+- Before the first DNA document, derive the smallest supported set in `_principles.md`; zero is valid. Read the [admission and editing rules](_brainwave_handbook.md#principles) when creating or revising it.
+- Apply the current set quietly at each relevant slice; reuse supplied context and reread only when missing or changed. Put consequences in DNA without repeating the list.
+- Before foundation acceptance, review fidelity and application. Principles follow existing phase authority and accepted direction; meaning changes require user agreement, affected-DNA reconciliation and, during delivery, spine recompilation and review.
 
 ## DNA Documentation
 
@@ -204,7 +213,7 @@ An Architecture Decision Record (ADR) is one type of software architecture docum
 
 During `building_brainwave_documentation`:
 
-- At each slice start, including resume or compaction, read `documentation_mode`, the current North Star, document status, and relevant `Document Open Questions`; choose one coherent decision or tightly coupled set. Scan concept headings and relevant reference-collection metadata before retrieving only the source passages and DNA dependencies needed for that slice. Split work that cannot be considered together reliably.
+- At each slice start, including resume or compaction, read `documentation_mode`, the current North Star, document status, and relevant `Document Open Questions`, and use the current principles as described above; choose one coherent decision or tightly coupled set. Scan concept headings and relevant reference-collection metadata before retrieving only the source passages and DNA dependencies needed for that slice. Split work that cannot be considered together reliably.
 - Use the North Star as current direction and relevant Seed passages as detailed intent. Omission from the North Star does not discard concept detail; explicit later decisions govern conflicts, and approved document scope still applies.
 - Before developing a new answer, inspect relevant concept passages, reference metadata and source passages, and existing DNA. Reuse applicable research; investigate only gaps that could change the decision. Follow `_reference_library_guide.md` for retrieval and capture.
 - Develop unresolved decisions rather than paraphrasing the concept. Distinguish accepted direction, evidence, derived implications, working assumptions, and open choices. Resolve material constraints, failure and recovery behaviour, and dependencies in their owning blocks; cross-reference shared decisions.

@@ -4,6 +4,8 @@
 
 DNA documents own accepted product direction. DNA blocks are the atomic traceability identity. `_implementation.yaml` owns implementation order, delivery state, evidence, and compact handoff after the DNA foundation is accepted.
 
+`_principles.md` supplies a bounded set of accepted project priorities, never a second task inventory or a substitute for DNA. The source snapshot includes its semantic hash and derived short wording. Changes to wording or source locators make the plan stale; formatting-only changes do not. Legacy plans with no principles remain compatible with a reviewed empty set. Session hooks supply the short wording during planning; approved delivery receives it through the required `implementation-context` call, avoiding a second startup copy. Every explicit context call returns the current set. Effective packet budgets include it, and assurance packets carry it without weakening inherited checks. Recompile and review after accepted changes. Root agent files only signpost the project-owned source.
+
 `_implementation_proposal.yaml` is an agent-authored planning input, not a second delivery authority. `_implementation_review.md` is the human approval view. The manifest and dashboard are derived.
 
 The dashboard presents the spine as the eighth user-facing journey step, **Deliver the implementation**. This is a derived delivery view, not another `_brainwave_state.yaml` lifecycle value. It exposes the proposed or approved tracks and slices, outcomes, dependencies, gates, acceptance checks, context measures, validation notices, and progressively disclosed DNA mappings without owning or mutating them.

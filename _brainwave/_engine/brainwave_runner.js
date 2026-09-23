@@ -53,6 +53,7 @@ const {
   REFERENCE_CONTEXT_MAX_BYTES
 } = require("./reference_library");
 const { writeDashboard } = require("./dashboard_renderer");
+const { readPrinciples, assertPrinciplesReady, PRINCIPLE_LIMITS } = require("./principles");
 const {
   WORKING_MODES, PHASE_SETTINGS, phaseForStage, resolveWorkingMode, implementationExecutionPolicy
 } = require("./working_modes");
@@ -1161,6 +1162,7 @@ function loadWorkspace(options = {}) {
     state,
     seedText: readText(PATHS.seed),
     northStarText: readText(PATHS.northStar),
+    principles: readPrinciples(ROOT),
     decisionsText: readText(PATHS.decisions),
     handbookText: readText(PATHS.handbook),
     implementationSpine: exists(PATHS.implementation)
@@ -1221,6 +1223,8 @@ function implementationSource(workspace, directionBlocks) {
     generated_at: nowIso(),
     git_revision: gitRevision(),
     north_star_sha256: workspace.northStarText.trim() ? sha256(workspace.northStarText) : null,
+    principles_sha256: workspace.principles.sha256,
+    principles: workspace.principles.entries.map((entry) => entry.text),
     dna_scope_sha256: sha256(
       JSON.stringify({ selected_dna: workspace.state.selected_dna, blocks: directionSnapshot })
     ),
@@ -1687,6 +1691,7 @@ function buildManifest(workspace, command, taskPlan = [], prior = null) {
   const manifest = defaultManifestSkeleton();
   const projectProfile = normalizedProjectProfile(workspace.settings);
   manifest.references = JSON.parse(JSON.stringify(workspace.referenceLibrary));
+  manifest.principles = { ...workspace.principles, limits: PRINCIPLE_LIMITS };
   const previous = prior || workspace.previousManifest;
   if (previous && Array.isArray(previous.events)) {
     manifest.events = previous.events.slice(-100);
@@ -2257,6 +2262,7 @@ function assertReconciliationReady(workspace) {
   assertBuildOutcomeReady(workspace.settings);
   assertNorthStarAgreed(workspace.northStarText);
   assertSelectedDna(workspace.state);
+  assertPrinciplesReady(workspace.principles);
   if (!ACTIVE_RECONCILIATION_STAGES.has(workspace.state.stage)) {
     if (workspace.state.stage === "brainwave_documentation_complete") {
       throw new Error(
@@ -2514,6 +2520,7 @@ function transitionStage(targetStage) {
   if (
     ["reviewing_brainwave_documentation", "brainwave_documentation_complete"].includes(targetStage)
   ) {
+    assertPrinciplesReady(workspace.principles);
     const incomplete = incompleteExpressedFiles(workspace);
     if (incomplete.length > 0) {
       throw new Error(
@@ -2548,6 +2555,7 @@ function implementationCommandContext({ requireSpine = true } = {}) {
       "The implementation spine is available after the DNA foundation has been accepted."
     );
   }
+  assertPrinciplesReady(workspace.principles);
   const manifest = buildWorkspaceManifest(workspace, "implementation");
   const directionBlocks = manifest.direction.blocks || [];
   const directionErrors = directionBlocks.flatMap((block) => block.contract_errors || []);
@@ -2595,6 +2603,7 @@ function runImplementationMutation(command, mutator) {
       errors.length > 0 && errors.every((error) =>
         /^Assurance finding QF-\d+ needs reconciliation before approval\.$/.test(error)
       );
+    if (validation.stale) throw new Error("The implementation spine is stale. Recompile and review it before continuing.");
     if (
       validation.errors.length &&
       command !== "implementation-approve" &&
@@ -2939,6 +2948,7 @@ function prepareImplementationAssurance(args) {
       revision: gitRevision(),
       now: nowIso(),
       directionExcerpts: assuranceDirectionExcerpts(context, sliceId),
+      principles: context.source.principles,
       referenceRecords: assuranceReferenceRecords(context, slice),
       tooling: assuranceToolingForSlice(context.workspace.settings, slice)
     });
@@ -3141,6 +3151,12 @@ function refreshDerivedState() {
   console.log(`${CONSOLE_PREFIX} derived state refreshed at ${nowIso()}`);
 }
 
+function validatePrinciples() {
+  const principles = readPrinciples(ROOT);
+  assertPrinciplesReady(principles);
+  console.log(`${CONSOLE_PREFIX} principles valid: ${principles.entries.length}/${PRINCIPLE_LIMITS.count}; at most ${PRINCIPLE_LIMITS.characters} characters each.`);
+}
+
 function validateReferenceLibrary() {
   const workspace = loadWorkspace();
   const references = workspace.referenceLibrary;
@@ -3298,6 +3314,7 @@ function printHelp() {
   console.log("  node _brainwave/_engine/brainwave_runner.js unintegrate  (from project root)");
   console.log("  node _brainwave/_engine/brainwave_runner.js status");
   console.log("  node _brainwave/_engine/brainwave_runner.js refresh");
+  console.log("  node _brainwave/_engine/brainwave_runner.js principles-validate");
   console.log("  node _brainwave/_engine/brainwave_runner.js references-index");
   console.log("  node _brainwave/_engine/brainwave_runner.js references-validate");
   console.log("  node _brainwave/_engine/brainwave_runner.js references-find <query> [--limit <count>] [--offset <count>]");
@@ -3361,6 +3378,7 @@ async function main() {
   }
   if (command === "status") return printStatus();
   if (command === "refresh") return refreshDerivedState();
+  if (command === "principles-validate") return validatePrinciples();
   if (command === "references-index") return indexReferenceLibrary();
   if (command === "references-validate") return validateReferenceLibrary();
   if (command === "references-find") return findReferences(args);

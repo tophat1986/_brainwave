@@ -138,6 +138,7 @@ Some concepts require **specialist coverage** that the installed DNA does not pr
 
 - **_brainwave Seed:** The user's explicitly approved concept, preserved in its supplied wording and natural shape. It becomes immutable after capture and is never a working-notes document.
 - **North Star:** The living current direction derived from the seed. It may evolve without altering the original seed.
+- **Principles:** A few defining project intentions kept present across tasks, so individual decisions stay faithful to the whole.
 - **Reference Library:** Project-owned contextual material indexed for discovery without becoming accepted direction.
 - **Reference item, collection, and board:** One discoverable reference, a capture grouping, and a curated cross-cutting view respectively.
 - **DNA Library:** The installed collection of DNA modules available to the project.
@@ -226,6 +227,44 @@ Command hooks execute local code. Cursor, Claude Code, and Codex may ask the use
 
 In another IDE or agent environment, begin by telling the agent to read the root `AGENTS.md`, then `_brainwave/AGENTS.md` and this handbook. If the environment uses another native instruction filename, make that file a small bridge to `_brainwave/AGENTS.md`; do not duplicate the directive. _brainwave cannot make an unknown host discover repository instructions automatically, but its workflow and engine do not depend on hooks.
 
+## Principles
+
+Principles keep a few defining project intentions present as agents move between tasks. They help individual decisions stay faithful to the whole project, even when the full concept is outside the current context.
+
+The concept preserves intent, the North Star sets direction, and DNA holds detailed decisions. `_principles.md` gives selected intentions continued attention. Reflecting source intent is essential; copying summaries, specifications or procedures would dilute that focus.
+
+### Admission
+
+Ask: **Would keeping this intention present materially change decisions across the project as agents work on individual tasks?** Admit only durable, accepted, source-backed intent that passes this test without overlapping another entry. Familiar wording can qualify when it matters specifically here. Never import generic advice, preset categories or a catalogue of principles.
+
+Before the first DNA document, inspect the agreed North Star and relevant concept passages; write the smallest supported set and leave room for discovery. Zero is valid. Refine it only when new source intent warrants a change. Resolve uncertain candidates in the owning document's `Document Open Questions` under `documentation_mode`; generated DNA cannot justify its own unsupported inference.
+
+### Editing
+
+Use `# Principles`, followed by at most ten entries, each with:
+
+- One `- short principle` line: one coherent sentence, at most 160 Unicode characters including spaces and punctuation. Prefer the shortest faithful wording.
+- One indented `  Source: relative-file.md#locator` line: at most 240 characters, pointing to the Seed, North Star or owning DNA passage.
+
+Keep explanations, drafts and history outside this file. Blank or absent means discovery has not happened; the heading alone records a reviewed empty set. Run `node _brainwave/_engine/brainwave_runner.js principles-validate` after edits. Fix the offending entry without splitting it or removing unrelated intent to evade limits. Validation checks structure and source availability, not meaning or acceptance.
+
+Before foundation acceptance, check source fidelity, overlap and application in relevant DNA. Existing projects make the initial pass against accepted direction without bulk-copying or relocating it. Principles follow phase authority and never override the North Star, DNA exceptions, scope or assurance. Changes to accepted meaning require user agreement, reconciliation of affected DNA and, during implementation, spine recompilation and review.
+
+### Context cadence
+
+Only the short wording enters routine context; sources remain inspectable in the dashboard's **Principles** tab. Admission and editing rules are consulted when creating or changing the set.
+
+| When | What happens |
+|---|---|
+| New documentation session | Installed session-start hooks supply the current set once. Without hooks, the agent reads the file. |
+| Each DNA slice | Apply the set already in context; reread only if missing or changed, including after resume or compaction. Most slices need no edit or report. |
+| Foundation review | Check the set and its application before acceptance. |
+| Implementation planning | Session-start hooks supply the set while selecting the implementation mode or preparing the plan. |
+| Approved delivery | The required `implementation-context` call supplies it at session start, resume or compaction, and whenever fresh slice context is requested. The session hook leaves this copy to that command. |
+| Slice QA | The bounded review packet includes the set for its reviewer. |
+
+There is no timer or per-message reminder. Each explicit context request returns the current set; repeated requests are not deduplicated across calls. Apply principles quietly without repeating the list in DNA or routine progress reports.
+
 ## The Dashboard
 
 `_dashboard.html` is the window into _brainwave. Open it directly from disk; no local server is required.
@@ -236,6 +275,7 @@ It shows:
 - a complete, friendly view of the user's setup choices, project basics, and getting-started checkpoints
 - an eight-step vertical journey: seven foundation stages followed by active implementation delivery
 - in-dashboard previews of the seed, North Star, decisions, handbook, and expressed documents
+- a Principles tab showing only the short accepted set, with sources available on demand
 - the installed DNA Library, including each module's full DNA document catalogue before a concept is selected
 - a tabular Reference Library view with item, collection, board, source, role, and DNA-link context
 - document and DNA-block progress using canonical IDs and expandable block-level detail
@@ -366,6 +406,7 @@ Project-owned files must never be overwritten by an update:
 
 - `_my_brainwave_seed.md`
 - `_my_brainwave_north_star.md`
+- `_principles.md`
 - `_brainwave_state.yaml`
 - `_settings.yaml`
 - `_assets/`

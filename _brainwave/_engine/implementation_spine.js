@@ -1,6 +1,7 @@
 "use strict";
 
 const crypto = require("node:crypto");
+const { formatPrinciples } = require("./principles");
 const { formatImplementationExecutionPolicy } = require("./working_modes");
 const {
   ASSURANCE_PROFILE_CATALOG,
@@ -351,7 +352,7 @@ function dependencyCycle(slicesById) {
 
 function sourceIsStale(spine, source) {
   if (!isObject(spine?.source) || !isObject(source)) return true;
-  return ["north_star_sha256", "dna_scope_sha256"].some(
+  return ["north_star_sha256", "dna_scope_sha256", "principles_sha256"].some(
     (key) => text(spine.source[key]) !== text(source[key])
   );
 }
@@ -858,7 +859,7 @@ function validateImplementationSpine(
     }
   }
   const stale = source ? sourceIsStale(spine, source) : false;
-  if (stale) warnings.push("The implementation spine is stale against the accepted North Star or DNA scope.");
+  if (stale) warnings.push("The implementation spine is stale against the accepted North Star, principles or DNA scope.");
   const enforceHardLimits = enforceContextHardLimits === null
     ? ["approved", "active", "complete"].includes(spine.plan_status)
     : Boolean(enforceContextHardLimits);
@@ -1367,6 +1368,7 @@ function implementationContextPayload(
     planning: clone(spine.planning || {}),
     source_git_revision: spine.source?.git_revision || null,
     source_stale: validation.stale,
+    principles: source?.principles || spine.source?.principles || [],
     validation_errors: validation.errors,
     validation_warnings: validation.warnings,
     context_budget: contextBudget
@@ -1404,6 +1406,8 @@ function formatImplementationContext(payload) {
     `Planning: ${payload.planning?.synthesis_status || "unknown"}; adoption mode ${payload.planning?.adoption_mode || "unknown"}.`,
     `DNA direction coverage: built ${coverage.built || 0}/${coverage.applicable || 0}; checked ${coverage.checked || 0}/${coverage.applicable || 0}; blocked ${coverage.blocked || 0}; deferred ${coverage.deferred || 0}.`
   ];
+  const principles = formatPrinciples(payload.principles);
+  if (principles) lines.unshift(principles);
   if (payload.readiness) {
     lines.push(
       `Separate gates: technical health ${payload.readiness.technical_health}; product coverage ${payload.readiness.product_coverage}; external gates ${payload.readiness.external_gates}; release readiness ${payload.readiness.release_readiness}.`
@@ -1415,7 +1419,7 @@ function formatImplementationContext(payload) {
       `Implementation progress updates: ${payload.progress_updates.mode}; ${payload.progress_updates.update_boundary}`
     );
   }
-  if (payload.source_stale) lines.push("STOP: the spine is stale against the accepted North Star or DNA scope.");
+  if (payload.source_stale) lines.push("STOP: the spine is stale against the accepted North Star, principles or DNA scope.");
   if (payload.validation_errors?.length) {
     lines.push(`STOP: ${payload.validation_errors.length} spine validation error(s). Run implementation-check before delivery work.`);
   }

@@ -31,7 +31,7 @@
     "brainwave:implementation:review": "node _brainwave/_engine/brainwave_runner.js implementation-review",
     "brainwave:implementation:context": "node _brainwave/_engine/brainwave_runner.js implementation-context",
     "brainwave:implementation:audit": "node _brainwave/_engine/brainwave_runner.js implementation-audit",
-    "test": "node --test _brainwave/_engine/brainwave_runner.test.js _brainwave/_engine/dashboard_renderer.test.js _brainwave/_engine/implementation_spine.test.js _brainwave/_engine/reference_library.test.js _brainwave/_engine/working_modes.test.js",
+    "test": "node --test _brainwave/_engine/brainwave_runner.test.js _brainwave/_engine/dashboard_renderer.test.js _brainwave/_engine/implementation_spine.test.js _brainwave/_engine/reference_library.test.js _brainwave/_engine/working_modes.test.js _brainwave/_engine/principles.test.js",
     "test:release": "node --test _brainwave/_engine/brainwave_release.test.js"
   },
   "keywords": [

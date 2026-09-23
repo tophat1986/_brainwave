@@ -71,6 +71,7 @@
       renderProjectOverview();
       renderJourney();
       renderLibrary();
+      renderPrinciples();
       renderReferences();
       window.addEventListener("popstate", syncInspectorFromRoute);
       window.addEventListener("hashchange", syncInspectorFromRoute);

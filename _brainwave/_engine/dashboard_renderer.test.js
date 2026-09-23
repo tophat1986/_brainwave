@@ -143,6 +143,60 @@ test("invalid phase settings remain unselected in the dashboard", () => {
   }
 });
 
+test("principles view distinguishes unreviewed and deliberately empty sets without filler", () => {
+  const script = fs.readFileSync(path.join(__dirname, "dashboard", "scripts", "31-principles.js"), "utf8");
+  const render = (principles) => {
+    const nodes = { "principles-count": {}, "principles-list": {} };
+    vm.runInNewContext(`${script}\nrenderPrinciples();`, {
+      state: { principles }, document: { getElementById: (id) => nodes[id] }
+    });
+    return nodes;
+  };
+  assert.match(render({ status: "not_started" })["principles-list"].innerHTML, /take shape/);
+  assert.match(render({ status: "ready", entries: [] })["principles-list"].innerHTML, /No principles needed yet/);
+  assert.equal(render({ status: "ready", entries: [] })["principles-count"].textContent, "");
+});
+
+test("principles view safely displays the exact short wording with source disclosure", () => {
+  const script = fs.readFileSync(path.join(__dirname, "dashboard", "scripts", "31-principles.js"), "utf8");
+  const helpers = fs.readFileSync(path.join(__dirname, "dashboard", "scripts", "10-helpers-and-model.js"), "utf8");
+  const nodes = { "principles-count": {}, "principles-list": {} };
+  const entries = [
+    { text: "Keep <intent> & meaning.", source: "_my_brainwave_seed.md#intent" },
+    { text: "A distinct priority.", source: "_my_brainwave_north_star.md#priority" },
+    { text: "Another accepted priority.", source: "_documentation/_DNA-SAPP/system.md#decision" }
+  ];
+  vm.runInNewContext(`${helpers}\n${script}\nrenderPrinciples();`, {
+    state: { principles: { status: "ready", entries } }, settings: {}, stageDefinitions: [],
+    document: { getElementById: (id) => nodes[id] }
+  });
+  const html = nodes["principles-list"].innerHTML;
+  assert.match(html, /Keep &lt;intent&gt; &amp; meaning\./);
+  assert.doesNotMatch(html, /Keep <intent>/);
+  assert.match(html, /<details class="principle-source"><summary>Source<\/summary>/);
+  assert.doesNotMatch(html, /<details[^>]* open/);
+  assert.match(html, /data-content="seed"/);
+  assert.match(html, /data-content="north_star"/);
+  assert.match(html, /data-action="document" data-path="_documentation\/_DNA-SAPP\/system\.md"/);
+  assert.equal(nodes["principles-count"].textContent, "3 of 10 maximum");
+});
+
+test("switching to Principles hides other panels and maintains one selected keyboard tab", () => {
+  const script = fs.readFileSync(path.join(__dirname, "dashboard", "scripts", "30-primary-views.js"), "utf8");
+  const views = ["journey", "principles", "library", "references"];
+  const nodes = Object.fromEntries(views.map((name) => [`${name}-view`, {}]));
+  const buttons = views.map((name) => ({ dataset: { view: name }, attrs: {}, setAttribute(key, value) { this.attrs[key] = value; } }));
+  vm.runInNewContext(`${script}\nsetView('principles');`, {
+    document: { getElementById: (id) => nodes[id], querySelectorAll: () => buttons }
+  });
+  assert.deepEqual(views.filter((name) => !nodes[`${name}-view`].hidden), ["principles"]);
+  assert.deepEqual(buttons.filter((button) => button.tabIndex === 0).map((button) => button.dataset.view), ["principles"]);
+  assert.deepEqual(buttons.filter((button) => button.attrs["aria-selected"] === "true").map((button) => button.dataset.view), ["principles"]);
+  const html = renderDashboard({});
+  assert.match(html, /aria-controls="principles-view" data-view="principles"/);
+  assert.match(html, /renderPrinciples\(\);/);
+});
+
 test("renders deterministically with fragments in lexical order", (t) => {
   const sourceRoot = path.join(temporaryDirectory(t), "source");
   writeSource(sourceRoot);
